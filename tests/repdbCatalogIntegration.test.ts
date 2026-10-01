@@ -71,7 +71,7 @@ describe('RepDB catalog persistence', () => {
     const programs = new ProgramRepository(database);
     await seedRepdbCatalog(createRepdbArtifact(), database);
     const program = await programs.create({ name: 'Stable plan' });
-    const day = await programs.addDay({ programId: program.id, name: 'Day 1', dayNumber: 1 });
+    const day = await programs.addDay({ programId: program.id, name: 'Day 1', order: 1 });
     await programs.addExercise({
       programDayId: day.id,
       exerciseId: 'repdb:bench-press',

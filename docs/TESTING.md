@@ -19,7 +19,7 @@ GitHub Actions runs these checks on pull requests and pushes to `main`. Browser 
 
 ### Unit and storage tests
 
-Vitest runs TypeScript tests in JSDOM. `fake-indexeddb` provides the IndexedDB APIs required by Dexie. Tests use unique database names and close/delete them after each case. The storage suite covers validated CRUD, relationship enforcement, deletion rules, real v1→v2 and v2→v3 upgrades, closing/reopening a complete workout graph, provider initialization/restart/update behavior, stable IDs, and custom/provider coexistence.
+Vitest runs TypeScript tests in JSDOM. `fake-indexeddb` provides the IndexedDB APIs required by Dexie. Tests use unique database names and close/delete them after each case. The storage suite covers validated CRUD, relationship enforcement, deletion rules, real v1→v2, v2→v3, and v3→v4 upgrades, closing/reopening workout and program graphs, provider initialization/restart/update behavior, stable IDs, and custom/provider coexistence.
 
 RepDB unit tests cover schema failures, duplicate IDs, safe image paths, mapping, both image shapes, muscle/equipment/difficulty/goal mapping, search, and filters. `pnpm repdb:verify` validates the generated 601-record artifact independently of UI tests.
 
@@ -29,7 +29,7 @@ React Testing Library tests the interface through accessible roles and names. Pr
 
 ### End-to-end tests
 
-Playwright starts the built production preview and runs iPhone Safari and desktop Chromium profiles. The suite checks navigation, the generated manifest, service-worker registration, catalog initialization, search/filter/detail behavior, both media shapes, custom creation, and offline persistence.
+Playwright starts the built production preview and runs iPhone Safari and desktop Chromium profiles. The suite checks navigation, manifest/service-worker behavior, exercise catalog flows, and a complete create-program → add-day → add RepDB/custom prescriptions → reorder → reload → offline recovery flow.
 
 Install browsers once with:
 

@@ -168,7 +168,8 @@ export const programDaySchema: z.ZodType<ProgramDay> = z
     id: entityIdSchema,
     programId: entityIdSchema,
     name: z.string().trim().min(1).max(120),
-    dayNumber: z.number().int().positive(),
+    order: z.number().int().positive(),
+    notes: nullableNotesSchema,
     ...timestampFields,
   })
   .strict();
@@ -180,16 +181,22 @@ export const programExerciseSchema: z.ZodType<ProgramExercise> = z
     exerciseId: exerciseIdSchema,
     order: z.number().int().positive(),
     targetSets: z.number().int().positive().nullable(),
-    targetRepsMin: z.number().int().nonnegative().nullable(),
-    targetRepsMax: z.number().int().nonnegative().nullable(),
+    minReps: z.number().int().nonnegative().nullable(),
+    maxReps: z.number().int().nonnegative().nullable(),
+    targetRirMin: z.number().int().min(0).max(10).nullable(),
+    targetRirMax: z.number().int().min(0).max(10).nullable(),
+    restSeconds: z.number().int().nonnegative().max(3_600).nullable(),
     notes: nullableNotesSchema,
     ...timestampFields,
   })
   .strict()
+  .refine(({ minReps, maxReps }) => minReps === null || maxReps === null || minReps <= maxReps, {
+    message: 'Minimum target reps cannot exceed maximum target reps.',
+  })
   .refine(
-    ({ targetRepsMin, targetRepsMax }) =>
-      targetRepsMin === null || targetRepsMax === null || targetRepsMin <= targetRepsMax,
-    { message: 'Minimum target reps cannot exceed maximum target reps.' },
+    ({ targetRirMin, targetRirMax }) =>
+      targetRirMin === null || targetRirMax === null || targetRirMin <= targetRirMax,
+    { message: 'Minimum target RIR cannot exceed maximum target RIR.' },
   );
 
 export const workoutSessionSchema: z.ZodType<WorkoutSession> = z

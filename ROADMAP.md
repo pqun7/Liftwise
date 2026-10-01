@@ -30,10 +30,11 @@ The roadmap is directional. Reliability, privacy, and data safety take priority 
 
 ## v0.4.0 — Program Builder
 
-- Program and day authoring on the stable Exercise abstraction
-- Add either built-in or custom exercises to plans
-- Accessible reordering and prescription targets
-- Validated export and recovery foundations
+- [x] Program and day authoring on the stable Exercise abstraction
+- [x] Add either built-in or custom exercises to plans
+- [x] Accessible day/exercise reordering and deterministic prescription targets
+- [x] Active-program selection, duplication, confirmed deletion, and reload recovery
+- [ ] Validated export and recovery foundations (required before live workout logging)
 
 ## v0.5.0 — Workout logging
 

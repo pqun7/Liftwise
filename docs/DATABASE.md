@@ -46,11 +46,11 @@ A named training program with an optional description and archive state.
 
 ### ProgramDay
 
-An ordered day belonging to one program. The `(programId, dayNumber)` pair is unique.
+An ordered day belonging to one program with optional notes. The `(programId, order)` pair is unique. Rest days are represented by the absence of a scheduled training day rather than fake exercises.
 
 ### ProgramExercise
 
-An ordered exercise prescription belonging to a program day. It references an exercise and may include target sets, minimum/maximum reps, and notes. The `(programDayId, order)` pair is unique.
+An ordered, editable prescription belonging to a program day. It references a stable provider-neutral exercise ID and stores target sets, minimum/maximum reps, minimum/maximum RIR, rest seconds, and notes. The `(programDayId, order)` pair is unique. It is current intent—not historical workout truth.
 
 ### WorkoutSession
 
@@ -94,6 +94,10 @@ Adds all domain stores and relationship indexes. Existing settings gain `created
 ### Version 3 — v0.3.0
 
 Expands Exercise and adds provider indexes plus `catalogMetadata`. The v2→v3 migration preserves each existing ID and reference, classifies the record as custom, retains name/notes/timestamps, and fills provider-neutral defaults. Catalog initialization is transactional and idempotent. A later provider snapshot upserts matching stable IDs and marks removed built-ins inactive rather than deleting them.
+
+### Version 4 — v0.4.0
+
+Changes the ProgramDay compound order index from `(programId, dayNumber)` to `(programId, order)`, adds day notes, renames prescription rep fields to `minReps`/`maxReps`, and adds target RIR and rest seconds. The forward migration preserves program, day, prescription, and exercise IDs, timestamps, notes, ordering, and references. Missing new fields receive `null`, meaning no target.
 
 ## Future migration strategy
 

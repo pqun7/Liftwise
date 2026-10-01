@@ -11,6 +11,8 @@ export async function listCatalogExercises(): Promise<Exercise[]> {
 }
 
 export async function getCatalogExercise(id: string): Promise<Exercise | undefined> {
+  const existing = await repository.get(id);
+  if (existing) return existing;
   await initializeRepdbCatalog(database);
   return repository.get(id);
 }
@@ -22,7 +24,6 @@ export async function createCustomExercise(input: {
   equipment: string | null;
   notes: string | null;
 }): Promise<Exercise> {
-  await initializeRepdbCatalog(database);
   return repository.create(input);
 }
 

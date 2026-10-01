@@ -31,7 +31,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/features/exercises/loaders.ts'],
+    files: ['src/features/exercises/loaders.ts', 'src/features/plan/loaders.ts'],
     rules: {
       '@typescript-eslint/only-throw-error': 'off',
     },

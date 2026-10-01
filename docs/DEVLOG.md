@@ -1,5 +1,58 @@
 # Development log
 
+## 2026-10-01 — v0.4.0 Program Builder and prescription model
+
+### Goal
+
+Make complete training programs maintainable offline on an iPhone-sized interface while establishing a deterministic prescription model that future workout sessions can snapshot safely.
+
+### Work completed
+
+- Added program list/detail/edit flows, active-program selection, deep duplication, and confirmed deletion.
+- Added training-day create/edit/duplicate/delete and atomic accessible ordering.
+- Reused the existing Exercise catalog and filters to assign RepDB or custom exercise IDs.
+- Added deterministic sets, rep range, RIR range, rest seconds, notes, and accessible exercise ordering.
+- Added schema version 4 and a forward v3→v4 migration without changing released schemas.
+- Added program/history boundary documentation and ADR-004.
+
+### Important decisions
+
+- The active program is a single AppSettings pointer, avoiding conflicting `isActive` flags across program rows.
+- ProgramExercise remains mutable intent. Future workout history must use a session-owned snapshot rather than reading the current prescription.
+- Ordering changes delete/reinsert only the ordered rows inside one Dexie transaction, preventing transient compound-index collisions.
+- Move Up/Move Down is the primary accessible ordering control; no gesture is required.
+
+### Problems encountered
+
+- Compound unique indexes make naïve pairwise swaps fail. Atomic bulk replacement preserves IDs while avoiding duplicate order values.
+- The local package mirror was incomplete after pnpm requested dependency-directory reconciliation; the exact existing lockfile was restored before checks continued.
+- WebKit catalog initialization is slower under parallel browser tests, so custom writes were decoupled from unnecessary catalog seeding.
+
+### Bugs fixed
+
+- Custom exercise creation now persists immediately without waiting for RepDB initialization.
+- Program/day deletion continues clearing only optional workout provenance links and never deletes workout history.
+- Day and exercise deletion compact remaining order values atomically.
+
+### Tests added
+
+- v3→v4 migration preserving program/day/prescription/exercise IDs and values.
+- Program CRUD, active selection, deep program duplication, day duplication, ordering, and invalid reorder rejection.
+- RepDB plus custom exercise assignment, prescription validation, and exact database close/reopen recovery.
+- Production Mobile Safari/Chrome program creation, prescription entry, reordering, reload, and offline recovery.
+
+### Known limitations
+
+- No live workout, session snapshot persistence, set logger, rest timer, substitutions, supersets, progression engine, or analytics exists yet.
+- Export/restore remains required before workout logging ships.
+- Drag gestures are not implemented; accessible buttons provide deterministic reordering.
+- Physical-iPhone installation, keyboard, storage-pressure, and offline lifecycle testing still requires a deployed HTTPS build and real device.
+- The existing production JavaScript chunk warning remains; route-level splitting is a future performance task.
+
+### Next version
+
+Design validated export/restore and add the forward session-snapshot migration before implementing live workout execution. Do not render workout history from mutable program records.
+
 ## 2026-10-01 — v0.3.0 RepDB exercise catalog
 
 ### Goal

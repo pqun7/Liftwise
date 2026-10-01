@@ -4,6 +4,27 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-01
+
+### Added
+
+- iPhone-first program list, program detail, training-day, exercise-picker, and prescription-editor flows.
+- Program creation, editing, active selection, deep duplication, and confirmed deletion.
+- Training-day creation, editing, duplication, deletion, and accessible Move Up/Move Down ordering.
+- RepDB and custom exercise assignment through the existing provider-neutral exercise catalog.
+- Deterministic target sets, rep range, RIR range, rest duration, and exercise notes.
+- ADR documenting editable program prescriptions versus immutable future workout snapshots.
+
+### Changed
+
+- Added IndexedDB schema version 4 while retaining released versions 1–3.
+- Migrated `ProgramDay.dayNumber` to `order` with notes and expanded ProgramExercise prescriptions without changing IDs or references.
+- Replaced the Plan placeholder with a complete offline Program Builder.
+
+### Fixed
+
+- Custom exercise creation no longer waits for full RepDB initialization before its local write.
+
 ## [0.3.0] - 2026-10-01
 
 ### Added
@@ -53,7 +74,8 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - ESLint, Prettier, strict TypeScript, and GitHub Actions quality gates.
 - Architecture, ADR, testing, iPhone validation, roadmap, development log, and issue templates.
 
-[Unreleased]: https://github.com/pqun7/Liftwise/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/pqun7/Liftwise/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/pqun7/Liftwise/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/pqun7/Liftwise/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/pqun7/Liftwise/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/pqun7/Liftwise/releases/tag/v0.1.0

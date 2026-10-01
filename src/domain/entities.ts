@@ -89,7 +89,8 @@ export interface ProgramDay extends TimestampedEntity {
   id: string;
   programId: string;
   name: string;
-  dayNumber: number;
+  order: number;
+  notes: string | null;
 }
 
 export interface ProgramExercise extends TimestampedEntity {
@@ -98,8 +99,11 @@ export interface ProgramExercise extends TimestampedEntity {
   exerciseId: string;
   order: number;
   targetSets: number | null;
-  targetRepsMin: number | null;
-  targetRepsMax: number | null;
+  minReps: number | null;
+  maxReps: number | null;
+  targetRirMin: number | null;
+  targetRirMax: number | null;
+  restSeconds: number | null;
   notes: string | null;
 }
 

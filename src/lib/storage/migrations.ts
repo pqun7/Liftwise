@@ -17,6 +17,22 @@ interface Version2Exercise {
   updatedAt: string;
 }
 
+interface Version3ProgramDay {
+  dayNumber?: number;
+  order?: number;
+  notes?: string | null;
+}
+
+interface Version3ProgramExercise {
+  targetRepsMin?: number | null;
+  targetRepsMax?: number | null;
+  minReps?: number | null;
+  maxReps?: number | null;
+  targetRirMin?: number | null;
+  targetRirMax?: number | null;
+  restSeconds?: number | null;
+}
+
 export async function migrateVersion1ToVersion2(transaction: Transaction): Promise<void> {
   const migrationTimestamp = new Date().toISOString();
 
@@ -70,5 +86,29 @@ export async function migrateVersion2ToVersion3(transaction: Transaction): Promi
         isActive: true,
         searchText: exercise.name.toLocaleLowerCase('en'),
       });
+    });
+}
+
+export async function migrateVersion3ToVersion4(transaction: Transaction): Promise<void> {
+  await transaction
+    .table<Version3ProgramDay, string>('programDays')
+    .toCollection()
+    .modify((day) => {
+      day.order = day.dayNumber ?? 1;
+      day.notes = day.notes ?? null;
+      delete day.dayNumber;
+    });
+
+  await transaction
+    .table<Version3ProgramExercise, string>('programExercises')
+    .toCollection()
+    .modify((exercise) => {
+      exercise.minReps = exercise.targetRepsMin ?? null;
+      exercise.maxReps = exercise.targetRepsMax ?? null;
+      exercise.targetRirMin = exercise.targetRirMin ?? null;
+      exercise.targetRirMax = exercise.targetRirMax ?? null;
+      exercise.restSeconds = exercise.restSeconds ?? null;
+      delete exercise.targetRepsMin;
+      delete exercise.targetRepsMax;
     });
 }

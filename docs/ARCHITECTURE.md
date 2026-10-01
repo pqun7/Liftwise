@@ -2,7 +2,7 @@
 
 ## Goals
 
-Liftwise prioritizes reliable installed-iPhone operation, offline availability, device-local privacy, and safe workout data. The application is a static client and has no backend boundary in v0.3.0.
+Liftwise prioritizes reliable installed-iPhone operation, offline availability, device-local privacy, and safe workout data. The application is a static client and has no backend boundary in v0.4.0.
 
 ## Layers
 
@@ -26,7 +26,7 @@ Dependencies should point inward: feature UI may call domain or persistence serv
 
 ## Persistence
 
-IndexedDB through Dexie is the durable source of truth. Database version 3 adds provider-aware Exercise records and CatalogMetadata while preserving all v2 stores and identifiers. React components do not access tables directly; feature services and repositories validate inputs and persisted reads, check relationships, and own transactions. See `docs/DATABASE.md` for the schema and deletion rules.
+IndexedDB through Dexie is the durable source of truth. Database version 4 expands program days and prescriptions while retaining versions 1–3 and preserving every existing ID/reference. React components do not access tables directly; feature services and repositories validate inputs and persisted reads, check relationships, and own transactions. See `docs/DATABASE.md` for the schema and deletion rules.
 
 Released schema version 1 remains registered, and the v1→v2 migration preserves existing settings while adding their creation timestamp. Future schemas require:
 
@@ -41,6 +41,18 @@ Released schema version 1 remains registered, and the v1→v2 migration preserve
 Completed-set volume is calculated from validated set records and is not persisted as duplicated state.
 
 RepDB's raw schema stops at the provider adapter. Program and workout records reference the stable Liftwise ID (`repdb:<RepDB ID>`), never image filenames or raw provider objects. Provider records are read-only; a user edit starts as a separate custom record. Missing upstream exercises become inactive instead of being deleted, preserving historical references.
+
+## Program prescription and workout history
+
+```text
+Exercise → stable exerciseId → ProgramExercise prescription → ProgramDay → Program
+                                  │
+                                  └── future start-workout transaction
+                                         ↓ snapshot
+                                  WorkoutSession history + actual performance
+```
+
+ProgramExercise is the current editable intent. It may change at any time. A future workout-start transaction must copy only the user-relevant prescription and display fallback fields into session-owned history. Historical screens must never reconstruct an old prescription from the mutable ProgramExercise, and must not copy full RepDB records. v0.4 establishes and documents this boundary but deliberately does not implement live sessions or snapshots.
 
 `localStorage` is reserved for tiny, non-critical preferences and is not currently used.
 

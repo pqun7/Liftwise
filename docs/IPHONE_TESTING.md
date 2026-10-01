@@ -48,6 +48,25 @@ Run this plan on a physical, supported iPhone before releasing an installable bu
 5. Close and relaunch it while still offline; repeat navigation.
 6. Restore connectivity and confirm no errors appear.
 
+## Program Builder acceptance
+
+1. Open Programs and create “Push Pull Legs”.
+2. Confirm the first program becomes Active.
+3. Add “Push Day” with a short note.
+4. Add Barbell Bench Press from the existing exercise picker.
+5. Enter 3 sets, 6–8 reps, 1–2 RIR, and 180 seconds rest; save.
+6. Add a custom exercise through the same picker and save a second prescription.
+7. Use Move Up and Move Down; confirm order changes immediately.
+8. Edit the day and a prescription, close the installed app, then reopen it.
+9. Confirm names, notes, exercise identities, ordering, sets, reps, RIR, and rest are exact.
+10. Enable Airplane Mode and disable Wi-Fi.
+11. Reopen Programs and navigate into the same day.
+12. Confirm the complete program remains editable without a network error.
+13. Test Duplicate on a day and on the program; confirm content is copied and independently editable.
+14. Test Delete, cancel once, then confirm once; verify confirmation protects accidental removal.
+
+WebKit emulation exercises this flow automatically but does not count as physical-device testing.
+
 ## Lifecycle and updates
 
 1. Background Liftwise, lock the phone for at least one minute, unlock, and return. Confirm the same route remains usable.
@@ -58,6 +77,6 @@ Run this plan on a physical, supported iPhone before releasing an installable bu
 
 ## Data boundary
 
-v0.3.0 contains catalog and custom exercise UI but no Program Builder or Live Workout Logger. In Safari Web Inspector, confirm there are no requests to RepDB, GitHub, or exercise-dataset.com during normal use and no application data in `localStorage`. IndexedDB should report schema version 3 with `exercises` and `catalogMetadata`. Exercise art belongs in versioned Cache Storage; clearing it from the app must leave IndexedDB records unchanged.
+v0.4.0 contains the Exercise Library and Program Builder but no Live Workout Logger. In Safari Web Inspector, confirm there are no requests to RepDB, GitHub, or exercise-dataset.com during normal use and no application data in `localStorage`. IndexedDB should report schema version 4 with programs, ordered days, prescriptions, exercises, and catalog metadata. Exercise art belongs in versioned Cache Storage; clearing it from the app must leave IndexedDB records unchanged.
 
 Record the iPhone model, iOS version, deployed commit, date, and any deviations in the release issue.

@@ -47,7 +47,7 @@ describe('ExerciseRepository', () => {
     const programs = new ProgramRepository(database);
     const exercise = await exercises.create({ name: 'Bench Press', primaryMuscle: 'pectorals' });
     const program = await programs.create({ name: 'Strength' });
-    const day = await programs.addDay({ programId: program.id, name: 'Day 1', dayNumber: 1 });
+    const day = await programs.addDay({ programId: program.id, name: 'Day 1', order: 1 });
     await programs.addExercise({ programDayId: day.id, exerciseId: exercise.id, order: 1 });
 
     await expect(exercises.delete(exercise.id)).rejects.toBeInstanceOf(RelationshipError);

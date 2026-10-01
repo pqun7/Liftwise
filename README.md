@@ -2,7 +2,7 @@
 
 Liftwise is a local-first, offline-first, iPhone-first gym manager and workout logger. It is being built as a maintainable product, not a demo.
 
-Version **0.3.0** adds a validated, local RepDB exercise catalog, fast search and filters, exercise details, custom exercise creation, and an optional offline image pack. It intentionally does not add the Program Builder or Live Workout Logger.
+Version **0.4.0** adds an offline Program Builder with ordered training days, RepDB/custom exercise assignment, deterministic set/rep/RIR/rest prescriptions, duplication, active-program selection, and reload-safe editing. It intentionally does not add live workout execution.
 
 ## Product principles
 
@@ -57,7 +57,7 @@ src/
   components/   reusable presentation components
   data/         external provider adapters and catalog initialization
   domain/       entities, validation, and derived calculations
-  features/     product-area modules
+  features/     product-area modules, including exercises and program planning
   lib/storage/  IndexedDB database, migrations, and repositories
   styles/       global mobile-first styles
 tests/          unit and component tests
