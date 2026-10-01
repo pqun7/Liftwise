@@ -104,6 +104,6 @@ test('mobile editable controls have zoom-safe computed typography and an unrestr
     .first()
     .click();
   for (const label of ['Set 1 weight', 'Set 1 reps', 'Set 1 RIR', 'Set 1 type']) {
-    await assertMobileInputIsZoomSafe(page.getByLabel(label));
+    await assertMobileInputIsZoomSafe(page.getByLabel(label, { exact: true }));
   }
 });

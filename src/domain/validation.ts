@@ -229,6 +229,7 @@ export const workoutSessionSchema: z.ZodType<WorkoutSession> = z
 
 export const workoutExerciseSchema: z.ZodType<WorkoutExercise> = z
   .object({
+    skipped: z.boolean().optional(),
     id: entityIdSchema,
     workoutSessionId: entityIdSchema,
     exerciseId: exerciseIdSchema,

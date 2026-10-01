@@ -1,5 +1,43 @@
 # Development log
 
+## 2026-10-02 — v0.7.0 gym-speed workout UX
+
+### Goal
+
+Reduce deliberate interaction during iPhone set logging without introducing a second workout state model.
+
+### Work completed
+
+- Added Previous/Today, copy previous, last values, weight/reps adjustments, draft duplication, and short Undo.
+- Added persistent skip/resume and draft-only session exercise replacement, plus completed-exercise collapse and a sticky current-exercise/rest link.
+- Kept keystroke state inside each set row and serialized row writes through the existing repository.
+
+### Important decisions
+
+- Completion/rest and Undo use atomic Dexie transactions. Undo expires after ten seconds and refuses to overwrite a set edited after completion.
+- Replacement refuses exercises with completed sets, preserving recorded exercise identity; adding another exercise remains available.
+- Skip is an optional validated field, so old IndexedDB/backup records remain valid. Dexie stays v5 and backups stay v2.
+- Collapse is presentation state; skip/reorder/replacement persist. Weight adjustment uses a named 2.5kg default, without storing a second source of truth.
+
+### Problems encountered / bugs fixed
+
+- Speed buttons preserve input focus to avoid a blur write canceling the intended tap.
+- Completed history controls are read-only; input edits stay inside the row rather than rerendering the entire page per keystroke.
+
+### Tests added
+
+- Repository completion/Undo rollback, duplication, skip, replacement, prior/last values, reload, program independence, and backup compatibility.
+- Component copy/adjust/duplicate/explicit completion coverage and one Mobile WebKit Quick Workout scenario.
+
+### Known limitations
+
+- Swipe completion is deferred; visible buttons provide the complete flow. Collapse state and the short Undo prompt do not survive reload, but their persisted actions do.
+- Real iPhone keyboard, safe areas, and one-thumb usability still require physical-device testing. The existing chunk-size warning remains.
+
+### Next version
+
+Stop at v0.7.0. No progression, supersets, permanent substitutions, or cloud features are included.
+
 ## 2026-10-02 — v0.6.1 iPhone form focus auto-zoom fix
 
 ### Goal

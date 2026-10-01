@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useLoaderData, useNavigate, useRevalidator } from 'react-router-dom';
 
-import type { WorkoutSet, WorkoutSetType } from '../../domain/entities';
+import type { SetCompletionUndo } from '../../lib/storage/repositories/workoutRepository';
+import { WorkoutSetRow } from './WorkoutSetRow';
 import {
   formatDuration,
   restRemainingSeconds,
@@ -10,7 +11,6 @@ import {
 import {
   addWorkoutSet,
   clearWorkoutRest,
-  deleteWorkoutSet,
   discardWorkout,
   finishWorkout,
   pauseWorkout,
@@ -18,138 +18,12 @@ import {
   reorderWorkoutExercises,
   resumeWorkout,
   setCurrentWorkoutExercise,
-  startWorkoutRest,
   updateWorkoutNotes,
-  updateWorkoutSet,
+  skipWorkoutExercise,
+  undoWorkoutCompletion,
   type HydratedWorkoutGraph,
 } from './workoutService';
 import { formatPreviousSets, formatWorkoutPrescription } from './workoutFormat';
-
-function nullableNumber(value: string): number | null {
-  return value.trim() === '' ? null : Number(value);
-}
-
-function WorkoutSetRow({
-  set,
-  sessionId,
-  restSeconds,
-  refresh,
-}: Readonly<{
-  set: WorkoutSet;
-  sessionId: string;
-  restSeconds: number | null;
-  refresh: () => Promise<void>;
-}>) {
-  const [weight, setWeight] = useState(set.weight?.toString() ?? '');
-  const [reps, setReps] = useState(set.reps?.toString() ?? '');
-  const [rir, setRir] = useState(set.rir?.toString() ?? '');
-  const [setType, setSetType] = useState<WorkoutSetType>(set.setType);
-  const [error, setError] = useState<string | null>(null);
-  const persist = async (input: Parameters<typeof updateWorkoutSet>[1]) => {
-    setError(null);
-    try {
-      await updateWorkoutSet(set.id, input);
-      await refresh();
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : 'Set could not be saved.');
-    }
-  };
-  const toggleComplete = async () => {
-    setError(null);
-    try {
-      await updateWorkoutSet(set.id, {
-        weight: nullableNumber(weight),
-        reps: nullableNumber(reps),
-        rir: nullableNumber(rir),
-        setType,
-        completed: !set.completed,
-      });
-      if (!set.completed && restSeconds !== null) {
-        await startWorkoutRest(sessionId, restSeconds);
-      }
-      await refresh();
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : 'Set could not be saved.');
-    }
-  };
-
-  return (
-    <div className={`workout-set-row${set.completed ? ' set-complete' : ''}`}>
-      <span className="set-number">{set.setNumber}</span>
-      <label>
-        <span>kg</span>
-        <input
-          inputMode="decimal"
-          value={weight}
-          onChange={(event) => setWeight(event.target.value)}
-          onBlur={() => void persist({ weight: nullableNumber(weight) })}
-          aria-label={`Set ${set.setNumber} weight`}
-        />
-      </label>
-      <label>
-        <span>Reps</span>
-        <input
-          inputMode="numeric"
-          value={reps}
-          onChange={(event) => setReps(event.target.value)}
-          onBlur={() => void persist({ reps: nullableNumber(reps) })}
-          aria-label={`Set ${set.setNumber} reps`}
-        />
-      </label>
-      <label>
-        <span>RIR</span>
-        <input
-          inputMode="decimal"
-          value={rir}
-          onChange={(event) => setRir(event.target.value)}
-          onBlur={() => void persist({ rir: nullableNumber(rir) })}
-          aria-label={`Set ${set.setNumber} RIR`}
-        />
-      </label>
-      <label className="set-type-field">
-        <span>Type</span>
-        <select
-          value={setType}
-          aria-label={`Set ${set.setNumber} type`}
-          onChange={(event) => {
-            const value = event.target.value as WorkoutSetType;
-            setSetType(value);
-            void persist({ setType: value });
-          }}
-        >
-          <option value="warmup">Warmup</option>
-          <option value="working">Working</option>
-          <option value="drop">Drop</option>
-          <option value="failure">Failure</option>
-        </select>
-      </label>
-      <button
-        className="set-complete-action"
-        type="button"
-        aria-pressed={set.completed}
-        onClick={() => void toggleComplete()}
-      >
-        {set.completed ? 'Completed' : 'Complete set'}
-      </button>
-      <button
-        className="set-delete-action"
-        type="button"
-        aria-label={`Delete set ${set.setNumber}`}
-        onClick={() => {
-          if (window.confirm(`Delete set ${set.setNumber}?`))
-            void deleteWorkoutSet(set.id).then(refresh);
-        }}
-      >
-        Delete
-      </button>
-      {error ? (
-        <p className="form-error set-error" role="alert">
-          {error}
-        </p>
-      ) : null}
-    </div>
-  );
-}
 
 export function WorkoutSessionPage() {
   const { workout } = useLoaderData<{ workout: HydratedWorkoutGraph }>();
@@ -157,6 +31,8 @@ export function WorkoutSessionPage() {
   const navigate = useNavigate();
   const [now, setNow] = useState(Date.now());
   const [busy, setBusy] = useState(false);
+  const [undo, setUndo] = useState<SetCompletionUndo | null>(null);
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const [pageError, setPageError] = useState<string | null>(null);
   const refresh = async () => {
     await revalidator.revalidate();
@@ -198,12 +74,39 @@ export function WorkoutSessionPage() {
         </strong>
       </header>
 
+      {mutable && workout.exercises.length > 0 ? (
+        <aside className="workout-current-control">
+          <a href={'#exercise-' + (session.currentExerciseId ?? workout.exercises[0]!.exercise.id)}>
+            Current:{' '}
+            {workout.exercises.find(({ exercise }) => exercise.id === session.currentExerciseId)
+              ?.exercise.exerciseName ?? workout.exercises[0]!.exercise.exerciseName}
+          </a>
+          <span>{rest > 0 ? 'Rest ' + formatDuration(rest) : 'Ready for next set'}</span>
+        </aside>
+      ) : null}
       {pageError ? (
         <p className="form-error" role="alert">
           {pageError}
         </p>
       ) : null}
 
+      {undo && now <= undo.expiresAt ? (
+        <aside className="workout-undo" role="status">
+          Set saved{' '}
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() =>
+              void run(async () => {
+                await undoWorkoutCompletion(undo);
+                setUndo(null);
+              })
+            }
+          >
+            Undo completion
+          </button>
+        </aside>
+      ) : null}
       {mutable ? (
         <div className="workout-session-actions">
           <button
@@ -284,10 +187,15 @@ export function WorkoutSessionPage() {
       <div className="session-exercise-list">
         {workout.exercises.map((entry, index) => {
           const current = session.currentExerciseId === entry.exercise.id;
+          const allComplete =
+            entry.sets.length > 0 && entry.sets.every(({ completed }) => completed);
+          const hidden = collapsed.has(entry.exercise.id);
           return (
             <article
               className={`session-exercise-card${current ? ' current-exercise' : ''}`}
               key={entry.exercise.id}
+              id={'exercise-' + entry.exercise.id}
+              aria-label={entry.exercise.exerciseName}
             >
               <header>
                 <div>
@@ -309,22 +217,78 @@ export function WorkoutSessionPage() {
               {entry.exercise.plannedNotes ? (
                 <p className="planned-note">Plan: {entry.exercise.plannedNotes}</p>
               ) : null}
-              <p className="previous-performance">
-                <strong>Previous:</strong> {formatPreviousSets(entry.previous?.sets ?? [])}
-              </p>
-              <div className="workout-set-list">
-                {entry.sets.map((set) => (
-                  <WorkoutSetRow
-                    key={set.id}
-                    set={set}
-                    sessionId={session.id}
-                    restSeconds={entry.exercise.plannedRestSeconds}
-                    refresh={refresh}
-                  />
-                ))}
+              {entry.exercise.skipped ? (
+                <p className="section-kicker">Skipped · saved locally</p>
+              ) : null}
+              {allComplete || hidden ? (
+                <button
+                  type="button"
+                  aria-expanded={!hidden}
+                  onClick={() =>
+                    setCollapsed((current) => {
+                      const changed = new Set(current);
+                      if (hidden) changed.delete(entry.exercise.id);
+                      else changed.add(entry.exercise.id);
+                      return changed;
+                    })
+                  }
+                >
+                  {hidden ? 'Expand exercise' : 'Collapse completed exercise'}
+                </button>
+              ) : null}
+              <div hidden={hidden}>
+                <div className="previous-today">
+                  <section aria-label="Previous performance">
+                    <h3>Previous</h3>
+                    <p className="previous-performance">
+                      {formatPreviousSets(entry.previous?.sets ?? [])}
+                    </p>
+                  </section>
+                  <section aria-label="Today performance">
+                    <h3>Today</h3>
+                    <p className="previous-performance">
+                      {entry.sets.some(({ completed }) => completed)
+                        ? formatPreviousSets(entry.sets.filter(({ completed }) => completed))
+                        : 'No completed sets yet'}
+                    </p>
+                    <p>
+                      {entry.sets.filter(({ completed }) => completed).length}/{entry.sets.length}{' '}
+                      sets complete
+                    </p>
+                  </section>
+                </div>
+                <div className="workout-set-list">
+                  {entry.sets.map((set) => (
+                    <WorkoutSetRow
+                      key={`${set.id}:${entry.exercise.exerciseId}`}
+                      set={set}
+                      today={entry.sets}
+                      previous={entry.previous?.sets ?? []}
+                      mutable={mutable && !entry.exercise.skipped}
+                      completed={setUndo}
+                      refresh={refresh}
+                    />
+                  ))}
+                </div>
               </div>
               {mutable ? (
                 <div className="row-actions">
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() =>
+                      void run(() =>
+                        skipWorkoutExercise(entry.exercise.id, !entry.exercise.skipped),
+                      )
+                    }
+                  >
+                    {entry.exercise.skipped ? 'Resume exercise' : 'Skip exercise'}
+                  </button>
+                  {!entry.sets.some(({ completed }) => completed) ? (
+                    <Link to={`/workout/${session.id}/exercises?replace=${entry.exercise.id}`}>
+                      Replace Exercise for This Workout
+                    </Link>
+                  ) : null}
                   <button
                     type="button"
                     onClick={() => void run(() => addWorkoutSet(entry.exercise.id))}

@@ -60,11 +60,14 @@ The roadmap is directional. Reliability, privacy, and data safety take priority 
 - [x] Timestamp-based duration and rest timers
 - [x] Workout-aware PWA update deferral and backup v2 migration
 
-## v0.7.0 — History and progress
+## v0.7.0 — Gym-Speed Workout UX
 
-- Workout history and personal records
-- Local-only progress summaries and charts
-- Tested calculations separated from presentation
+- [x] Previous/Today workout comparison and reusable actual set values
+- [x] Copy, quick adjustments, duplicate draft sets, and atomic Undo
+- [x] Session-only skip/replacement and accessible ordering/collapse
+- [x] Quick Workout and reload persistence regression workflow
+
+History analytics, personal records, and progress charts remain future work.
 
 ## Later
 

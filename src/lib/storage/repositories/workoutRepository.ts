@@ -67,12 +67,213 @@ export interface WorkoutGraph {
   exercises: WorkoutExerciseWithSets[];
 }
 
+export interface SetCompletionUndo {
+  setId: string;
+  sessionId: string;
+  completedAt: string;
+  expiresAt: number;
+  priorRestStartedAt: string | null;
+  priorRestEndsAt: string | null;
+  completionRestEndsAt: string | null;
+}
+
 function unfinished(status: WorkoutSessionStatus): boolean {
   return status === 'active' || status === 'paused';
 }
 
 export class WorkoutRepository {
   constructor(private readonly db: LiftwiseDatabase = database) {}
+
+  async completeSet(id: string, input: UpdateWorkoutSetInput): Promise<SetCompletionUndo> {
+    return this.db.transaction(
+      'rw',
+      [this.db.workoutSessions, this.db.workoutExercises, this.db.workoutSets],
+      async () => {
+        const set = requireRecord(await this.db.workoutSets.get(id), 'WorkoutSet', id);
+        if (set.completed) throw new Error('This set is already completed.');
+        const exercise = requireRecord(
+          await this.db.workoutExercises.get(set.workoutExerciseId),
+          'WorkoutExercise',
+          set.workoutExerciseId,
+        );
+        if (exercise.skipped) throw new Error('Resume this exercise before completing sets.');
+        const session = this.requireMutableSession(
+          requireRecord(
+            await this.db.workoutSessions.get(exercise.workoutSessionId),
+            'WorkoutSession',
+            exercise.workoutSessionId,
+          ),
+        );
+        const updated = await this.updateSet(id, { ...input, completed: true });
+        const rest =
+          exercise.plannedRestSeconds === null
+            ? session
+            : await this.startRest(session.id, exercise.plannedRestSeconds);
+        return {
+          setId: id,
+          sessionId: session.id,
+          completedAt: updated.updatedAt,
+          expiresAt: Date.now() + 10_000,
+          priorRestStartedAt: session.restStartedAt,
+          priorRestEndsAt: session.restEndsAt,
+          completionRestEndsAt: rest.restEndsAt,
+        };
+      },
+    );
+  }
+
+  async undoCompletion(undo: SetCompletionUndo): Promise<void> {
+    await this.db.transaction(
+      'rw',
+      [this.db.workoutSessions, this.db.workoutExercises, this.db.workoutSets],
+      async () => {
+        if (Date.now() > undo.expiresAt)
+          throw new Error('Undo has expired. You can still edit the set.');
+        const set = requireRecord(
+          await this.db.workoutSets.get(undo.setId),
+          'WorkoutSet',
+          undo.setId,
+        );
+        const exercise = requireRecord(
+          await this.db.workoutExercises.get(set.workoutExerciseId),
+          'WorkoutExercise',
+          set.workoutExerciseId,
+        );
+        if (
+          exercise.workoutSessionId !== undo.sessionId ||
+          !set.completed ||
+          set.updatedAt !== undo.completedAt
+        )
+          throw new Error('The set changed since completion.');
+        await this.updateSet(set.id, { completed: false });
+        const session = this.requireMutableSession(
+          requireRecord(
+            await this.db.workoutSessions.get(undo.sessionId),
+            'WorkoutSession',
+            undo.sessionId,
+          ),
+        );
+        if (session.restEndsAt === undo.completionRestEndsAt) {
+          await this.db.workoutSessions.put(
+            workoutSessionSchema.parse({
+              ...session,
+              restStartedAt: undo.priorRestStartedAt,
+              restEndsAt: undo.priorRestEndsAt,
+            }),
+          );
+        }
+      },
+    );
+  }
+
+  async duplicateSet(id: string): Promise<WorkoutSet> {
+    return this.db.transaction(
+      'rw',
+      [this.db.workoutSessions, this.db.workoutExercises, this.db.workoutSets],
+      async () => {
+        const source = requireRecord(await this.db.workoutSets.get(id), 'WorkoutSet', id);
+        return this.addSet({
+          workoutExerciseId: source.workoutExerciseId,
+          setType: source.setType,
+          weight: source.weight,
+          reps: source.reps,
+          rir: source.rir,
+          completed: false,
+        });
+      },
+    );
+  }
+
+  async skipExercise(id: string, skipped: boolean): Promise<void> {
+    await this.db.transaction(
+      'rw',
+      [this.db.workoutSessions, this.db.workoutExercises],
+      async () => {
+        const exercise = requireRecord(
+          await this.db.workoutExercises.get(id),
+          'WorkoutExercise',
+          id,
+        );
+        const session = this.requireMutableSession(
+          requireRecord(
+            await this.db.workoutSessions.get(exercise.workoutSessionId),
+            'WorkoutSession',
+            exercise.workoutSessionId,
+          ),
+        );
+        const timestamp = createTimestamp();
+        await this.db.workoutExercises.put(
+          workoutExerciseSchema.parse({ ...exercise, skipped, updatedAt: timestamp }),
+        );
+        const next = (
+          await this.db.workoutExercises
+            .where('workoutSessionId')
+            .equals(session.id)
+            .sortBy('order')
+        ).find((item) => !item.skipped);
+        await this.db.workoutSessions.put(
+          workoutSessionSchema.parse({
+            ...session,
+            currentExerciseId:
+              skipped && session.currentExerciseId === id
+                ? (next?.id ?? null)
+                : session.currentExerciseId,
+            updatedAt: timestamp,
+          }),
+        );
+      },
+    );
+  }
+
+  async replaceExercise(id: string, exerciseId: string): Promise<void> {
+    await this.db.transaction(
+      'rw',
+      [this.db.workoutSessions, this.db.workoutExercises, this.db.workoutSets, this.db.exercises],
+      async () => {
+        const current = requireRecord(
+          await this.db.workoutExercises.get(id),
+          'WorkoutExercise',
+          id,
+        );
+        const session = this.requireMutableSession(
+          requireRecord(
+            await this.db.workoutSessions.get(current.workoutSessionId),
+            'WorkoutSession',
+            current.workoutSessionId,
+          ),
+        );
+        const source = requireRecord(
+          await this.db.exercises.get(exerciseId),
+          'Exercise',
+          exerciseId,
+        );
+        if (
+          (await this.db.workoutSets.where('workoutExerciseId').equals(id).toArray()).some(
+            (set) => set.completed,
+          )
+        )
+          throw new Error(
+            'Completed sets keep their original exercise. Add another exercise instead.',
+          );
+        const timestamp = createTimestamp();
+        await this.db.workoutSets
+          .where('workoutExerciseId')
+          .equals(id)
+          .modify({ weight: null, reps: null, rir: null, updatedAt: timestamp });
+        await this.db.workoutExercises.put(
+          workoutExerciseSchema.parse({
+            ...current,
+            exerciseId,
+            exerciseName: source.name,
+            programExerciseId: null,
+            skipped: false,
+            updatedAt: timestamp,
+          }),
+        );
+        await this.touchSession(session, timestamp);
+      },
+    );
+  }
 
   async createSession(input: CreateWorkoutSessionInput = {}): Promise<WorkoutSession> {
     return this.db.transaction(

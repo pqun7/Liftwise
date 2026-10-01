@@ -1,10 +1,14 @@
 import { useDeferredValue, useMemo, useState } from 'react';
-import { Link, useLoaderData, useNavigate } from 'react-router-dom';
+import { Link, useLoaderData, useNavigate, useSearchParams } from 'react-router-dom';
 
 import type { Exercise } from '../../domain/entities';
 import { searchExercises } from '../../domain/exerciseSearch';
 import { formatExerciseValue } from '../exercises/formatters';
-import { addExerciseToWorkout, type HydratedWorkoutGraph } from './workoutService';
+import {
+  addExerciseToWorkout,
+  replaceWorkoutExercise,
+  type HydratedWorkoutGraph,
+} from './workoutService';
 
 export function WorkoutExercisePickerPage() {
   const { workout, exercises } = useLoaderData<{
@@ -12,6 +16,9 @@ export function WorkoutExercisePickerPage() {
     exercises: Exercise[];
   }>();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const replaceId = params.get('replace');
+  const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
   const [bodyPart, setBodyPart] = useState('');
@@ -30,8 +37,14 @@ export function WorkoutExercisePickerPage() {
   const add = async (exerciseId: string) => {
     setBusyId(exerciseId);
     try {
-      await addExerciseToWorkout(workout.session.id, exerciseId);
+      if (replaceId) {
+        if (!workout.exercises.some(({ exercise }) => exercise.id === replaceId))
+          throw new Error('Exercise does not belong to this workout.');
+        await replaceWorkoutExercise(replaceId, exerciseId);
+      } else await addExerciseToWorkout(workout.session.id, exerciseId);
       await navigate(`/workout/${workout.session.id}`);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : 'Exercise could not be saved.');
     } finally {
       setBusyId(null);
     }
@@ -44,9 +57,16 @@ export function WorkoutExercisePickerPage() {
       </Link>
       <header className="program-header">
         <p className="section-kicker">Session exercise</p>
-        <h1 id="workout-picker-title">Add to this workout</h1>
+        <h1 id="workout-picker-title">
+          {replaceId ? 'Replace for this workout' : 'Add to this workout'}
+        </h1>
         <p>This changes only the current session, never the source program.</p>
       </header>
+      {error ? (
+        <p role="alert" className="form-error">
+          {error}
+        </p>
+      ) : null}
       <label className="search-field">
         <span className="sr-only">Search exercises</span>
         <span aria-hidden="true">⌕</span>

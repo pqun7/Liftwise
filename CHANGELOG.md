@@ -4,6 +4,21 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-02
+
+### Added
+
+- Glanceable Previous/Today comparison, Copy Previous Set, last-used values, weight/reps adjustments, and draft-only Duplicate Set.
+- Atomic set completion/rest and a ten-second Undo with durable reversal.
+- Session-only skip/resume and draft exercise replacement; completed exercise identity remains protected.
+- Collapsible completed exercises and a safe-area-aware current-exercise/rest control.
+- Focused persistence/component tests and one realistic Mobile WebKit gym workflow.
+
+### Changed
+
+- Workout input state remains local to each set row while mutations use the existing repository layer.
+- Optional `WorkoutExercise.skipped` persists in IndexedDB and backup v2; older records remain valid without a schema migration.
+
 ## [0.6.1] - 2026-10-02
 
 ### Fixed
@@ -135,7 +150,8 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - ESLint, Prettier, strict TypeScript, and GitHub Actions quality gates.
 - Architecture, ADR, testing, iPhone validation, roadmap, development log, and issue templates.
 
-[Unreleased]: https://github.com/pqun7/Liftwise/compare/v0.6.1...HEAD
+[Unreleased]: https://github.com/pqun7/Liftwise/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/pqun7/Liftwise/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/pqun7/Liftwise/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/pqun7/Liftwise/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/pqun7/Liftwise/compare/v0.4.1...v0.5.0

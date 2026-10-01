@@ -127,6 +127,7 @@ export interface WorkoutSession extends TimestampedEntity {
 }
 
 export interface WorkoutExercise extends TimestampedEntity {
+  skipped?: boolean | undefined;
   id: string;
   workoutSessionId: string;
   exerciseId: string;

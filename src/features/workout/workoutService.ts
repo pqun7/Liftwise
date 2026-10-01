@@ -120,8 +120,20 @@ export async function listWorkoutPickerExercises(): Promise<Exercise[]> {
 }
 
 export async function addExerciseToWorkout(workoutId: string, exerciseId: string): Promise<void> {
-  const exercise = await workouts.addExercise({ workoutSessionId: workoutId, exerciseId });
-  await workouts.addSet({ workoutExerciseId: exercise.id, setType: 'working' });
+  await database.transaction(
+    'rw',
+    [
+      database.workoutSessions,
+      database.workoutExercises,
+      database.workoutSets,
+      database.exercises,
+      database.programExercises,
+    ],
+    async () => {
+      const exercise = await workouts.addExercise({ workoutSessionId: workoutId, exerciseId });
+      await workouts.addSet({ workoutExerciseId: exercise.id, setType: 'working' });
+    },
+  );
 }
 
 export const addWorkoutSet = (workoutExerciseId: string) =>
@@ -143,3 +155,13 @@ export const pauseWorkout = (sessionId: string) => workouts.pause(sessionId);
 export const resumeWorkout = (sessionId: string) => workouts.resume(sessionId);
 export const finishWorkout = (sessionId: string) => workouts.finish(sessionId);
 export const discardWorkout = (sessionId: string) => workouts.discard(sessionId);
+export const completeWorkoutSet = (id: string, input: UpdateWorkoutSetInput) =>
+  workouts.completeSet(id, input);
+export const undoWorkoutCompletion = (
+  undo: import('../../lib/storage/repositories/workoutRepository').SetCompletionUndo,
+) => workouts.undoCompletion(undo);
+export const duplicateWorkoutSet = (id: string) => workouts.duplicateSet(id);
+export const skipWorkoutExercise = (id: string, skipped: boolean) =>
+  workouts.skipExercise(id, skipped);
+export const replaceWorkoutExercise = (id: string, exerciseId: string) =>
+  workouts.replaceExercise(id, exerciseId);

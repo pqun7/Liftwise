@@ -1,5 +1,77 @@
 @import 'tailwindcss';
 
+.set-speed-actions {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+.set-speed-actions button {
+  min-height: 44px;
+  padding: 0.45rem;
+  color: #dce9e2;
+  background: #102019;
+  border: 1px solid #385247;
+  border-radius: 0.6rem;
+}
+.set-speed-actions button:disabled {
+  opacity: 0.45;
+}
+.previous-today {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.previous-today section {
+  min-width: 0;
+  padding: 0.6rem;
+  background: #102019;
+  border-radius: 0.6rem;
+}
+.previous-today h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.9rem;
+}
+.workout-undo {
+  position: sticky;
+  top: max(0.5rem, var(--safe-top));
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  color: #07100d;
+  background: #77efb5;
+  border-radius: 0.8rem;
+}
+.workout-undo button {
+  min-height: 44px;
+  padding: 0.5rem;
+  border: 1px solid #385247;
+  border-radius: 0.6rem;
+}
+.workout-current-control {
+  position: sticky;
+  top: max(0.5rem, var(--safe-top));
+  z-index: 9;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.65rem;
+  background: #102019;
+  border: 1px solid #385247;
+  border-radius: 0.7rem;
+}
+.workout-current-control a {
+  color: #77efb5;
+  min-height: 44px;
+  align-content: center;
+}
+.session-exercise-card {
+  scroll-margin-top: calc(5rem + var(--safe-top));
+}
+
 :root {
   font-family:
     Inter,
