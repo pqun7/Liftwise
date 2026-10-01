@@ -1,5 +1,7 @@
 node_modules/
 .pnpm-store/
+work/
+public/repdb-media/
 dist/
 coverage/
 playwright-report/

@@ -2,7 +2,7 @@
 
 Liftwise is a local-first, offline-first, iPhone-first gym manager and workout logger. It is being built as a maintainable product, not a demo.
 
-Version **0.2.0** adds the durable local data foundation: validated domain entities, explicit relationships, repository-owned writes, schema migrations, and reload-safe workout persistence. It intentionally does not add the full workout UI.
+Version **0.3.0** adds a validated, local RepDB exercise catalog, fast search and filters, exercise details, custom exercise creation, and an optional offline image pack. It intentionally does not add the Program Builder or Live Workout Logger.
 
 ## Product principles
 
@@ -15,9 +15,7 @@ Version **0.2.0** adds the durable local data foundation: validated domain entit
 
 ## Technology
 
-React, TypeScript, Vite, Tailwind CSS, React Router, Dexie, Zod, vite-plugin-pwa/Workbox, Vitest, React Testing Library, Playwright, ESLint, and Prettier.
-
-React Hook Form and Recharts will be added when forms and charts exist; v0.2.0 avoids unused dependencies and premature abstractions.
+React, TypeScript, Vite, Tailwind CSS, React Router, Dexie, Zod, React Hook Form, vite-plugin-pwa/Workbox, Vitest, React Testing Library, Playwright, ESLint, and Prettier. Recharts remains deferred until charts exist.
 
 ## Getting started
 
@@ -25,6 +23,7 @@ Requirements: Node.js 22 or newer and pnpm 10.
 
 ```sh
 pnpm install
+pnpm repdb:sync:media
 pnpm dev
 ```
 
@@ -48,22 +47,26 @@ pnpm test:e2e
 
 `pnpm check` runs all non-browser quality checks. Browser tests require Playwright browsers (`pnpm exec playwright install chromium webkit`).
 
+RepDB updates are explicit and pinned. `pnpm repdb:verify` checks the committed catalog. `pnpm repdb:sync` rebuilds catalog metadata from the pinned upstream commit, while `pnpm repdb:sync:media` also stages licensed free-tier images locally for builds. See [RepDB integration](docs/REPDB_INTEGRATION.md).
+
 ## Project layout
 
 ```text
 src/
   app/          routing, navigation, and application shell
   components/   reusable presentation components
+  data/         external provider adapters and catalog initialization
   domain/       entities, validation, and derived calculations
   features/     product-area modules
   lib/storage/  IndexedDB database, migrations, and repositories
   styles/       global mobile-first styles
 tests/          unit and component tests
+scripts/repdb/  pinned validation, transformation, and synchronization tools
 e2e/            production-preview browser tests
 docs/           architecture, decisions, testing, and release notes
 ```
 
-See [Database](docs/DATABASE.md), [Architecture](docs/ARCHITECTURE.md), [Testing](docs/TESTING.md), [iPhone testing](docs/IPHONE_TESTING.md), and the [Roadmap](ROADMAP.md).
+See [Database](docs/DATABASE.md), [Architecture](docs/ARCHITECTURE.md), [RepDB integration](docs/REPDB_INTEGRATION.md), [third-party data](docs/THIRD_PARTY_DATA.md), [Testing](docs/TESTING.md), [iPhone testing](docs/IPHONE_TESTING.md), and the [Roadmap](ROADMAP.md).
 
 ## Data and privacy
 
@@ -71,4 +74,6 @@ Liftwise sends no user data anywhere. Important records use IndexedDB rather tha
 
 ## License
 
-[MIT](LICENSE)
+Liftwise source code is licensed under [MIT](LICENSE). RepDB exercise data and artwork are third-party materials governed by RepDB's separate data license; the Liftwise MIT license does **not** cover them.
+
+[Exercise data by RepDB (repdb.co)](https://repdb.co)

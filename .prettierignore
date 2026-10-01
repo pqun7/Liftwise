@@ -4,4 +4,5 @@ node_modules
 .pnpm-store
 playwright-report
 test-results
+public/repdb/catalog.json
 pnpm-lock.yaml

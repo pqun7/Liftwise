@@ -5,6 +5,7 @@ export function PlanPage() {
   return (
     <section className="page-stack" aria-labelledby="plan-title">
       <PageIntro
+        titleId="plan-title"
         eyebrow="Plan"
         title="Shape your training"
         description="Build repeatable routines that are easy to follow when it is time to train."

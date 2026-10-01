@@ -1,5 +1,66 @@
 # Development log
 
+## 2026-10-01 — v0.3.0 RepDB exercise catalog
+
+### Goal
+
+Add a professional, maintainable, offline RepDB exercise catalog without coupling Programs or Workouts to RepDB and without introducing a runtime service.
+
+### Work completed
+
+- Reviewed RepDB's README, data license, attribution instructions, canonical dataset, and free media at pinned commit `9ed9357f09c7566ea0256c57ebd6374ebb8b575e`.
+- Added explicit sync/verify tooling, strict validation, import summaries, provider mapping, provenance metadata, and a committed local catalog artifact.
+- Added Dexie schema v3, an idempotent seeder, safe inactive-state updates, read-only built-ins, and first-class custom exercises.
+- Added the Exercise Library, six filter dimensions, local search, incremental 40-row rendering, accessible cards/details, paired and main-only media, and custom creation.
+- Added a controlled offline image pack with progress, retry-friendly partial caching, failure messaging, and media-only clearing.
+- Added visible Settings/README attribution and separated RepDB licensing from Liftwise's MIT source license.
+
+### Important decisions
+
+- Programs and workouts reference provider-neutral deterministic IDs, never raw provider objects or image paths.
+- English is displayed initially; English, German, and Spanish source content remains structured for future localization.
+- Catalog metadata is precached and seeded into IndexedDB; 1,056 images are opt-in Cache Storage content because forcing the full pack would add 17,460,738 bytes to every install.
+- Provider records are read-only and are duplicated as custom before editing. Upstream removals become inactive records instead of broken historical references.
+
+### Problems encountered
+
+- The source dataset supports two valid image shapes. The adapter and UI now model either Start+Peak or Main explicitly.
+- Browser-managed storage is constrained on iOS. Media failure is isolated from IndexedDB and exposes retry/clear controls.
+- The Windows verification sandbox blocked the test runner from reading its dependency tree; the same command completed with approved project access.
+
+### Bugs fixed
+
+- Preserved v2 custom exercise IDs and program/workout references during the v3 model expansion.
+- Prevented repeated initialization from creating duplicates.
+- Prevented provider updates from overwriting custom records or deleting removed built-ins.
+- Added reserved image dimensions and accessible fallback behavior for missing media.
+
+### Tests added
+
+- Raw schema, malformed record, duplicate ID, safe path, stable ID, mapping, both image shapes, muscles, equipment, difficulty, goals, search, and filters.
+- First/second initialization, database restart, provider/custom coexistence, future update deactivation, stable program references, built-in read-only behavior, and duplication as custom.
+- v2→v3 migration and missing-image fallback.
+- Production-browser search, filter, detail, custom persistence, service worker, and offline metadata flows.
+
+### Measured results
+
+- Canonical JSON: 2,146,044 bytes; generated catalog: 2,450,194 bytes.
+- Referenced flat media: 1,056 WebP files totaling 17,460,738 bytes; 467 exercises use paired images and 134 use a main image.
+- Production output with the locally staged media pack: 1,068 files totaling 20,556,536 bytes; Workbox precache: 11 entries totaling 2,986.72 KiB, excluding optional WebP media.
+- Windows x64 / Node 22.23.2 local benchmark: 601-record first initialization 176.42 ms; close/reopen read 17.34 ms; 1,000 filtered searches 88.11 ms total (0.088 ms average).
+- Exercise list behavior: 40 rows rendered initially, with explicit 40-row increments.
+
+### Known limitations
+
+- Physical-iPhone installation, storage-pressure, and offline-media-pack testing still requires a deployed HTTPS release and real device.
+- The repository intentionally does not commit the 17.5 MB media folder; deployments that want illustrations run `pnpm repdb:sync:media` first.
+- UI language is English only in v0.3, despite retaining provider localizations.
+- Export/restore, Program Builder, and Live Workout Logger remain out of scope.
+
+### Next version
+
+Build the Program Builder on the provider-neutral Exercise IDs, then add validated export/recovery before exposing live workout logging.
+
 ## 2026-10-01 — v0.2.0 local data foundation
 
 ### Goal

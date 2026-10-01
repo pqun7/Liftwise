@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
+import type { Exercise } from '../src/domain/entities';
 import { RelationshipError } from '../src/lib/storage/errors';
 import { ExerciseRepository } from '../src/lib/storage/repositories/exerciseRepository';
 import { ProgramRepository } from '../src/lib/storage/repositories/programRepository';
@@ -12,7 +13,7 @@ describe('ExerciseRepository', () => {
     const database = createTestDatabase('exercise-crud');
     const repository = new ExerciseRepository(database);
 
-    const created = await repository.create({ name: 'Back Squat' });
+    const created = await repository.create({ name: 'Back Squat', primaryMuscle: 'quadriceps' });
     expect(created.id).toMatch(/^[0-9a-f-]{36}$/i);
     expect(await repository.get(created.id)).toEqual(created);
 
@@ -35,7 +36,7 @@ describe('ExerciseRepository', () => {
       notes: null,
       createdAt: timestamp,
       updatedAt: timestamp,
-    });
+    } as unknown as Exercise);
 
     await expect(repository.list()).rejects.toThrow();
   });
@@ -44,7 +45,7 @@ describe('ExerciseRepository', () => {
     const database = createTestDatabase('exercise-reference');
     const exercises = new ExerciseRepository(database);
     const programs = new ProgramRepository(database);
-    const exercise = await exercises.create({ name: 'Bench Press' });
+    const exercise = await exercises.create({ name: 'Bench Press', primaryMuscle: 'pectorals' });
     const program = await programs.create({ name: 'Strength' });
     const day = await programs.addDay({ programId: program.id, name: 'Day 1', dayNumber: 1 });
     await programs.addExercise({ programDayId: day.id, exerciseId: exercise.id, order: 1 });

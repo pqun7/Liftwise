@@ -34,7 +34,11 @@ All record IDs are stable UUIDs created with `crypto.randomUUID()` unless a natu
 
 ### Exercise
 
-A reusable movement definition with a UUID, name, and optional notes. Exercises are referenced by planned and performed exercises.
+A provider-neutral movement definition. RepDB records use deterministic IDs such as `repdb:bench-press`; custom records retain UUIDs from `crypto.randomUUID()`. Records include provider identity, localized descriptions/instructions/tips, classification, muscles, goals, structured image slots, activity state, normalized search text, and timestamps. Provider records are read-only. Existing or new custom exercises use the same abstraction and may omit artwork.
+
+### CatalogMetadata
+
+One record per built-in provider containing repository, source commit, upstream schema, import timestamp, exercise count, and measured source/media sizes. This makes initialization version-aware and auditable.
 
 ### Program
 
@@ -87,6 +91,10 @@ Created the `appSettings` store with `key` as its primary key and `updatedAt` in
 
 Adds all domain stores and relationship indexes. Existing settings gain `createdAt`. A missing or invalid legacy timestamp is repaired during the upgrade rather than causing the entire database to become unavailable.
 
+### Version 3 — v0.3.0
+
+Expands Exercise and adds provider indexes plus `catalogMetadata`. The v2→v3 migration preserves each existing ID and reference, classifies the record as custom, retains name/notes/timestamps, and fills provider-neutral defaults. Catalog initialization is transactional and idempotent. A later provider snapshot upserts matching stable IDs and marks removed built-ins inactive rather than deleting them.
+
 ## Future migration strategy
 
 1. Never edit an already released Dexie version declaration.
@@ -109,6 +117,7 @@ Adds all domain stores and relationship indexes. Existing settings gain `created
 ## Deletion rules
 
 - Exercise deletion is restricted while a program or workout references it.
+- RepDB refresh never deletes custom exercises or provider records referenced by history. Removed upstream provider records are retained as inactive.
 - Program deletion cascades through ProgramDay and ProgramExercise.
 - Program deletion never deletes workout history. Optional program and planned-exercise provenance is set to `null`.
 - ProgramDay deletion cascades through its ProgramExercise records and clears optional workout provenance.

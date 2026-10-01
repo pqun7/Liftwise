@@ -5,10 +5,77 @@ export interface TimestampedEntity {
   updatedAt: IsoTimestamp;
 }
 
+export const exerciseSourceProviders = ['repdb', 'custom'] as const;
+export type ExerciseSourceProvider = (typeof exerciseSourceProviders)[number];
+
+export const exerciseLocales = ['en', 'de', 'es'] as const;
+export type ExerciseLocale = (typeof exerciseLocales)[number];
+
+export interface ExerciseLocalizedContent {
+  name: string;
+  description: string | null;
+  instructions: string[];
+  tips: string[];
+}
+
+export interface ExerciseLocalizations {
+  en: ExerciseLocalizedContent;
+  de?: ExerciseLocalizedContent | undefined;
+  es?: ExerciseLocalizedContent | undefined;
+}
+
+export interface ExerciseImage {
+  path: string;
+  width: number;
+  height: number;
+  alt: string;
+}
+
+export interface ExerciseImages {
+  start: ExerciseImage | null;
+  peak: ExerciseImage | null;
+  main: ExerciseImage | null;
+}
+
 export interface Exercise extends TimestampedEntity {
   id: string;
+  sourceProvider: ExerciseSourceProvider;
+  sourceId: string;
   name: string;
+  description: string | null;
+  instructions: string[];
+  tips: string[];
+  category: string | null;
+  forceType: string | null;
+  mechanic: string | null;
+  difficulty: string | null;
+  equipment: string | null;
+  bodyPart: string | null;
+  primaryMuscles: string[];
+  secondaryMuscles: string[];
+  goals: string[];
+  tags: string[];
+  met: number | null;
+  isUnilateral: boolean;
+  isBodyweight: boolean;
+  images: ExerciseImages;
+  localizations: ExerciseLocalizations;
+  importedAt: IsoTimestamp | null;
+  isActive: boolean;
+  searchText: string;
   notes: string | null;
+}
+
+export interface CatalogMetadata {
+  provider: 'repdb';
+  sourceRepository: string;
+  sourceCommit: string;
+  schemaVersion: string;
+  importedAt: IsoTimestamp;
+  exerciseCount: number;
+  sourceJsonBytes: number;
+  mediaFileCount: number;
+  mediaBytes: number;
 }
 
 export interface Program extends TimestampedEntity {

@@ -2,12 +2,14 @@
 
 ## Goals
 
-Liftwise prioritizes reliable installed-iPhone operation, offline availability, device-local privacy, and safe workout data. The application is a static client and has no backend boundary in v0.2.0.
+Liftwise prioritizes reliable installed-iPhone operation, offline availability, device-local privacy, and safe workout data. The application is a static client and has no backend boundary in v0.3.0.
 
 ## Layers
 
 ```text
-Feature UI → domain services (future) → validated persistence boundary → IndexedDB
+Feature UI → feature service → provider-neutral domain → repositories → IndexedDB
+                                      ↑
+                 build-time provider adapter and local artifact
      ↓
 Shared app shell, routing, and presentation components
 ```
@@ -15,6 +17,7 @@ Shared app shell, routing, and presentation components
 - `src/app` owns composition, top-level routing, navigation, and PWA-facing shell behavior.
 - `src/domain` owns framework-independent entity contracts, validation, and derived calculations.
 - `src/features` owns product areas. A feature may contain its own components and hooks as it grows.
+- `src/data/providers` isolates external schemas, validation, adapters, provenance, catalog initialization, and media-cache behavior.
 - `src/components` contains shared presentation only. Components should not reach directly into persistence.
 - `src/lib/storage` owns database versions, migrations, repositories, transaction boundaries, and validation at storage edges.
 - Domain calculations are framework-independent TypeScript modules and are tested without rendering React.
@@ -23,7 +26,7 @@ Dependencies should point inward: feature UI may call domain or persistence serv
 
 ## Persistence
 
-IndexedDB through Dexie is the durable source of truth. Database version 2 contains Exercise, Program, ProgramDay, ProgramExercise, WorkoutSession, WorkoutExercise, WorkoutSet, BodyMetric, and AppSettings stores. React components do not access tables directly; repositories validate inputs and persisted reads, check relationships, and own transactions. See `docs/DATABASE.md` for the schema and deletion rules.
+IndexedDB through Dexie is the durable source of truth. Database version 3 adds provider-aware Exercise records and CatalogMetadata while preserving all v2 stores and identifiers. React components do not access tables directly; feature services and repositories validate inputs and persisted reads, check relationships, and own transactions. See `docs/DATABASE.md` for the schema and deletion rules.
 
 Released schema version 1 remains registered, and the v1→v2 migration preserves existing settings while adding their creation timestamp. Future schemas require:
 
@@ -37,11 +40,13 @@ Released schema version 1 remains registered, and the v1→v2 migration preserve
 
 Completed-set volume is calculated from validated set records and is not persisted as duplicated state.
 
+RepDB's raw schema stops at the provider adapter. Program and workout records reference the stable Liftwise ID (`repdb:<RepDB ID>`), never image filenames or raw provider objects. Provider records are read-only; a user edit starts as a separate custom record. Missing upstream exercises become inactive instead of being deleted, preserving historical references.
+
 `localStorage` is reserved for tiny, non-critical preferences and is not currently used.
 
 ## Offline model
 
-The Vite PWA plugin generates a Workbox service worker during production builds. Built application assets are precached, old caches are removed, and navigation requests fall back to the local application shell. There are no runtime fonts, CDNs, analytics, remote APIs, or other network dependencies.
+The Vite PWA plugin generates a Workbox service worker during production builds. The application shell and local catalog artifact are precached. Exercise illustrations use a versioned Cache Storage namespace and are downloaded only after the user chooses the offline media pack. Clearing that cache cannot touch IndexedDB. There are no runtime fonts, CDNs, analytics, or provider API dependencies.
 
 Updates use a prompt rather than forced activation. This prevents a future active workout from being interrupted by an automatic reload.
 

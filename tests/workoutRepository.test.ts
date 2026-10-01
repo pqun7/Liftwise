@@ -16,7 +16,10 @@ describe('WorkoutRepository', () => {
     const firstDatabase = new LiftwiseDatabase(name);
     const exercises = new ExerciseRepository(firstDatabase);
     const workouts = new WorkoutRepository(firstDatabase);
-    const exercise = await exercises.create({ name: 'Incline Press' });
+    const exercise = await exercises.create({
+      name: 'Incline Press',
+      primaryMuscle: 'pectorals',
+    });
     const session = await workouts.createSession({ name: 'Push Session' });
     const workoutExercise = await workouts.addExercise({
       workoutSessionId: session.id,
@@ -47,7 +50,7 @@ describe('WorkoutRepository', () => {
     const database = createTestDatabase('workout-update');
     const exercises = new ExerciseRepository(database);
     const workouts = new WorkoutRepository(database);
-    const exercise = await exercises.create({ name: 'Row' });
+    const exercise = await exercises.create({ name: 'Row', primaryMuscle: 'latissimus_dorsi' });
     const session = await workouts.createSession();
     const workoutExercise = await workouts.addExercise({
       workoutSessionId: session.id,
@@ -92,7 +95,7 @@ describe('WorkoutRepository', () => {
     const database = createTestDatabase('workout-delete');
     const exercises = new ExerciseRepository(database);
     const workouts = new WorkoutRepository(database);
-    const exercise = await exercises.create({ name: 'Curl' });
+    const exercise = await exercises.create({ name: 'Curl', primaryMuscle: 'biceps' });
     const session = await workouts.createSession();
     const workoutExercise = await workouts.addExercise({
       workoutSessionId: session.id,

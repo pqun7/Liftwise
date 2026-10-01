@@ -24,6 +24,21 @@ Run this plan on a physical, supported iPhone before releasing an installable bu
 4. Enable **Reduce Motion** and confirm the experience remains clear.
 5. With VoiceOver enabled, swipe through the header, main content, and primary navigation. Confirm meaningful names, selected-link state, and logical order.
 
+## Exercise catalog acceptance
+
+1. Open Exercise Library and confirm the catalog count appears without an external-network error.
+2. Search `bench`.
+3. Open Filters, choose Body part → Chest, then choose an available Equipment option.
+4. Open an exercise and confirm its instructions are readable without horizontal scrolling.
+5. For an exercise with paired art (for example Bench Dips), switch Start → Peak and confirm the image/pressed state changes.
+6. Open a single-image movement (for example Bench Chest Stretch) and confirm it shows one image without an empty toggle.
+7. Create a custom exercise with name, primary/secondary muscles, equipment, and notes.
+8. Close Liftwise completely.
+9. Enable Airplane Mode and disable Wi-Fi.
+10. Reopen Liftwise, search the library, open a previously available detail, and confirm the custom exercise still exists.
+11. Confirm no network-dependent error breaks catalog metadata or navigation.
+12. If the image pack was downloaded in Settings → Offline Data, confirm the exercise illustrations also load offline.
+
 ## Offline behavior
 
 1. While online, visit every route once, then close Liftwise from the app switcher.
@@ -43,6 +58,6 @@ Run this plan on a physical, supported iPhone before releasing an installable bu
 
 ## Data boundary
 
-v0.2.0 contains the versioned domain schema but no workout-management UI. In Safari Web Inspector, confirm there are no unexpected network requests after cached launch and no application data in `localStorage`. IndexedDB should report schema version 2 with the stores documented in `docs/DATABASE.md`; a fresh installation may leave them empty.
+v0.3.0 contains catalog and custom exercise UI but no Program Builder or Live Workout Logger. In Safari Web Inspector, confirm there are no requests to RepDB, GitHub, or exercise-dataset.com during normal use and no application data in `localStorage`. IndexedDB should report schema version 3 with `exercises` and `catalogMetadata`. Exercise art belongs in versioned Cache Storage; clearing it from the app must leave IndexedDB records unchanged.
 
 Record the iPhone model, iOS version, deployed commit, date, and any deviations in the release issue.

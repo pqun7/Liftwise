@@ -1,10 +1,12 @@
 import { z } from 'zod';
 
 import {
+  exerciseSourceProviders,
   workoutSessionStatuses,
   workoutSetTypes,
   type AppSetting,
   type BodyMetric,
+  type CatalogMetadata,
   type Exercise,
   type JsonValue,
   type Program,
@@ -16,6 +18,10 @@ import {
 } from './entities';
 
 export const entityIdSchema = z.string().uuid();
+export const exerciseIdSchema = z.union([
+  entityIdSchema,
+  z.string().regex(/^repdb:[a-z0-9]+(?:-[a-z0-9]+)*$/),
+]);
 export const isoTimestampSchema = z.string().datetime();
 
 const nullableNotesSchema = z.string().trim().max(2_000).nullable();
@@ -26,10 +32,124 @@ const timestampFields = {
 
 export const exerciseSchema: z.ZodType<Exercise> = z
   .object({
-    id: entityIdSchema,
+    id: exerciseIdSchema,
+    sourceProvider: z.enum(exerciseSourceProviders),
+    sourceId: z.string().trim().min(1).max(160),
     name: z.string().trim().min(1).max(120),
+    description: z.string().trim().max(2_000).nullable(),
+    instructions: z.array(z.string().trim().min(1).max(1_000)),
+    tips: z.array(z.string().trim().min(1).max(1_000)),
+    category: z.string().trim().min(1).max(80).nullable(),
+    forceType: z.string().trim().min(1).max(80).nullable(),
+    mechanic: z.string().trim().min(1).max(80).nullable(),
+    difficulty: z.string().trim().min(1).max(80).nullable(),
+    equipment: z.string().trim().min(1).max(120).nullable(),
+    bodyPart: z.string().trim().min(1).max(120).nullable(),
+    primaryMuscles: z.array(z.string().trim().min(1).max(120)).min(1),
+    secondaryMuscles: z.array(z.string().trim().min(1).max(120)),
+    goals: z.array(z.string().trim().min(1).max(120)),
+    tags: z.array(z.string().trim().min(1).max(120)),
+    met: z.number().finite().positive().nullable(),
+    isUnilateral: z.boolean(),
+    isBodyweight: z.boolean(),
+    images: z
+      .object({
+        start: z
+          .object({
+            path: z.string().min(1),
+            width: z.number().int().positive(),
+            height: z.number().int().positive(),
+            alt: z.string().min(1),
+          })
+          .strict()
+          .nullable(),
+        peak: z
+          .object({
+            path: z.string().min(1),
+            width: z.number().int().positive(),
+            height: z.number().int().positive(),
+            alt: z.string().min(1),
+          })
+          .strict()
+          .nullable(),
+        main: z
+          .object({
+            path: z.string().min(1),
+            width: z.number().int().positive(),
+            height: z.number().int().positive(),
+            alt: z.string().min(1),
+          })
+          .strict()
+          .nullable(),
+      })
+      .strict(),
+    localizations: z
+      .object({
+        en: z
+          .object({
+            name: z.string().trim().min(1),
+            description: z.string().trim().nullable(),
+            instructions: z.array(z.string().trim().min(1)),
+            tips: z.array(z.string().trim().min(1)),
+          })
+          .strict(),
+        de: z
+          .object({
+            name: z.string().trim().min(1),
+            description: z.string().trim().nullable(),
+            instructions: z.array(z.string().trim().min(1)),
+            tips: z.array(z.string().trim().min(1)),
+          })
+          .strict()
+          .optional(),
+        es: z
+          .object({
+            name: z.string().trim().min(1),
+            description: z.string().trim().nullable(),
+            instructions: z.array(z.string().trim().min(1)),
+            tips: z.array(z.string().trim().min(1)),
+          })
+          .strict()
+          .optional(),
+      })
+      .strict(),
+    importedAt: isoTimestampSchema.nullable(),
+    isActive: z.boolean(),
+    searchText: z.string(),
     notes: nullableNotesSchema,
     ...timestampFields,
+  })
+  .strict()
+  .refine(
+    ({ id, sourceProvider, sourceId }) =>
+      sourceProvider === 'repdb' ? id === `repdb:${sourceId}` : !id.startsWith('repdb:'),
+    { message: 'Exercise identity must match its source provider.' },
+  )
+  .superRefine(({ images, sourceProvider }, context) => {
+    if (
+      sourceProvider === 'repdb' &&
+      images.main === null &&
+      (images.start === null || images.peak === null)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'RepDB exercises require main or start and peak poses.',
+        path: ['images'],
+      });
+    }
+  });
+
+export const catalogMetadataSchema: z.ZodType<CatalogMetadata> = z
+  .object({
+    provider: z.literal('repdb'),
+    sourceRepository: z.string().url(),
+    sourceCommit: z.string().regex(/^[0-9a-f]{40}$/),
+    schemaVersion: z.string().min(1),
+    importedAt: isoTimestampSchema,
+    exerciseCount: z.number().int().nonnegative(),
+    sourceJsonBytes: z.number().int().nonnegative(),
+    mediaFileCount: z.number().int().nonnegative(),
+    mediaBytes: z.number().int().nonnegative(),
   })
   .strict();
 
@@ -57,7 +177,7 @@ export const programExerciseSchema: z.ZodType<ProgramExercise> = z
   .object({
     id: entityIdSchema,
     programDayId: entityIdSchema,
-    exerciseId: entityIdSchema,
+    exerciseId: exerciseIdSchema,
     order: z.number().int().positive(),
     targetSets: z.number().int().positive().nullable(),
     targetRepsMin: z.number().int().nonnegative().nullable(),
@@ -93,7 +213,7 @@ export const workoutExerciseSchema: z.ZodType<WorkoutExercise> = z
   .object({
     id: entityIdSchema,
     workoutSessionId: entityIdSchema,
-    exerciseId: entityIdSchema,
+    exerciseId: exerciseIdSchema,
     programExerciseId: entityIdSchema.nullable(),
     order: z.number().int().positive(),
     notes: nullableNotesSchema,

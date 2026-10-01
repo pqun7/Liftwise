@@ -27,7 +27,9 @@ describe('Liftwise app shell', () => {
 
     expect(screen.getByRole('heading', { name: /welcome to liftwise/i })).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: /primary/i })).toBeInTheDocument();
-    expect(screen.getAllByRole('link')).toHaveLength(6);
+    expect(screen.getByRole('navigation', { name: /primary/i }).querySelectorAll('a')).toHaveLength(
+      5,
+    );
   });
 
   it('navigates between feature placeholders', async () => {
@@ -37,7 +39,11 @@ describe('Liftwise app shell', () => {
     await user.click(screen.getByRole('link', { name: /settings/i }));
 
     expect(screen.getByRole('heading', { name: /make liftwise yours/i })).toBeInTheDocument();
-    expect(screen.getByText('Liftwise v0.2.0')).toBeInTheDocument();
+    expect(screen.getByText('Liftwise v0.3.0')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /exercise data by repdb/i })).toHaveAttribute(
+      'href',
+      'https://repdb.co',
+    );
   });
 
   it('renders a safe not-found screen for unknown routes', () => {

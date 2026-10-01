@@ -31,6 +31,12 @@ export default tseslint.config(
     },
   },
   {
+    files: ['src/features/exercises/loaders.ts'],
+    rules: {
+      '@typescript-eslint/only-throw-error': 'off',
+    },
+  },
+  {
     files: ['**/*.{js,mjs}'],
     ...tseslint.configs.disableTypeChecked,
   },

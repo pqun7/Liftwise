@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig } from 'vitest/config';
 
+const REPDB_MEDIA_CACHE_NAME = 'liftwise-repdb-media-9ed9357f09c7';
+
 export default defineConfig({
   plugins: [
     react(),
@@ -48,7 +50,19 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         navigateFallback: '/index.html',
-        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,json,svg,woff2}'],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/repdb-media/flat/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: REPDB_MEDIA_CACHE_NAME,
+              cacheableResponse: { statuses: [0, 200] },
+              expiration: { maxEntries: 1_200, maxAgeSeconds: 365 * 24 * 60 * 60 },
+            },
+          },
+        ],
       },
       devOptions: {
         enabled: false,

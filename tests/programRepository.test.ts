@@ -12,7 +12,7 @@ describe('ProgramRepository', () => {
     const database = createTestDatabase('program-graph');
     const exercises = new ExerciseRepository(database);
     const programs = new ProgramRepository(database);
-    const squat = await exercises.create({ name: 'Squat' });
+    const squat = await exercises.create({ name: 'Squat', primaryMuscle: 'quadriceps' });
     const program = await programs.create({ name: 'Two Day' });
     const secondDay = await programs.addDay({
       programId: program.id,
@@ -43,7 +43,7 @@ describe('ProgramRepository', () => {
     const exercises = new ExerciseRepository(database);
     const programs = new ProgramRepository(database);
     const workouts = new WorkoutRepository(database);
-    const exercise = await exercises.create({ name: 'Deadlift' });
+    const exercise = await exercises.create({ name: 'Deadlift', primaryMuscle: 'hamstrings' });
     const program = await programs.create({ name: 'Pull' });
     const day = await programs.addDay({ programId: program.id, name: 'Pull Day', dayNumber: 1 });
     const plannedExercise = await programs.addExercise({
