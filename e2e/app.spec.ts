@@ -156,6 +156,7 @@ test('builds and reloads an exact program prescription offline', async ({
   await page.getByLabel('Name').fill('Custom Cable Press');
   await page.getByLabel('Primary muscle').fill('Chest');
   await page.getByLabel('Equipment').fill('Cable');
+  await dismissPwaStatus(page);
   await page.getByRole('button', { name: 'Save custom exercise' }).click();
   await expect(page.getByRole('heading', { name: 'Custom Cable Press' })).toBeVisible({
     timeout: 20_000,
