@@ -26,6 +26,22 @@ Run this plan on a physical, supported iPhone before releasing an installable bu
 6. Launch and resume the installed app several times without a hardware keyboard. Confirm “Skip to content” never appears visually in the top safe area.
 7. With a hardware keyboard connected, press Tab from the top of the page. Confirm “Skip to content” becomes visible and moves focus to the main content when activated.
 
+## Form focus and zoom acceptance (v0.6.1)
+
+Editable mobile controls must compute to at least 16 CSS px to avoid unwanted iOS/WebKit focus auto-zoom. Manual pinch zoom must remain enabled.
+
+1. Open the installed Liftwise PWA on a physical iPhone and go to Plan → Create Program. Confirm the keyboard does not open on page load.
+2. Tap Program Name, type, and confirm the keyboard opens without viewport auto-zoom.
+3. Dismiss the keyboard and confirm the original page scale remains.
+4. Repeat with multiline Program Description/Notes.
+5. Create a day; check Day Name and Day Notes, including no automatic focus on page load.
+6. Add an exercise; check prescription numeric fields and Exercise Notes.
+7. Check Custom Exercise Name and Exercise Library Search.
+8. Manually pinch-zoom and confirm it still works.
+9. At narrow portrait width, confirm fields wrap and fit, with no horizontal scrolling or bottom-navigation overlap.
+
+WebKit emulation checks computed font sizes and layout at 320, 375, 390, 393, 414, and 430 CSS px. It cannot prove physical iPhone keyboard or zoom behavior.
+
 ## Exercise catalog acceptance
 
 1. Open Exercise Library and confirm the catalog count appears without an external-network error.
@@ -109,6 +125,6 @@ Record any loss, duplicate set, stale prescription, timer restart, or forced upd
 
 ## Data boundary
 
-v0.6.0 contains the Exercise Library, Program Builder, Data Safety tools, and durable Workout Session Core. In Safari Web Inspector, confirm there are no requests to RepDB, GitHub, or exercise-dataset.com during normal use and no application data in `localStorage`. IndexedDB should report schema version 5 with programs, session snapshots, recovery/timer fields, sets, exercises, and catalog metadata. Exercise art belongs in versioned Cache Storage; clearing it from the app must leave IndexedDB records unchanged.
+v0.6.1 contains the Exercise Library, Program Builder, Data Safety tools, and durable Workout Session Core. In Safari Web Inspector, confirm there are no requests to RepDB, GitHub, or exercise-dataset.com during normal use and no application data in `localStorage`. IndexedDB should report schema version 5 with programs, session snapshots, recovery/timer fields, sets, exercises, and catalog metadata. Exercise art belongs in versioned Cache Storage; clearing it from the app must leave IndexedDB records unchanged.
 
 Record the iPhone model, iOS version, deployed commit, date, and any deviations in the release issue.

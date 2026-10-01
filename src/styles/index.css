@@ -1458,6 +1458,13 @@ button {
   font-size: 0.9rem;
 }
 
+/* WebKit may zoom the viewport when a focused editable control is below 16 CSS px. */
+@media (max-width: 48rem) {
+  :is(input:not([type='checkbox']):not([type='radio']):not([type='file']), textarea, select) {
+    font-size: max(1rem, 16px);
+  }
+}
+
 .set-type-field,
 .set-complete-action,
 .set-delete-action,

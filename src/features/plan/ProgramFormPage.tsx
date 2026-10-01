@@ -47,7 +47,7 @@ export function ProgramFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' }>)
       <form className="exercise-form" onSubmit={(event) => void submit(event)} noValidate>
         <label>
           <span>Program name</span>
-          <input {...register('name', { required: 'Enter a program name.' })} autoFocus />
+          <input {...register('name', { required: 'Enter a program name.' })} />
           {errors.name ? <small role="alert">{errors.name.message}</small> : null}
         </label>
         <label>

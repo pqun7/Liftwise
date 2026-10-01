@@ -1,5 +1,40 @@
 # Development log
 
+## 2026-10-02 — v0.6.1 iPhone form focus auto-zoom fix
+
+### Goal
+
+Prevent unwanted focus auto-zoom in installed iPhone PWA forms while keeping manual pinch zoom available.
+
+### Work completed
+
+- Added a shared mobile typography floor for editable inputs, textareas, and selects.
+- Removed page-load autofocus from ordinary Program and Day forms.
+
+### Important decisions
+
+- Editable mobile controls must compute to at least 16 CSS px. Labels and helper text retain their existing sizes; viewport scaling remains unrestricted.
+
+### Problems encountered
+
+- WebKit measured the Program Name field at 13.12px before the fix. The form inherited its label's 0.82rem font size.
+
+### Bugs fixed
+
+- Focus no longer triggers WebKit's small-field zoom heuristic on covered controls, and opening Program/Day forms no longer focuses an editable field.
+
+### Tests added
+
+- Mobile WebKit computed-style checks for Program, Day, Prescription, Exercise, Search, and Data Safety controls; viewport and representative-width checks.
+
+### Known limitations
+
+- WebKit emulation verifies computed styles, not the physical iPhone keyboard and focus zoom behavior. A real-device acceptance pass remains required.
+
+### Next version
+
+Stop at v0.6.1; no v0.7 functionality is included.
+
 ## 2026-10-02 — v0.6.0 workout session core, snapshots, and recovery
 
 ### Goal

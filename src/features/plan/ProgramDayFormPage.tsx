@@ -53,11 +53,7 @@ export function ProgramDayFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' 
       <form className="exercise-form" onSubmit={(event) => void submit(event)} noValidate>
         <label>
           <span>Day name</span>
-          <input
-            {...register('name', { required: 'Enter a day name.' })}
-            placeholder="Push Day"
-            autoFocus
-          />
+          <input {...register('name', { required: 'Enter a day name.' })} placeholder="Push Day" />
           {errors.name ? <small role="alert">{errors.name.message}</small> : null}
         </label>
         <label>
