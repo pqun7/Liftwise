@@ -76,7 +76,7 @@ export function OfflineExerciseData() {
   const complete = total > 0 && cached >= total;
 
   return (
-    <section className="settings-card" aria-labelledby="offline-data-title">
+    <section id="offline-data" className="settings-card" aria-labelledby="offline-data-title">
       <div>
         <p className="section-kicker">Offline data</p>
         <h2 id="offline-data-title">Exercise images</h2>

@@ -1,3 +1,6 @@
+import { Link } from 'react-router-dom';
+
+import { APP_VERSION } from '../../app/version';
 import { PageIntro } from '../../components/PageIntro';
 import { OfflineExerciseData } from './OfflineExerciseData';
 
@@ -8,14 +11,22 @@ export function SettingsPage() {
         titleId="settings-title"
         eyebrow="Settings"
         title="Make Liftwise yours"
-        description="Device preferences, data export, and recovery controls will live here."
+        description="Manage device storage, backups, recovery, offline media, and app credits."
       />
+      <section className="settings-card" aria-labelledby="data-safety-card-title">
+        <p className="section-kicker">Data safety</p>
+        <h2 id="data-safety-card-title">Backup and recovery</h2>
+        <p>Inspect local storage, create a verified backup, or safely restore user-owned data.</p>
+        <Link className="compact-link" to="/settings/data-safety">
+          Open Data Safety
+        </Link>
+      </section>
       <div>
         <OfflineExerciseData />
       </div>
       <section className="settings-card" aria-labelledby="credits-title">
         <p className="section-kicker">About / Credits</p>
-        <h2 id="credits-title">Liftwise v0.4.1</h2>
+        <h2 id="credits-title">Liftwise v{APP_VERSION}</h2>
         <p>
           <a href="https://repdb.co" rel="external">
             Exercise data by RepDB (repdb.co)

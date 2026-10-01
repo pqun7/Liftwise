@@ -99,6 +99,12 @@ Expands Exercise and adds provider indexes plus `catalogMetadata`. The v2→v3 m
 
 Changes the ProgramDay compound order index from `(programId, dayNumber)` to `(programId, order)`, adds day notes, renames prescription rep fields to `minReps`/`maxReps`, and adds target RIR and rest seconds. The forward migration preserves program, day, prescription, and exercise IDs, timestamps, notes, ordering, and references. Missing new fields receive `null`, meaning no target.
 
+### v0.5.0 data-safety note
+
+v0.5.0 does not change the IndexedDB schema, so the current Dexie version remains 4. Backup format versions are intentionally independent from database schema versions. The last successful backup timestamp uses the existing AppSettings store and is not itself portable.
+
+Committed, deterministic v1, v2, and v3 fixture definitions now exercise every released upgrade path to the latest database. Historical fixtures and old Dexie version declarations are immutable release evidence; new migrations add a new fixture/version instead of editing old ones.
+
 ## Future migration strategy
 
 1. Never edit an already released Dexie version declaration.
@@ -117,6 +123,10 @@ Changes the ProgramDay compound order index from `(programId, dayNumber)` to `(p
 - The UI must show success only after the relevant repository promise resolves.
 - Active workout state will be reconstructed from WorkoutSession, WorkoutExercise, and WorkoutSet records after refresh or restart.
 - Repositories return errors to callers; they do not hide failed writes.
+- Backup restore validates the complete portable graph before opening its replacement transaction.
+- Replacement clears only user-owned tables/rows, never RepDB catalog records or Cache Storage media.
+- Insert and canonical post-import verification happen in the same Dexie transaction. Any error aborts the transaction and preserves the original user data.
+- Missing custom references are fatal. Missing `repdb:*` references are reported and preserved so user-owned program/workout structure is not silently discarded.
 
 ## Deletion rules
 

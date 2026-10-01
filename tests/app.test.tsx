@@ -39,7 +39,11 @@ describe('Liftwise app shell', () => {
     await user.click(screen.getByRole('link', { name: /settings/i }));
 
     expect(screen.getByRole('heading', { name: /make liftwise yours/i })).toBeInTheDocument();
-    expect(screen.getByText('Liftwise v0.4.1')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Liftwise v0.5.0' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Open Data Safety' })).toHaveAttribute(
+      'href',
+      '/settings/data-safety',
+    );
     expect(screen.getByRole('link', { name: /exercise data by repdb/i })).toHaveAttribute(
       'href',
       'https://repdb.co',

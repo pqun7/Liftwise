@@ -221,3 +221,82 @@ test('builds and reloads an exact program prescription offline', async ({
     await context.setOffline(false);
   }
 });
+
+test('backs up, deletes, restores, and verifies an exact program offline', async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(120_000);
+
+  await page.goto('/exercises/new');
+  await page.getByLabel('Name').fill('Backup Cable Press');
+  await page.getByLabel('Primary muscle').fill('Chest');
+  await page.getByLabel('Equipment').fill('Cable');
+  await page.getByRole('button', { name: 'Save custom exercise' }).click();
+  await expect(page.getByRole('heading', { name: 'Backup Cable Press' })).toBeVisible({
+    timeout: 20_000,
+  });
+
+  await page.goto('/plan');
+  await page.getByRole('link', { name: 'Create program' }).click();
+  await page.getByLabel('Program name').fill('Backup Push Plan');
+  await page.getByRole('button', { name: 'Create program' }).click();
+  await page.getByRole('link', { name: '+ Day' }).click();
+  await page.getByLabel('Day name').fill('Backup Push Day');
+  await page.getByRole('button', { name: 'Add day' }).click();
+
+  await page.getByRole('link', { name: 'Add exercise' }).click();
+  await page.getByRole('searchbox', { name: 'Search exercises' }).fill('Barbell Bench Press');
+  await page
+    .getByRole('link', { name: /Barbell Bench Press/ })
+    .first()
+    .click();
+  await page.getByLabel('Target sets').fill('3');
+  await page.getByLabel('Minimum reps').fill('6');
+  await page.getByLabel('Maximum reps').fill('8');
+  await page.getByRole('button', { name: 'Add to day' }).click();
+
+  await page.getByRole('link', { name: 'Add exercise' }).click();
+  await page.getByRole('searchbox', { name: 'Search exercises' }).fill('Backup Cable Press');
+  await page.getByRole('link', { name: /Backup Cable Press/ }).click();
+  await page.getByLabel('Target sets').fill('2');
+  await page.getByLabel('Minimum reps').fill('10');
+  await page.getByLabel('Maximum reps').fill('12');
+  await page.getByRole('button', { name: 'Add to day' }).click();
+  await expect(page.getByText('3 sets · 6–8 reps')).toBeVisible();
+  await expect(page.getByText('2 sets · 10–12 reps')).toBeVisible();
+
+  await page.goto('/settings/data-safety');
+  await expect(page.getByText('Healthy', { exact: true })).toBeVisible({ timeout: 20_000 });
+  const downloadEvent = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Create Backup' }).click();
+  const download = await downloadEvent;
+  const backupPath = await download.path();
+  if (backupPath === null) throw new Error('Backup download did not produce a local file.');
+
+  await page.getByLabel('Type DELETE to confirm').fill('DELETE');
+  await page.getByRole('button', { name: 'Delete My Liftwise Data' }).click();
+  await expect(page.getByText(/user data was deleted/i)).toBeVisible();
+  await page.getByLabel('Restore Backup').setInputFiles(backupPath);
+  await expect(page.getByRole('heading', { name: 'Liftwise Backup' })).toBeVisible();
+  await expect(page.getByText('Programs').locator('..').getByText('1')).toBeVisible();
+  await expect(page.getByText('Prescriptions').locator('..').getByText('2')).toBeVisible();
+  await page
+    .getByLabel('Replace my current Liftwise user data with this validated backup.')
+    .check();
+  await page.getByRole('button', { name: 'Restore and Replace Current User Data' }).click();
+  await expect(page.getByText('Backup restored and verified.')).toBeVisible();
+
+  await context.setOffline(true);
+  try {
+    await page.getByRole('link', { name: 'Plan' }).click();
+    await page.getByRole('link', { name: 'Open Backup Push Plan' }).click();
+    await page.getByRole('link', { name: /Backup Push Day/ }).click();
+    await expect(page.getByRole('heading', { name: 'Barbell Bench Press' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Backup Cable Press' })).toBeVisible();
+    await expect(page.getByText('3 sets · 6–8 reps')).toBeVisible();
+    await expect(page.getByText('2 sets · 10–12 reps')).toBeVisible();
+  } finally {
+    await context.setOffline(false);
+  }
+});

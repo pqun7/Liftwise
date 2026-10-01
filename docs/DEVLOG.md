@@ -1,5 +1,61 @@
 # Development log
 
+## 2026-10-01 — v0.5.0 data safety, backup, and migration safety
+
+### Goal
+
+Make user-owned Liftwise data recoverable, inspectable, and migration-safe before live workout history starts accumulating, without adding an account, backend, cloud service, or runtime network dependency.
+
+### Work completed
+
+- Added a strict version-1 backup envelope, canonical serialization, Web Crypto SHA-256 integrity checksum, and explicit version-0 migration.
+- Added user-data-only export and excluded RepDB records, catalog metadata, and offline media while retaining stable provider references.
+- Added a fixed parse/validate/checksum/compatibility/migrate/preview/confirm/transaction/verify restore pipeline.
+- Added the iPhone-first Data Safety screen with health, last backup, storage estimates, progressive persistence request, backup, restore preview, CSV export, media management, and strongly confirmed user-data deletion.
+- Added atomic replace and exact in-transaction post-import verification with rollback.
+- Added immutable migration fixture definitions for released database versions 1–3. No IndexedDB schema change was needed; the latest version remains 4.
+
+### Important decisions
+
+- Backup format versions are separate from IndexedDB schema versions and migrate through a dedicated non-React layer.
+- Version 1 is replace-only. Merge is deferred until ID, ordering, and historical conflict semantics are unambiguous and thoroughly tested.
+- Missing custom references are fatal. Missing provider references are visible warnings and are preserved rather than deleting user-owned structure.
+- The SHA-256 checksum detects accidental corruption but does not authenticate, sign, or encrypt the file.
+- User data and downloaded RepDB media remain separate deletion and storage boundaries.
+
+### Problems encountered
+
+- A Mobile Safari end-to-end run could begin backup before the second prescription route had settled. The test now waits for both visible saved rows, reflecting the user-observable persistence boundary.
+- The baseline formatting gate already failed on README changes made after v0.4.1; v0.5 reformatted that file without changing its intended content.
+- Browser persistence APIs vary by platform, so unsupported and not-granted states are first-class results instead of errors or guarantees.
+
+### Bugs fixed
+
+- Prevented malformed, corrupt, duplicate, incompatible, or internally inconsistent backups from reaching destructive code.
+- Prevented partial replacement by placing clear, import, and exact read-back verification in one Dexie transaction.
+- Prevented user-data deletion or restore from removing the RepDB catalog or downloaded exercise images.
+
+### Tests added
+
+- Backup export, checksum determinism/tampering, invalid JSON/schema, future version, older migration, duplicate IDs, and missing references.
+- Critical mixed custom/RepDB program round trip through clear, restore, database close/reopen, and exact equality.
+- Forced mid-import failure proving the original user graph survives unchanged.
+- Storage API unsupported/granted states and reusable CSV escaping.
+- Mobile Safari and Chromium backup download, delete, upload, preview, confirmed restore, reload, and offline verification.
+
+### Known limitations
+
+- Backups are plaintext local files and are not encrypted or authenticated.
+- Restore merge is not implemented; only explicit replacement is supported.
+- CSV export covers custom exercises only because live workout rows do not yet exist.
+- Storage persistence is browser-controlled and cannot be guaranteed on iPhone.
+- Physical-iPhone file-picker, download, eviction, and offline lifecycle validation remains required; WebKit emulation is not a physical-device test.
+- The existing production JavaScript chunk-size warning remains.
+
+### Next version
+
+Implement v0.6.0 live workout logging with immediate IndexedDB writes and an immutable session-owned prescription snapshot. Do not read historical prescriptions from mutable ProgramExercise records.
+
 ## 2026-10-01 — v0.4.1 Deployment reliability fixes
 
 ### Goal

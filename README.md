@@ -12,7 +12,7 @@ It helps you organize exercises and training programs while keeping your persona
 - Works offline after the required files are loaded
 - Installable on the iPhone Home Screen
 
-> **Current release:** v0.4.1
+> **Current release:** v0.5.0
 
 ---
 
@@ -43,6 +43,15 @@ It helps you organize exercises and training programs while keeping your persona
 - Edit or delete saved items
 
 Your programs are saved locally on your device.
+
+### Data Safety
+
+- Create a portable, versioned backup of user-owned data
+- Validate a backup and review its contents before replacing current data
+- Detect accidental backup corruption with a SHA-256 checksum
+- Export custom exercises as CSV
+- Inspect database health and available browser storage information
+- Delete user data separately from downloaded exercise images
 
 ---
 
@@ -106,15 +115,15 @@ Liftwise is designed to keep your personal fitness data on your device.
 
 Currently, Liftwise has:
 
-| Feature | Current behavior |
-| --- | --- |
-| Account | Not required |
-| Backend database | None |
-| Cloud sync | None |
-| Analytics / tracking | None |
-| Personal workout-data upload | None |
-| Main local storage | IndexedDB |
-| Exercise media | Browser Cache Storage |
+| Feature                      | Current behavior      |
+| ---------------------------- | --------------------- |
+| Account                      | Not required          |
+| Backend database             | None                  |
+| Cloud sync                   | None                  |
+| Analytics / tracking         | None                  |
+| Personal workout-data upload | None                  |
+| Main local storage           | IndexedDB             |
+| Exercise media               | Browser Cache Storage |
 
 Liftwise does not currently send your programs, custom exercises, workout records, body metrics, or app settings to a Liftwise server.
 
@@ -133,11 +142,15 @@ For better device security, use:
 ## Data safety
 
 > [!WARNING]
-> **Backup and restore are not available yet in v0.4.1.**
+> Browser storage is device-managed. Even when persistence is granted, iOS does not guarantee permanent storage. Keep backup files somewhere outside Liftwise/Safari data.
 
-Your Liftwise data currently exists only in the browser storage connected to the installed app.
+Open **Settings → Data Safety → Create Backup** to download `liftwise-backup-YYYY-MM-DD.json`. The file contains user-created exercises, programs, portable settings, body metrics, and any existing workout records. It does not copy the RepDB catalog or exercise images.
 
-You may lose your data if you:
+Restore validates the file, checksum, compatibility, IDs, ordering, and relationships before showing a preview. Existing user data changes only after explicit confirmation, inside one transaction; a failed import rolls back.
+
+The checksum detects accidental corruption. It is not encryption, authentication, or a digital signature. Anyone who can read the file can read its contents, so store it securely.
+
+You can still lose local data if you:
 
 - clear Liftwise/Safari website data;
 - reset or erase the iPhone;
@@ -145,9 +158,7 @@ You may lose your data if you:
 - switch to a different Liftwise deployment address;
 - experience unexpected browser-storage loss.
 
-Because there is currently no Liftwise account or cloud backup, deleted local data cannot automatically be restored.
-
-Do not use the current development release as the only permanent copy of important training history until backup and restore are available.
+There is no account or automatic cloud backup. Recovery requires a backup file you created and kept.
 
 ---
 
@@ -169,23 +180,25 @@ After the required app files are cached, supported features are designed to work
 
 ## Current status
 
-| Feature | Status |
-| --- | --- |
-| iPhone Home Screen app | ✅ Available |
-| Offline app shell | ✅ Available |
-| Exercise Library | ✅ Available |
-| Custom exercises | ✅ Available |
-| Program Builder | ✅ Available |
-| Local data persistence | ✅ Available |
-| Offline exercise metadata | ✅ Available |
-| Optional offline exercise media | ✅ Available |
-| Live Workout Logger | 🚧 Planned for v0.5 |
-| Set logging | 🚧 Planned |
-| Workout history | 🚧 Planned |
-| Personal records | 🚧 Planned |
-| Progress charts | 🚧 Planned |
-| Backup / restore | 🚧 Planned |
-| Accounts / cloud sync | Not currently planned |
+| Feature                         | Status                |
+| ------------------------------- | --------------------- |
+| iPhone Home Screen app          | ✅ Available          |
+| Offline app shell               | ✅ Available          |
+| Exercise Library                | ✅ Available          |
+| Custom exercises                | ✅ Available          |
+| Program Builder                 | ✅ Available          |
+| Local data persistence          | ✅ Available          |
+| Offline exercise metadata       | ✅ Available          |
+| Optional offline exercise media | ✅ Available          |
+| Data backup / validated restore | ✅ Available          |
+| Storage health and estimates    | ✅ Available          |
+| Custom exercise CSV export      | ✅ Available          |
+| Live Workout Logger             | 🚧 Planned for v0.6   |
+| Set logging                     | 🚧 Planned            |
+| Workout history                 | 🚧 Planned            |
+| Personal records                | 🚧 Planned            |
+| Progress charts                 | 🚧 Planned            |
+| Accounts / cloud sync           | Not currently planned |
 
 See [`ROADMAP.md`](ROADMAP.md) for the development roadmap.
 
@@ -269,6 +282,7 @@ More technical information is available in:
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 - [`docs/DATABASE.md`](docs/DATABASE.md)
+- [`docs/BACKUP_AND_RESTORE.md`](docs/BACKUP_AND_RESTORE.md)
 - [`docs/REPDB_INTEGRATION.md`](docs/REPDB_INTEGRATION.md)
 - [`docs/THIRD_PARTY_DATA.md`](docs/THIRD_PARTY_DATA.md)
 - [`docs/TESTING.md`](docs/TESTING.md)

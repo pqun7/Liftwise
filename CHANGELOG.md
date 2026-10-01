@@ -4,6 +4,28 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-01
+
+### Added
+
+- Versioned, Zod-validated local backup envelopes with deterministic SHA-256 integrity checks.
+- Data Safety screen with database health, last-backup time, storage estimates, honest persistence status, backup creation, restore preview, and strongly confirmed deletion.
+- Replace-only restore pipeline with compatibility checks, explicit backup migration, relationship validation, unresolved-provider-reference reporting, transactional import, and in-transaction post-import verification.
+- User-data-only export that excludes the RepDB catalog and exercise artwork while preserving stable provider references.
+- Custom-exercise CSV export foundation and deterministic v1/v2/v3 database migration fixtures.
+- Automated backup round-trip, corruption, compatibility, rollback, restart, storage API, CSV, and Mobile Safari/Chromium recovery coverage.
+
+### Changed
+
+- Settings now separates user-owned data safety from disposable offline exercise media.
+- Migration tests use committed historical fixture definitions without rewriting released Dexie schemas.
+
+### Security
+
+- Restore never changes current data until parsing, schema/checksum validation, compatibility checks, migration, and relationship validation succeed.
+- A failed transactional replacement rolls back to the exact original user data.
+- Backup checksums detect accidental corruption; they are not authentication, encryption, or a digital signature.
+
 ## [0.4.1] - 2026-10-01
 
 ### Fixed
@@ -86,7 +108,8 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - ESLint, Prettier, strict TypeScript, and GitHub Actions quality gates.
 - Architecture, ADR, testing, iPhone validation, roadmap, development log, and issue templates.
 
-[Unreleased]: https://github.com/pqun7/Liftwise/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/pqun7/Liftwise/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/pqun7/Liftwise/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/pqun7/Liftwise/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/pqun7/Liftwise/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/pqun7/Liftwise/compare/v0.2.0...v0.3.0

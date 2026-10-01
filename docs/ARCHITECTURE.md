@@ -2,7 +2,7 @@
 
 ## Goals
 
-Liftwise prioritizes reliable installed-iPhone operation, offline availability, device-local privacy, and safe workout data. The application is a static client and has no backend boundary in v0.4.0.
+Liftwise prioritizes reliable installed-iPhone operation, offline availability, device-local privacy, and safe workout data. The application is a static client and has no backend boundary in v0.5.0.
 
 ## Layers
 
@@ -12,11 +12,14 @@ Feature UI → feature service → provider-neutral domain → repositories → 
                  build-time provider adapter and local artifact
      ↓
 Shared app shell, routing, and presentation components
+
+Data Safety UI → backup service → validation/migration → transactional repository
 ```
 
 - `src/app` owns composition, top-level routing, navigation, and PWA-facing shell behavior.
 - `src/domain` owns framework-independent entity contracts, validation, and derived calculations.
 - `src/features` owns product areas. A feature may contain its own components and hooks as it grows.
+- `src/lib/backup` owns the portable backup contract, canonical checksum, relationship validation, and backup-format errors without depending on React.
 - `src/data/providers` isolates external schemas, validation, adapters, provenance, catalog initialization, and media-cache behavior.
 - `src/components` contains shared presentation only. Components should not reach directly into persistence.
 - `src/lib/storage` owns database versions, migrations, repositories, transaction boundaries, and validation at storage edges.
@@ -39,6 +42,18 @@ Released schema version 1 remains registered, and the v1→v2 migration preserve
 - export and recovery design before irreplaceable records ship.
 
 Completed-set volume is calculated from validated set records and is not persisted as duplicated state.
+
+## Backup and restore boundary
+
+The backup service is independent of React and owns the versioned envelope, canonical serialization, SHA-256 checksum, compatibility policy, migrations, preview, and restore orchestration. The data-safety repository owns the precise user-data allowlist and the Dexie replacement transaction.
+
+```text
+parse → envelope validation → checksum → compatibility → backup migration
+      → relationship validation → preview → explicit confirmation
+      → one IndexedDB transaction → canonical post-import verification
+```
+
+Only user-owned data is portable. RepDB rows, catalog metadata, and Cache Storage media are excluded; stable `repdb:*` references are retained. An unavailable provider reference is reported and preserved rather than silently deleting the user's prescription. Version 1 uses replace semantics only—merge is deliberately deferred until a conflict model can be proven safe. See `docs/BACKUP_AND_RESTORE.md` and ADR-005.
 
 RepDB's raw schema stops at the provider adapter. Program and workout records reference the stable Liftwise ID (`repdb:<RepDB ID>`), never image filenames or raw provider objects. Provider records are read-only; a user edit starts as a separate custom record. Missing upstream exercises become inactive instead of being deleted, preserving historical references.
 

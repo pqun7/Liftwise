@@ -23,6 +23,7 @@ import {
   programLoader,
 } from '../features/plan/loaders';
 import { ProgressPage } from '../features/progress/ProgressPage';
+import { DataSafetyPage } from '../features/dataSafety/DataSafetyPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 import { WorkoutPage } from '../features/workout/WorkoutPage';
 import { AppShell } from './shell/AppShell';
@@ -105,6 +106,7 @@ export const routeObjects: RouteObject[] = [
       { path: 'workout', element: <WorkoutPage /> },
       { path: 'progress', element: <ProgressPage /> },
       { path: 'settings', element: <SettingsPage /> },
+      { path: 'settings/data-safety', element: <DataSafetyPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

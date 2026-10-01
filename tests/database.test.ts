@@ -4,6 +4,13 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { LiftwiseDatabase } from '../src/lib/storage/database';
 import { AppSettingsRepository } from '../src/lib/storage/repositories/appSettingsRepository';
 import { VERSION_1_STORES, VERSION_2_STORES, VERSION_3_STORES } from '../src/lib/storage/schema';
+import {
+  version1SettingFixture,
+  version2ExerciseFixture,
+  version3DayFixture,
+  version3ProgramExerciseFixture,
+  version3ProgramFixture,
+} from './fixtures/migrations';
 import { cleanupTestDatabases, trackDatabaseName } from './helpers/database';
 
 afterEach(cleanupTestDatabases);
@@ -12,67 +19,32 @@ async function createLegacySetting(name: string, updatedAt: string): Promise<voi
   trackDatabaseName(name);
   const legacyDatabase = new Dexie(name);
   legacyDatabase.version(1).stores(VERSION_1_STORES);
-  await legacyDatabase.table('appSettings').put({ key: 'units', value: 'metric', updatedAt });
+  await legacyDatabase.table('appSettings').put({ ...version1SettingFixture, updatedAt });
   legacyDatabase.close();
 }
 
 async function createVersion2Exercise(name: string): Promise<string> {
   trackDatabaseName(name);
-  const id = crypto.randomUUID();
-  const timestamp = '2026-09-30T12:00:00.000Z';
   const legacyDatabase = new Dexie(name);
   legacyDatabase.version(2).stores(VERSION_2_STORES);
-  await legacyDatabase.table('exercises').put({
-    id,
-    name: 'Legacy Squat',
-    notes: 'Preserve me',
-    createdAt: timestamp,
-    updatedAt: timestamp,
-  });
+  await legacyDatabase.table('exercises').put(version2ExerciseFixture);
   legacyDatabase.close();
-  return id;
+  return version2ExerciseFixture.id;
 }
 
 async function createVersion3Program(name: string) {
   trackDatabaseName(name);
-  const ids = {
-    program: crypto.randomUUID(),
-    day: crypto.randomUUID(),
-    exercise: crypto.randomUUID(),
-  };
-  const timestamp = '2026-10-01T12:00:00.000Z';
   const legacyDatabase = new Dexie(name);
   legacyDatabase.version(3).stores(VERSION_3_STORES);
-  await legacyDatabase.table('programs').put({
-    id: ids.program,
-    name: 'Legacy PPL',
-    description: null,
-    archived: false,
-    createdAt: timestamp,
-    updatedAt: timestamp,
-  });
-  await legacyDatabase.table('programDays').put({
-    id: ids.day,
-    programId: ids.program,
-    name: 'Push',
-    dayNumber: 1,
-    createdAt: timestamp,
-    updatedAt: timestamp,
-  });
-  await legacyDatabase.table('programExercises').put({
-    id: ids.exercise,
-    programDayId: ids.day,
-    exerciseId: 'repdb:barbell-bench-press',
-    order: 1,
-    targetSets: 3,
-    targetRepsMin: 6,
-    targetRepsMax: 8,
-    notes: 'Pause',
-    createdAt: timestamp,
-    updatedAt: timestamp,
-  });
+  await legacyDatabase.table('programs').put(version3ProgramFixture);
+  await legacyDatabase.table('programDays').put(version3DayFixture);
+  await legacyDatabase.table('programExercises').put(version3ProgramExerciseFixture);
   legacyDatabase.close();
-  return ids;
+  return {
+    program: version3ProgramFixture.id,
+    day: version3DayFixture.id,
+    exercise: version3ProgramExerciseFixture.id,
+  };
 }
 
 describe('LiftwiseDatabase migrations', () => {

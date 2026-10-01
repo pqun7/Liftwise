@@ -69,6 +69,21 @@ Run this plan on a physical, supported iPhone before releasing an installable bu
 
 WebKit emulation exercises this flow automatically but does not count as physical-device testing.
 
+## Data Safety acceptance
+
+1. While online, create a custom exercise and a program that uses both it and one RepDB exercise. Note the exact day/exercise ordering and prescription values.
+2. Open **Settings → Data Safety**. Confirm Database health is Healthy and that storage usage/persistence is described without promising permanent storage.
+3. Tap **Create Backup**. Confirm iOS presents or saves a file named `liftwise-backup-YYYY-MM-DD.json`; move it to Files/iCloud Drive or another location outside Safari website data.
+4. Tap **Restore Backup**, choose that file, and confirm the preview date and entity counts are accurate. Do not confirm yet; verify current data is unchanged.
+5. Use **Download current data first** and keep the safety copy.
+6. Confirm restore, then close Liftwise from the app switcher and reopen it. Confirm the exact custom exercise, program order, RepDB reference, and prescriptions remain.
+7. Repeat the open/inspect flow in Airplane Mode with Wi-Fi disabled. No restore or data screen should require a remote API.
+8. Create a second temporary user record. In the danger zone, verify the delete button remains disabled until `DELETE` is entered exactly. Delete user data and confirm RepDB exercises still browse normally.
+9. Confirm previously downloaded exercise images remain after user-data deletion. Then use **Clear Offline Exercise Images** and confirm it does not remove restored user records.
+10. Restore the backup again and verify the exact reconstruction after an app restart.
+
+The automated Mobile Safari project covers this logical round trip, including offline verification, but physical iOS file-picker/download behavior and browser storage eviction still require this real-device pass.
+
 ## Lifecycle and updates
 
 1. Background Liftwise, lock the phone for at least one minute, unlock, and return. Confirm the same route remains usable.
@@ -79,6 +94,6 @@ WebKit emulation exercises this flow automatically but does not count as physica
 
 ## Data boundary
 
-v0.4.0 contains the Exercise Library and Program Builder but no Live Workout Logger. In Safari Web Inspector, confirm there are no requests to RepDB, GitHub, or exercise-dataset.com during normal use and no application data in `localStorage`. IndexedDB should report schema version 4 with programs, ordered days, prescriptions, exercises, and catalog metadata. Exercise art belongs in versioned Cache Storage; clearing it from the app must leave IndexedDB records unchanged.
+v0.5.0 contains the Exercise Library, Program Builder, and Data Safety tools but no Live Workout Logger. In Safari Web Inspector, confirm there are no requests to RepDB, GitHub, or exercise-dataset.com during normal use and no application data in `localStorage`. IndexedDB should report schema version 4 with programs, ordered days, prescriptions, exercises, and catalog metadata. Exercise art belongs in versioned Cache Storage; clearing it from the app must leave IndexedDB records unchanged.
 
 Record the iPhone model, iOS version, deployed commit, date, and any deviations in the release issue.

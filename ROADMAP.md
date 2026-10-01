@@ -34,7 +34,7 @@ The roadmap is directional. Reliability, privacy, and data safety take priority 
 - [x] Add either built-in or custom exercises to plans
 - [x] Accessible day/exercise reordering and deterministic prescription targets
 - [x] Active-program selection, duplication, confirmed deletion, and reload recovery
-- [ ] Validated export and recovery foundations (required before live workout logging)
+- [x] Validated export and recovery foundations (delivered in v0.5.0 before live workout logging)
 
 ## v0.4.1 — Deployment reliability
 
@@ -42,14 +42,23 @@ The roadmap is directional. Reliability, privacy, and data safety take priority 
 - [x] Reject non-image media responses before caching
 - [x] Keep the skip link hidden from ordinary iPhone Safari focus restoration
 
-## v0.5.0 — Workout logging
+## v0.5.0 — Data safety, backup, and migration safety
+
+- [x] Versioned local backup envelope and deterministic SHA-256 integrity checksum
+- [x] User-data-only export without RepDB catalog or media redistribution
+- [x] Validation, compatibility, migration, preview, confirmation, transactional replace, and post-import verification
+- [x] Database health, storage estimate, and progressive persistence status
+- [x] Deterministic released-schema migration fixtures and rollback coverage
+- [x] Strongly separated user-data deletion and offline-media clearing
+
+## v0.6.0 — Workout logging
 
 - Resilient active-workout flow
 - Immediate IndexedDB writes after important actions
 - Recovery from interruption, termination, and refresh
 - Rest timer designed for installed iPhone use
 
-## v0.6.0 — History and progress
+## v0.7.0 — History and progress
 
 - Workout history and personal records
 - Local-only progress summaries and charts
@@ -57,7 +66,6 @@ The roadmap is directional. Reliability, privacy, and data safety take priority 
 
 ## Later
 
-- Data backup, restore, and migration tooling
 - Optional device-level capabilities where they improve the offline experience
 - Accessibility, performance, and internationalization refinements
 
