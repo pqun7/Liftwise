@@ -1,7 +1,7 @@
 {
   "name": "liftwise",
   "private": true,
-  "version": "0.4.0",
+  "version": "0.4.1",
   "type": "module",
   "packageManager": "pnpm@10.15.1",
   "engines": {
@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:deployment": "tsx scripts/repdb/sync.ts --with-media && tsc -b && vite build",
     "preview": "vite preview",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc -b --pretty false",

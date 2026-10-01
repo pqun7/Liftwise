@@ -23,13 +23,15 @@ Vitest runs TypeScript tests in JSDOM. `fake-indexeddb` provides the IndexedDB A
 
 RepDB unit tests cover schema failures, duplicate IDs, safe image paths, mapping, both image shapes, muscle/equipment/difficulty/goal mapping, search, and filters. `pnpm repdb:verify` validates the generated 601-record artifact independently of UI tests.
 
+Media-cache tests verify successful Cache Storage writes and reject HTML fallback documents even if a host responds successfully. Deployment builds use `pnpm build:deployment` to materialize the pinned media pack before browser verification.
+
 ### Component and route tests
 
 React Testing Library tests the interface through accessible roles and names. Prefer user events and visible outcomes over component internals. Routes use an in-memory router in tests.
 
 ### End-to-end tests
 
-Playwright starts the built production preview and runs iPhone Safari and desktop Chromium profiles. The suite checks navigation, manifest/service-worker behavior, exercise catalog flows, and a complete create-program → add-day → add RepDB/custom prescriptions → reorder → reload → offline recovery flow.
+Playwright starts the built production preview and runs iPhone Safari and desktop Chromium profiles. The suite checks navigation, manifest/service-worker behavior, hidden and keyboard-visible skip-link states, a real WebP response, the complete 1,056-image download, exercise catalog flows, and a complete create-program → add-day → add RepDB/custom prescriptions → reorder → reload → offline recovery flow.
 
 Install browsers once with:
 

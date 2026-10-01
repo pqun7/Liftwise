@@ -4,6 +4,18 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-10-01
+
+### Fixed
+
+- Vercel deployments now synchronize the pinned RepDB media pack before building, preventing every optional offline image request from returning 404.
+- Offline media caching rejects non-image fallback responses instead of storing them as successful exercise images.
+- The accessibility skip link remains visually clipped when iPhone Safari restores ordinary focus and appears only for keyboard-visible focus.
+
+### Changed
+
+- Deployment and browser CI builds now verify that a real RepDB WebP asset is present and served with an image content type.
+
 ## [0.4.0] - 2026-10-01
 
 ### Added
@@ -74,7 +86,8 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - ESLint, Prettier, strict TypeScript, and GitHub Actions quality gates.
 - Architecture, ADR, testing, iPhone validation, roadmap, development log, and issue templates.
 
-[Unreleased]: https://github.com/pqun7/Liftwise/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/pqun7/Liftwise/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/pqun7/Liftwise/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/pqun7/Liftwise/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/pqun7/Liftwise/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/pqun7/Liftwise/compare/v0.1.0...v0.2.0

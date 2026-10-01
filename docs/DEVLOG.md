@@ -1,5 +1,50 @@
 # Development log
 
+## 2026-10-01 — v0.4.1 Deployment reliability fixes
+
+### Goal
+
+Fix the missing offline exercise-image pack on the deployed Vercel app and prevent iPhone Safari from exposing the keyboard skip link during normal touch launches.
+
+### Work completed
+
+- Reproduced the deployment failure and verified a known RepDB WebP path returned 404 instead of image content.
+- Added an explicit deployment build that syncs the pinned RepDB media before Vite packages the app.
+- Updated Vercel and browser CI builds to use the deployment command.
+- Changed the skip link to the standard visually-clipped pattern and reveal it only with `:focus-visible`.
+- Rejected successful HTML fallback responses at the media cache boundary.
+
+### Important decisions
+
+- RepDB media remains excluded from Git so Liftwise does not become a raw dataset mirror; the already-pinned ingestion process materializes the licensed in-app assets at build time.
+- Keyboard accessibility remains intact. The skip link was not removed; ordinary Safari focus and keyboard-visible focus now have separate presentation behavior.
+
+### Problems encountered
+
+- The progress indicator correctly counted checked requests, including failures, which made the missing deployment payload surface only after all 1,056 URLs had been attempted.
+
+### Bugs fixed
+
+- Clean Vercel deployments no longer omit the optional 17.46 MB RepDB media payload.
+- HTML fallback documents cannot be cached as if they were exercise images.
+- iPhone touch launches no longer reveal “Skip to content” above the application header.
+
+### Tests added
+
+- Media Cache Storage success and non-image rejection coverage.
+- Browser checks for hidden/default and keyboard-visible skip-link states.
+- Production-preview assertion that a known RepDB asset is served as WebP.
+
+### Known limitations
+
+- The currently deployed URL remains affected until commit v0.4.1 is deployed.
+- A physical-iPhone launch/resume check is still required; automated Mobile Safari testing is WebKit emulation.
+- The media build step requires temporary access to the pinned upstream Git commit during CI/deployment, while installed-app runtime remains fully offline.
+
+### Next version
+
+Continue with validated export/recovery before live workout execution; do not expand this patch into workout functionality.
+
 ## 2026-10-01 — v0.4.0 Program Builder and prescription model
 
 ### Goal

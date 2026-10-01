@@ -15,7 +15,7 @@ export function SettingsPage() {
       </div>
       <section className="settings-card" aria-labelledby="credits-title">
         <p className="section-kicker">About / Credits</p>
-        <h2 id="credits-title">Liftwise v0.4.0</h2>
+        <h2 id="credits-title">Liftwise v0.4.1</h2>
         <p>
           <a href="https://repdb.co" rel="external">
             Exercise data by RepDB (repdb.co)

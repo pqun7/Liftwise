@@ -23,6 +23,8 @@ Run this plan on a physical, supported iPhone before releasing an installable bu
 3. Enable **Settings → Accessibility → Display & Text Size → Larger Text** and inspect headings, cards, prompts, and navigation for clipping.
 4. Enable **Reduce Motion** and confirm the experience remains clear.
 5. With VoiceOver enabled, swipe through the header, main content, and primary navigation. Confirm meaningful names, selected-link state, and logical order.
+6. Launch and resume the installed app several times without a hardware keyboard. Confirm “Skip to content” never appears visually in the top safe area.
+7. With a hardware keyboard connected, press Tab from the top of the page. Confirm “Skip to content” becomes visible and moves focus to the main content when activated.
 
 ## Exercise catalog acceptance
 

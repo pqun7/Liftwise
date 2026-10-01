@@ -5,8 +5,16 @@ async function dismissPwaStatus(page: import('@playwright/test').Page) {
   if (await dismiss.isVisible().catch(() => false)) await dismiss.click();
 }
 
-test('loads the application shell and navigates across features', async ({ page }) => {
+test('loads the application shell and navigates across features', async ({ page, browserName }) => {
   await page.goto('/');
+
+  const skipLink = page.getByRole('link', { name: 'Skip to content' });
+  await expect(skipLink).toHaveCSS('clip-path', 'inset(50%)');
+  if (browserName !== 'webkit') {
+    await page.keyboard.press('Tab');
+    await expect(skipLink).toBeFocused();
+    await expect(skipLink).toHaveCSS('clip-path', 'none');
+  }
 
   await expect(page.getByRole('heading', { name: 'Welcome to Liftwise' })).toBeVisible();
   await page.getByRole('link', { name: 'Workout' }).click();
@@ -38,6 +46,10 @@ test('installs its app shell and serves routes offline', async ({
     expect.arrayContaining(['192x192', '512x512']),
   );
 
+  const mediaResponse = await request.get('/repdb-media/flat/ab-wheel-rollout-start.webp');
+  expect(mediaResponse.ok()).toBeTruthy();
+  expect(mediaResponse.headers()['content-type']).toContain('image/webp');
+
   const registration = await page.evaluate(async () => {
     await navigator.serviceWorker.ready;
     return navigator.serviceWorker.getRegistration().then((worker) => Boolean(worker));
@@ -61,6 +73,24 @@ test('installs its app shell and serves routes offline', async ({
   } finally {
     await context.setOffline(false);
   }
+});
+
+test('downloads the complete exercise media pack from the production build', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'Desktop Chrome', 'One full-pack download is sufficient.');
+  test.setTimeout(180_000);
+
+  await page.goto('/settings');
+  const download = page.getByRole('button', { name: 'Download exercise images' });
+  await expect(download).toBeEnabled({ timeout: 20_000 });
+  await download.click();
+
+  await expect(page.getByText('All exercise images are available offline.')).toBeVisible({
+    timeout: 150_000,
+  });
+  await expect(page.getByRole('button', { name: 'Downloaded' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Clear offline exercise images' })).toBeEnabled();
 });
 
 test('searches, filters, opens details, and preserves a custom exercise offline', async ({

@@ -44,10 +44,16 @@ export async function downloadExerciseMedia(
     await Promise.all(
       batch.map(async (path) => {
         try {
-          const request = new Request(path, { credentials: 'same-origin' });
+          const request = new Request(new URL(path, globalThis.location.origin), {
+            credentials: 'same-origin',
+          });
           if (!(await cache.match(request))) {
             const response = await fetch(request);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const contentType = response.headers.get('content-type')?.toLowerCase() ?? '';
+            if (!contentType.startsWith('image/')) {
+              throw new Error(`Unexpected media type: ${contentType || 'unknown'}`);
+            }
             await cache.put(request, response.clone());
           }
           completed += 1;
@@ -63,7 +69,7 @@ export async function downloadExerciseMedia(
   const result = { completed, total, failed };
   if (failed > 0) {
     throw new Error(
-      `${failed} exercise image${failed === 1 ? '' : 's'} could not be downloaded. Retry when online.`,
+      `${failed} of ${total} exercise image${failed === 1 ? '' : 's'} could not be downloaded. Check your connection and retry.`,
     );
   }
   return result;

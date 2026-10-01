@@ -36,6 +36,12 @@ The roadmap is directional. Reliability, privacy, and data safety take priority 
 - [x] Active-program selection, duplication, confirmed deletion, and reload recovery
 - [ ] Validated export and recovery foundations (required before live workout logging)
 
+## v0.4.1 — Deployment reliability
+
+- [x] Include the pinned optional RepDB media pack in Vercel deployment builds
+- [x] Reject non-image media responses before caching
+- [x] Keep the skip link hidden from ordinary iPhone Safari focus restoration
+
 ## v0.5.0 — Workout logging
 
 - Resilient active-workout flow

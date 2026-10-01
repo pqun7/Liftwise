@@ -2,7 +2,7 @@
 
 Liftwise is a local-first, offline-first, iPhone-first gym manager and workout logger. It is being built as a maintainable product, not a demo.
 
-Version **0.4.0** adds an offline Program Builder with ordered training days, RepDB/custom exercise assignment, deterministic set/rep/RIR/rest prescriptions, duplication, active-program selection, and reload-safe editing. It intentionally does not add live workout execution.
+Version **0.4.1** keeps the offline Program Builder from v0.4.0 and fixes deployment of the optional RepDB image pack plus an iPhone Safari skip-link focus artifact. It intentionally does not add live workout execution.
 
 ## Product principles
 
@@ -34,6 +34,8 @@ pnpm build
 pnpm preview
 ```
 
+Deployment builds that must include the optional RepDB image pack use `pnpm build:deployment`. The Vercel configuration runs this command automatically so all 1,056 pinned image assets are copied into the generated app without committing the raw media folder.
+
 ## Quality commands
 
 ```sh
@@ -42,6 +44,7 @@ pnpm lint
 pnpm typecheck
 pnpm test
 pnpm build
+pnpm build:deployment
 pnpm test:e2e
 ```
 

@@ -40,7 +40,7 @@ Initialization runs in one Dexie transaction. Repeating the same commit/count is
 4. Run `pnpm repdb:verify`, inspect the generated diff and import summary, then run the full quality gate.
 5. Update this document, `docs/THIRD_PARTY_DATA.md`, and release notes with the reviewed source and measurements.
 
-`pnpm repdb:sync` omits media. `public/repdb-media/` and the upstream work checkout are ignored so the source repository is not a raw media mirror. Deployment builds that should serve illustrations must run the media sync first.
+`pnpm repdb:sync` omits media. `public/repdb-media/` and the upstream work checkout are ignored so the source repository is not a raw media mirror. `pnpm build:deployment` performs the pinned media sync before the production build. Vercel and browser CI use that command so a clean checkout cannot silently publish catalog image URLs without their corresponding files.
 
 ## Offline and storage strategy
 
@@ -59,5 +59,6 @@ Measured performance is recorded in the v0.3 development log. Re-run `pnpm repdb
 - Commit mismatch: update the pin intentionally or repair the checkout; do not import moving `main`.
 - Validation errors: inspect the record paths in the summary. Do not weaken required identity/name/image safeguards merely to complete an import.
 - Missing images: run the media sync and verify that referenced paths exist under `public/repdb-media/flat`.
+- Deployed image requests returning HTML or 404: verify the host used `pnpm build:deployment`, then confirm a known `/repdb-media/flat/*.webp` URL responds with an image content type.
 - Storage failure: retry the media pack or clear only offline exercise images. Do not clear IndexedDB.
 - Existing missing provider record: it remains inactive so plans and workout history can still resolve its stable ID.
