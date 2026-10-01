@@ -1,5 +1,16 @@
 # Development log
 
+## 2026-10-02 — v0.8.0 progress, history and analytics
+
+- Goal: explain useful training history without ML, duplicated summaries or mutable-program dependencies.
+- Work: completed-session history, exercise summaries, lazy-loaded Recharts metrics/ranges, reproducible PRs, weekly summary, body measurement CRUD and CSV exports.
+- Decisions: pure Epley v1 calculation and explicit qualification rules (`ANALYTICS.md`); Dexie v6 adds a compound date index. Circumference fields are optional so older records/checksums need no rewrite. Backup stays v2.
+- Problems/bugs: preserved older iOS compatibility by sorting copies rather than using `toSorted`; neutralized user-supplied spreadsheet formulas in CSV exports.
+- Tests: formula/qualification/PR/correction/range/summary tests; targeted queries, frozen v5 upgrade, body validation/CRUD, old backup acceptance and round-trip/reopen; one offline iPhone-WebKit progress flow.
+- Verification: format/lint/types/RepDB/build passed; 81 unit/integration tests passed. Final E2E with `--workers 2`: 15 passed, 3 existing intentional skips. The default six-worker run timed out in three existing WebKit flows; all passed unchanged with bounded concurrency. New controls passed mobile computed-font and 320/390px overflow checks. The existing bundle-size warning remains.
+- Limitations: estimates are not measured maxima; logged-load volume is not physiological stimulus or bodyweight volume. Lifetime summaries/PR baselines read the selected exercise's history. Windows Playwright WebKit requires online reload then offline in-app navigation; Chromium covers true offline reload. Real iPhone acceptance remains manual.
+- Next: stop at v0.8.0; no automatic next-release work.
+
 ## 2026-10-02 — v0.7.0 gym-speed workout UX
 
 ### Goal

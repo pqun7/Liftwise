@@ -67,7 +67,14 @@ The roadmap is directional. Reliability, privacy, and data safety take priority 
 - [x] Session-only skip/replacement and accessible ordering/collapse
 - [x] Quick Workout and reload persistence regression workflow
 
-History analytics, personal records, and progress charts remain future work.
+## v0.8.0 — Progress, History, PRs and Analytics
+
+- [x] Completed snapshot history and exercise lifetime summaries
+- [x] Selectable progress charts, ranges, deterministic estimates and PRs
+- [x] Weekly summaries and optional body measurements
+- [x] User-owned CSV exports, v5→v6 and backup regression coverage
+
+No machine learning or progression engine is included.
 
 ## Later
 

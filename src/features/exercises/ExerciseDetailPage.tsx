@@ -129,6 +129,9 @@ export function ExerciseDetailPage() {
           <p>{exercise.notes}</p>
         </section>
       ) : null}
+      <Link className="compact-link" to={`/progress/exercises/${encodeURIComponent(exercise.id)}`}>
+        View exercise history
+      </Link>
     </article>
   );
 }

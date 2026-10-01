@@ -1,5 +1,5 @@
 export const DATABASE_NAME = 'liftwise';
-export const DATABASE_VERSION = 5;
+export const DATABASE_VERSION = 6;
 
 export const VERSION_1_STORES = {
   appSettings: '&key, updatedAt',
@@ -33,4 +33,9 @@ export const VERSION_4_STORES = {
 
 export const VERSION_5_STORES = {
   ...VERSION_4_STORES,
+} as const;
+
+export const VERSION_6_STORES = {
+  ...VERSION_5_STORES,
+  workoutSessions: '&id, status, startedAt, [status+startedAt], programId, programDayId, updatedAt',
 } as const;

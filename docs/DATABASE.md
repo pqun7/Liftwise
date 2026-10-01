@@ -109,6 +109,12 @@ Adds session recovery/timer fields and the session-owned prescription snapshot. 
 
 Committed, deterministic v1, v2, v3, and v4 fixture definitions exercise every released upgrade path to the latest database. Historical fixtures and old Dexie version declarations are immutable release evidence; new migrations add a new fixture/version instead of editing old ones.
 
+### Version 6 — v0.8.0
+
+Adds `[status+startedAt]` to WorkoutSession for completed-date-range queries. Dexie builds this index without rewriting user records. BodyMetric adds optional nullable `waistCm`, `chestCm`, `armsCm`, `legsCm`; absence means unrecorded. The frozen v5 fixture verifies an unchanged upgrade. All earlier declarations remain intact; v1–v5 upgrades are tested.
+
+Progress queries live in the progress repository, not React. Analytics/PRs are computed from validated canonical records and are never persisted. Backup v2 includes optional measurements; schema5 files remain accepted, and older checksums are verified before import.
+
 ## Future migration strategy
 
 1. Never edit an already released Dexie version declaration.

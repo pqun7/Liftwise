@@ -2,7 +2,9 @@ export type CsvCell = string | number | boolean | null;
 
 function escapeCell(value: CsvCell): string {
   if (value === null) return '';
-  const text = String(value);
+  // Text-only spreadsheet formula neutralization; numeric cells retain their type.
+  const text =
+    typeof value === 'string' && /^[\s]*[=+@\-\t\r]/.test(value) ? `'${value}` : String(value);
   return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 }
 

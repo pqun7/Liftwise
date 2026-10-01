@@ -23,6 +23,8 @@ import {
   programLoader,
 } from '../features/plan/loaders';
 import { ProgressPage } from '../features/progress/ProgressPage';
+import { ExerciseHistoryPage } from '../features/progress/ExerciseHistoryPage';
+import { progressLoader, exerciseHistoryLoader } from '../features/progress/loaders';
 import { DataSafetyPage } from '../features/dataSafety/DataSafetyPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 import { WorkoutPage } from '../features/workout/WorkoutPage';
@@ -129,7 +131,18 @@ export const routeObjects: RouteObject[] = [
         loader: workoutExercisePickerLoader,
         errorElement: <WorkoutRouteError />,
       },
-      { path: 'progress', element: <ProgressPage /> },
+      {
+        path: 'progress',
+        element: <ProgressPage />,
+        loader: progressLoader,
+        errorElement: <WorkoutRouteError />,
+      },
+      {
+        path: 'progress/exercises/:exerciseId',
+        element: <ExerciseHistoryPage />,
+        loader: exerciseHistoryLoader,
+        errorElement: <WorkoutRouteError />,
+      },
       { path: 'settings', element: <SettingsPage /> },
       { path: 'settings/data-safety', element: <DataSafetyPage /> },
       { path: '*', element: <NotFoundPage /> },

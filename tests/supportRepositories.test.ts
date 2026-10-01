@@ -22,7 +22,7 @@ describe('supporting repositories', () => {
 
   it('rejects empty body metrics', async () => {
     const repository = new BodyMetricRepository(createTestDatabase('invalid-body-metric'));
-    await expect(repository.create({})).rejects.toThrow(/requires weight or body-fat/);
+    await expect(repository.create({})).rejects.toThrow(/at least one body measurement/);
   });
 
   it('upserts JSON-safe app settings with stable creation timestamps', async () => {

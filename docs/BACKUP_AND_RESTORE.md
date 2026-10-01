@@ -12,7 +12,7 @@ The current format is `backupVersion: 2`:
 {
   "application": "liftwise",
   "backupVersion": 2,
-  "schemaVersion": 5,
+  "schemaVersion": 6,
   "appVersion": "0.6.0",
   "createdAt": "2026-10-01T00:00:00.000Z",
   "data": {},
@@ -20,7 +20,7 @@ The current format is `backupVersion: 2`:
 }
 ```
 
-Zod validates the envelope and every included entity. `backupVersion` describes this portable file contract; `schemaVersion` records the source IndexedDB schema for compatibility checks. They evolve independently.
+Zod validates the envelope and every included entity. `backupVersion` describes this portable file contract; `schemaVersion` records the source IndexedDB schema for compatibility checks. They evolve independently. v0.8 retains backup v2 and accepts schema5 files unchanged. Optional circumference measurements are included in new files; they do not change legacy checksums. CSV is an inspection/export format, not a replacement for JSON restore.
 
 The backup contains custom exercises, programs, program days, program prescriptions, portable settings, body metrics, and any existing workout sessions/exercises/sets. It excludes RepDB exercise records, catalog metadata, and downloaded artwork. User-owned records retain stable `repdb:*` references.
 

@@ -4,6 +4,21 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-02
+
+### Added
+
+- Completed workout and per-exercise history based on session snapshots, with weekly summaries.
+- Selectable, locally bundled progress charts and calendar date ranges; accessible chart-value lists.
+- Deterministic Epley estimates and reproducible weight, rep-at-load, estimated 1RM, set-volume and exercise-session volume PRs.
+- Optional body measurements with edit/delete, plus workouts/sets/body-metrics CSV exports.
+- Forward Dexie v6 date-range index, frozen v5 fixture, body measurement and backup compatibility tests.
+
+### Changed
+
+- No stored analytics or award records; corrections recalculate from canonical completed workouts.
+- CSV text fields neutralize spreadsheet formulas. Existing backup format v2 remains compatible with older records.
+
 ## [0.7.0] - 2026-10-02
 
 ### Added
@@ -150,7 +165,8 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - ESLint, Prettier, strict TypeScript, and GitHub Actions quality gates.
 - Architecture, ADR, testing, iPhone validation, roadmap, development log, and issue templates.
 
-[Unreleased]: https://github.com/pqun7/Liftwise/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/pqun7/Liftwise/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/pqun7/Liftwise/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/pqun7/Liftwise/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/pqun7/Liftwise/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/pqun7/Liftwise/compare/v0.5.0...v0.6.0

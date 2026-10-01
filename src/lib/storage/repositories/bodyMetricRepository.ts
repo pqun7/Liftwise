@@ -4,6 +4,10 @@ import { database, type LiftwiseDatabase } from '../database';
 import { createEntityId, createTimestamp, parseMany, requireRecord } from './shared';
 
 export interface CreateBodyMetricInput {
+  waistCm?: number | null;
+  chestCm?: number | null;
+  armsCm?: number | null;
+  legsCm?: number | null;
   measuredAt?: string;
   weight?: number | null;
   bodyFatPercentage?: number | null;
@@ -11,6 +15,10 @@ export interface CreateBodyMetricInput {
 }
 
 export interface UpdateBodyMetricInput {
+  waistCm?: number | null;
+  chestCm?: number | null;
+  armsCm?: number | null;
+  legsCm?: number | null;
   measuredAt?: string;
   weight?: number | null;
   bodyFatPercentage?: number | null;
@@ -23,6 +31,10 @@ export class BodyMetricRepository {
   async create(input: CreateBodyMetricInput): Promise<BodyMetric> {
     const timestamp = createTimestamp();
     const metric = bodyMetricSchema.parse({
+      waistCm: input.waistCm ?? null,
+      chestCm: input.chestCm ?? null,
+      armsCm: input.armsCm ?? null,
+      legsCm: input.legsCm ?? null,
       id: createEntityId(),
       measuredAt: input.measuredAt ?? timestamp,
       weight: input.weight ?? null,

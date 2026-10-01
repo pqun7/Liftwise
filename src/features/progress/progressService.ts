@@ -1,0 +1,74 @@
+import { database, type LiftwiseDatabase } from '../../lib/storage/database';
+import { WorkoutRepository } from '../../lib/storage/repositories/workoutRepository';
+import {
+  workoutSessionSchema,
+  workoutExerciseSchema,
+  workoutSetSchema,
+} from '../../domain/validation';
+import type { AnalyticsWorkout } from '../../domain/analytics';
+
+export class ProgressRepository {
+  constructor(private readonly db: LiftwiseDatabase = database) {}
+  async history(from: string, until = new Date().toISOString()): Promise<AnalyticsWorkout[]> {
+    return this.db.transaction(
+      'r',
+      [this.db.workoutSessions, this.db.workoutExercises, this.db.workoutSets],
+      async () => {
+        const sessions = await this.db.workoutSessions
+          .where('[status+startedAt]')
+          .between(['completed', from], ['completed', until], true, true)
+          .reverse()
+          .toArray();
+        const repo = new WorkoutRepository(this.db);
+        const graphs = await Promise.all(sessions.map((session) => repo.get(session.id)));
+        return graphs.filter((graph): graph is AnalyticsWorkout => graph !== undefined);
+      },
+    );
+  }
+  async exerciseHistory(exerciseId: string): Promise<AnalyticsWorkout[]> {
+    return this.db.transaction(
+      'r',
+      [this.db.workoutSessions, this.db.workoutExercises, this.db.workoutSets],
+      async () => {
+        const entries = (
+          await this.db.workoutExercises.where('exerciseId').equals(exerciseId).toArray()
+        ).map((entry) => workoutExerciseSchema.parse(entry));
+        const sessions = (
+          await this.db.workoutSessions.bulkGet([
+            ...new Set(entries.map((entry) => entry.workoutSessionId)),
+          ])
+        )
+          .filter((session) => session?.status === 'completed')
+          .map((session) => workoutSessionSchema.parse(session));
+        const ids = new Set(sessions.map((session) => session.id));
+        const eligible = entries.filter((entry) => ids.has(entry.workoutSessionId));
+        const sets = eligible.length
+          ? (
+              await this.db.workoutSets
+                .where('workoutExerciseId')
+                .anyOf(eligible.map((entry) => entry.id))
+                .toArray()
+            ).map((set) => workoutSetSchema.parse(set))
+          : [];
+        const byExercise = new Map<string, typeof sets>();
+        for (const set of sets) {
+          const group = byExercise.get(set.workoutExerciseId) ?? [];
+          group.push(set);
+          byExercise.set(set.workoutExerciseId, group);
+        }
+        return sessions.map((session) => ({
+          session,
+          exercises: eligible
+            .filter((entry) => entry.workoutSessionId === session.id)
+            .map((exercise) => ({
+              exercise,
+              sets: [...(byExercise.get(exercise.id) ?? [])].sort(
+                (a, b) => a.setNumber - b.setNumber,
+              ),
+            })),
+        }));
+      },
+    );
+  }
+}
+export const progressRepository = new ProgressRepository();

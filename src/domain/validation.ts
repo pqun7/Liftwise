@@ -277,6 +277,10 @@ export const workoutSetSchema: z.ZodType<WorkoutSet> = z
 
 export const bodyMetricSchema: z.ZodType<BodyMetric> = z
   .object({
+    waistCm: z.number().finite().positive().nullable().optional(),
+    chestCm: z.number().finite().positive().nullable().optional(),
+    armsCm: z.number().finite().positive().nullable().optional(),
+    legsCm: z.number().finite().positive().nullable().optional(),
     id: entityIdSchema,
     measuredAt: isoTimestampSchema,
     weight: z.number().finite().positive().nullable(),
@@ -285,9 +289,20 @@ export const bodyMetricSchema: z.ZodType<BodyMetric> = z
     ...timestampFields,
   })
   .strict()
-  .refine(({ weight, bodyFatPercentage }) => weight !== null || bodyFatPercentage !== null, {
-    message: 'A body metric requires weight or body-fat percentage.',
-  });
+  .refine(
+    (record) =>
+      [
+        record.weight,
+        record.bodyFatPercentage,
+        record.waistCm,
+        record.chestCm,
+        record.armsCm,
+        record.legsCm,
+      ].some((value) => value !== null && value !== undefined),
+    {
+      message: 'Enter at least one body measurement.',
+    },
+  );
 
 export const jsonValueSchema: z.ZodType<JsonValue> = z.lazy(() =>
   z.union([

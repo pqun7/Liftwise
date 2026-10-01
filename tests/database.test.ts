@@ -73,7 +73,7 @@ describe('LiftwiseDatabase migrations', () => {
     await migratedDatabase.open();
 
     const setting = await new AppSettingsRepository(migratedDatabase).get('units');
-    expect(migratedDatabase.verno).toBe(5);
+    expect(migratedDatabase.verno).toBe(6);
     expect(setting).toEqual({
       key: 'units',
       value: 'metric',
@@ -90,7 +90,7 @@ describe('LiftwiseDatabase migrations', () => {
     await migratedDatabase.open();
 
     const exercise = await migratedDatabase.exercises.get(id);
-    expect(migratedDatabase.verno).toBe(5);
+    expect(migratedDatabase.verno).toBe(6);
     expect(exercise).toMatchObject({
       id,
       sourceProvider: 'custom',
@@ -120,7 +120,7 @@ describe('LiftwiseDatabase migrations', () => {
     const migratedDatabase = new LiftwiseDatabase(name);
     await migratedDatabase.open();
 
-    expect(migratedDatabase.verno).toBe(5);
+    expect(migratedDatabase.verno).toBe(6);
     expect(await migratedDatabase.programDays.get(ids.day)).toMatchObject({
       id: ids.day,
       programId: ids.program,
@@ -148,7 +148,7 @@ describe('LiftwiseDatabase migrations', () => {
     const migratedDatabase = new LiftwiseDatabase(name);
     await migratedDatabase.open();
 
-    expect(migratedDatabase.verno).toBe(5);
+    expect(migratedDatabase.verno).toBe(6);
     expect(
       await migratedDatabase.workoutSessions.get(version4WorkoutSessionFixture.id),
     ).toMatchObject({

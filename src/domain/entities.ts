@@ -159,6 +159,10 @@ export interface WorkoutSet extends TimestampedEntity {
 }
 
 export interface BodyMetric extends TimestampedEntity {
+  waistCm?: number | null | undefined;
+  chestCm?: number | null | undefined;
+  armsCm?: number | null | undefined;
+  legsCm?: number | null | undefined;
   id: string;
   measuredAt: IsoTimestamp;
   weight: number | null;
