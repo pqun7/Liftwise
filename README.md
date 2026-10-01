@@ -1,42 +1,229 @@
 # Liftwise
 
-Liftwise is a local-first, offline-first, iPhone-first gym manager and workout logger. It is being built as a maintainable product, not a demo.
+> **Private. Offline-first. Built for iPhone.**
 
-Version **0.4.1** keeps the offline Program Builder from v0.4.0 and fixes deployment of the optional RepDB image pack plus an iPhone Safari skip-link focus artifact. It intentionally does not add live workout execution.
+Liftwise is a personal gym manager and workout-planning app designed primarily for **iPhone**.
 
-## Product principles
+It helps you organize exercises and training programs while keeping your personal fitness data **on your own device**.
 
-- Mobile-first and especially comfortable as an installed iPhone PWA.
-- Fully usable without a connection after initial installation.
-- No account, backend, cloud service, tracking, remote API, or runtime CDN.
-- IndexedDB is the source of truth for important user data.
-- Immediate, validated, recoverable persistence for future workout actions.
-- Clear boundaries between interface, domain logic, and persistence.
+- No account required
+- No cloud sync
+- No analytics or tracking
+- Works offline after the required files are loaded
+- Installable on the iPhone Home Screen
 
-## Technology
+> **Current release:** v0.4.1
 
-React, TypeScript, Vite, Tailwind CSS, React Router, Dexie, Zod, React Hook Form, vite-plugin-pwa/Workbox, Vitest, React Testing Library, Playwright, ESLint, and Prettier. Recharts remains deferred until charts exist.
+---
 
-## Getting started
+## What you can do
 
-Requirements: Node.js 22 or newer and pnpm 10.
+### Exercise Library
 
-```sh
+- Browse and search exercises
+- Filter exercises by body part and equipment
+- View exercise instructions and available illustrations
+- Create your own custom exercises
+- Use supported exercise data offline
+
+### Program Builder
+
+- Create multiple workout programs
+- Choose an active program
+- Add and organize workout days
+- Add built-in or custom exercises
+- Set:
+  - target sets
+  - rep ranges
+  - RIR
+  - rest time
+  - notes
+- Reorder exercises and workout days
+- Duplicate programs and days
+- Edit or delete saved items
+
+Your programs are saved locally on your device.
+
+---
+
+## Install Liftwise on iPhone
+
+Liftwise is designed to be installed from **Safari** and opened from your iPhone Home Screen like a normal app.
+
+### 1. Open Liftwise in Safari
+
+Open the deployed **HTTPS** version of Liftwise using **Safari on your iPhone**.
+
+**Liftwise:**
+https://liftwise-psi.vercel.app/
+
+> Safari is the recommended installation method for the iPhone PWA version.
+
+### 2. Add Liftwise to the Home Screen
+
+In Safari:
+
+1. Tap the **Share** button.
+2. Scroll down and tap **Add to Home Screen**.
+3. Make sure the name is **Liftwise**.
+4. Tap **Add**.
+
+The Liftwise icon will now appear on your Home Screen.
+
+### 3. Open the installed app
+
+Tap the **Liftwise** icon from your Home Screen.
+
+It will open in its own app-style window instead of a normal Safari tab.
+
+### 4. Complete the first launch while online
+
+Keep your iPhone connected to the internet during the first launch so Liftwise can prepare the files required for offline use.
+
+After that, supported features can continue working without an internet connection.
+
+---
+
+## How to use Liftwise
+
+A simple workflow:
+
+1. Open **Exercise Library** and find the exercises you want.
+2. Create custom exercises if something is missing.
+3. Open **Plan** and create a training program.
+4. Add your workout days.
+5. Add exercises to each day.
+6. Set your sets, reps, RIR, rest time, and notes.
+7. Reorder everything to match your preferred routine.
+
+Your saved program remains stored locally when you close and reopen the app.
+
+---
+
+## Privacy
+
+Liftwise is designed to keep your personal fitness data on your device.
+
+Currently, Liftwise has:
+
+| Feature | Current behavior |
+| --- | --- |
+| Account | Not required |
+| Backend database | None |
+| Cloud sync | None |
+| Analytics / tracking | None |
+| Personal workout-data upload | None |
+| Main local storage | IndexedDB |
+| Exercise media | Browser Cache Storage |
+
+Liftwise does not currently send your programs, custom exercises, workout records, body metrics, or app settings to a Liftwise server.
+
+### Important
+
+Anyone who can unlock your iPhone may be able to open Liftwise.
+
+For better device security, use:
+
+- a strong iPhone passcode;
+- Face ID when available;
+- current iOS security updates.
+
+---
+
+## Data safety
+
+> [!WARNING]
+> **Backup and restore are not available yet in v0.4.1.**
+
+Your Liftwise data currently exists only in the browser storage connected to the installed app.
+
+You may lose your data if you:
+
+- clear Liftwise/Safari website data;
+- reset or erase the iPhone;
+- remove browser-managed storage;
+- switch to a different Liftwise deployment address;
+- experience unexpected browser-storage loss.
+
+Because there is currently no Liftwise account or cloud backup, deleted local data cannot automatically be restored.
+
+Do not use the current development release as the only permanent copy of important training history until backup and restore are available.
+
+---
+
+## Offline use
+
+Liftwise follows a **local-first / offline-first** design.
+
+Important user data is stored in **IndexedDB**, while exercise images use browser **Cache Storage**.
+
+After the required app files are cached, supported features are designed to work without depending on:
+
+- RepDB
+- GitHub
+- remote fonts
+- analytics services
+- third-party runtime APIs
+
+---
+
+## Current status
+
+| Feature | Status |
+| --- | --- |
+| iPhone Home Screen app | ✅ Available |
+| Offline app shell | ✅ Available |
+| Exercise Library | ✅ Available |
+| Custom exercises | ✅ Available |
+| Program Builder | ✅ Available |
+| Local data persistence | ✅ Available |
+| Offline exercise metadata | ✅ Available |
+| Optional offline exercise media | ✅ Available |
+| Live Workout Logger | 🚧 Planned for v0.5 |
+| Set logging | 🚧 Planned |
+| Workout history | 🚧 Planned |
+| Personal records | 🚧 Planned |
+| Progress charts | 🚧 Planned |
+| Backup / restore | 🚧 Planned |
+| Accounts / cloud sync | Not currently planned |
+
+See [`ROADMAP.md`](ROADMAP.md) for the development roadmap.
+
+---
+
+## For developers
+
+### Requirements
+
+- Node.js **22+**
+- pnpm **10**
+
+The project currently pins `pnpm@10.15.1`.
+
+### Install dependencies
+
+```bash
 pnpm install
-pnpm repdb:sync:media
+```
+
+### Start development
+
+```bash
 pnpm dev
 ```
 
-Open the local URL printed by Vite. Service workers are disabled in development; use the production preview to test installation and offline behavior:
+Open the local URL shown by Vite.
+
+> Service workers are disabled in development mode. Use a production build when testing installation or offline behavior.
+
+### Test a production build
 
 ```bash
 pnpm build
 pnpm preview
 ```
 
-Deployment builds that must include the optional RepDB image pack use `pnpm build:deployment`. The Vercel configuration runs this command automatically so all 1,056 pinned image assets are copied into the generated app without committing the raw media folder.
-
-## Quality commands
+### Build with optional RepDB media
 
 ```bash
 pnpm build:deployment
@@ -54,35 +241,58 @@ pnpm check
 pnpm test:e2e
 ```
 
-`pnpm check` runs all non-browser quality checks. Browser tests require Playwright browsers (`pnpm exec playwright install chromium webkit`).
+---
 
-RepDB updates are explicit and pinned. `pnpm repdb:verify` checks the committed catalog. `pnpm repdb:sync` rebuilds catalog metadata from the pinned upstream commit, while `pnpm repdb:sync:media` also stages licensed free-tier images locally for builds. See [RepDB integration](docs/REPDB_INTEGRATION.md).
+## Tech stack
 
-## Project layout
+- React 19
+- TypeScript
+- Vite
+- Tailwind CSS
+- React Router
+- IndexedDB + Dexie
+- Zod
+- React Hook Form
+- vite-plugin-pwa + Workbox
+- Vitest
+- React Testing Library
+- Playwright
+- ESLint
+- Prettier
+- pnpm
 
-```text
-src/
-  app/          routing, navigation, and application shell
-  components/   reusable presentation components
-  data/         external provider adapters and catalog initialization
-  domain/       entities, validation, and derived calculations
-  features/     product-area modules, including exercises and program planning
-  lib/storage/  IndexedDB database, migrations, and repositories
-  styles/       global mobile-first styles
-tests/          unit and component tests
-scripts/repdb/  pinned validation, transformation, and synchronization tools
-e2e/            production-preview browser tests
-docs/           architecture, decisions, testing, and release notes
-```
+---
 
-See [Database](docs/DATABASE.md), [Architecture](docs/ARCHITECTURE.md), [RepDB integration](docs/REPDB_INTEGRATION.md), [third-party data](docs/THIRD_PARTY_DATA.md), [Testing](docs/TESTING.md), [iPhone testing](docs/IPHONE_TESTING.md), and the [Roadmap](ROADMAP.md).
+## Documentation
 
-## Data and privacy
+More technical information is available in:
 
-Liftwise sends no user data anywhere. Important records use IndexedDB rather than `localStorage`, with UUIDs, schema migrations, runtime validation, ISO timestamps, and transactional writes. Workout sets are written by repository operations immediately rather than accumulated in React state. Clearing site data or deleting the app still removes local data; export and recovery controls are required before the workout UI ships.
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- [`docs/DATABASE.md`](docs/DATABASE.md)
+- [`docs/REPDB_INTEGRATION.md`](docs/REPDB_INTEGRATION.md)
+- [`docs/THIRD_PARTY_DATA.md`](docs/THIRD_PARTY_DATA.md)
+- [`docs/TESTING.md`](docs/TESTING.md)
+- [`docs/IPHONE_TESTING.md`](docs/IPHONE_TESTING.md)
+- [`ROADMAP.md`](ROADMAP.md)
+- [`CHANGELOG.md`](CHANGELOG.md)
+
+---
 
 ## License
 
-Liftwise source code is licensed under [MIT](LICENSE). RepDB exercise data and artwork are third-party materials governed by RepDB's separate data license; the Liftwise MIT license does **not** cover them.
+Liftwise source code is licensed under the [`MIT License`](LICENSE).
 
-[Exercise data by RepDB (repdb.co)](https://repdb.co)
+RepDB exercise data and artwork are third-party materials and are **not** covered by the Liftwise MIT license.
+
+See:
+
+- [`docs/REPDB_INTEGRATION.md`](docs/REPDB_INTEGRATION.md)
+- [`docs/THIRD_PARTY_DATA.md`](docs/THIRD_PARTY_DATA.md)
+- [RepDB](https://repdb.co)
+
+---
+
+<p align="center">
+  <strong>Liftwise</strong><br>
+  Private workout planning. Local data. Built for iPhone.
+</p>
