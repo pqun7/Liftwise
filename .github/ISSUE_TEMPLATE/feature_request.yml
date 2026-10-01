@@ -1,0 +1,30 @@
+name: Feature request
+description: Propose an improvement aligned with Liftwise's principles.
+title: 'feat: '
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: User need
+      description: What problem should Liftwise solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed experience
+      description: Describe the smallest useful solution.
+    validations:
+      required: true
+  - type: textarea
+    id: offline
+    attributes:
+      label: Offline and privacy impact
+      description: Explain any network, account, or data-storage implications.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

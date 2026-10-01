@@ -1,0 +1,40 @@
+# Liftwise roadmap
+
+The roadmap is directional. Reliability, privacy, and data safety take priority over dates.
+
+## v0.1.0 — Project foundation
+
+- [x] Mobile-first React and TypeScript application shell
+- [x] Installable/offline PWA configuration
+- [x] Safe-area-aware bottom navigation and feature placeholders
+- [x] Versioned IndexedDB and runtime-validation boundary
+- [x] Unit, component, route, and browser smoke tests
+- [x] Automated formatting, linting, type checking, tests, and builds
+
+## v0.2.0 — Exercise library and planning
+
+- Exercise records with stable identifiers and validation
+- Routine and workout-plan authoring
+- Accessible forms and immediate local persistence
+- Import/export foundations before valuable user records accumulate
+
+## v0.3.0 — Workout logging
+
+- Resilient active-workout flow
+- Immediate IndexedDB writes after important actions
+- Recovery from interruption, termination, and refresh
+- Rest timer designed for installed iPhone use
+
+## v0.4.0 — History and progress
+
+- Workout history and personal records
+- Local-only progress summaries and charts
+- Tested calculations separated from presentation
+
+## Later
+
+- Data backup, restore, and migration tooling
+- Optional device-level capabilities where they improve the offline experience
+- Accessibility, performance, and internationalization refinements
+
+Accounts, cloud sync, remote APIs, and backend infrastructure are out of scope unless a future version explicitly changes the product direction.
