@@ -11,21 +11,30 @@ The roadmap is directional. Reliability, privacy, and data safety take priority 
 - [x] Unit, component, route, and browser smoke tests
 - [x] Automated formatting, linting, type checking, tests, and builds
 
-## v0.2.0 — Exercise library and planning
+## v0.2.0 — Local data foundation
 
-- Exercise records with stable identifiers and validation
-- Routine and workout-plan authoring
-- Accessible forms and immediate local persistence
-- Import/export foundations before valuable user records accumulate
+- [x] Validated Exercise, Program, ProgramDay, and ProgramExercise records
+- [x] Reload-safe WorkoutSession, WorkoutExercise, and WorkoutSet records
+- [x] BodyMetric and JSON-safe AppSettings records
+- [x] Repository-owned relationships, transactions, and deletion rules
+- [x] Tested v1→v2 IndexedDB migration
+- [x] Derived workout volume without duplicated persisted state
 
-## v0.3.0 — Workout logging
+## v0.3.0 — Exercise library and program planning
+
+- Exercise management and program authoring UI
+- Accessible forms backed by the v0.2 repositories
+- Data export, validation, and recovery foundations
+- Physical-iPhone lifecycle and storage testing
+
+## v0.4.0 — Workout logging
 
 - Resilient active-workout flow
 - Immediate IndexedDB writes after important actions
 - Recovery from interruption, termination, and refresh
 - Rest timer designed for installed iPhone use
 
-## v0.4.0 — History and progress
+## v0.5.0 — History and progress
 
 - Workout history and personal records
 - Local-only progress summaries and charts

@@ -1,32 +1,36 @@
 import Dexie, { type EntityTable } from 'dexie';
-import { z } from 'zod';
 
-export const appSettingSchema = z.object({
-  key: z.string().min(1),
-  value: z.unknown(),
-  updatedAt: z.string().datetime(),
-});
-
-export type AppSetting = z.infer<typeof appSettingSchema>;
+import type {
+  AppSetting,
+  BodyMetric,
+  Exercise,
+  Program,
+  ProgramDay,
+  ProgramExercise,
+  WorkoutExercise,
+  WorkoutSession,
+  WorkoutSet,
+} from '../../domain/entities';
+import { migrateVersion1ToVersion2 } from './migrations';
+import { DATABASE_NAME, VERSION_1_STORES, VERSION_2_STORES } from './schema';
 
 export class LiftwiseDatabase extends Dexie {
+  exercises!: EntityTable<Exercise, 'id'>;
+  programs!: EntityTable<Program, 'id'>;
+  programDays!: EntityTable<ProgramDay, 'id'>;
+  programExercises!: EntityTable<ProgramExercise, 'id'>;
+  workoutSessions!: EntityTable<WorkoutSession, 'id'>;
+  workoutExercises!: EntityTable<WorkoutExercise, 'id'>;
+  workoutSets!: EntityTable<WorkoutSet, 'id'>;
+  bodyMetrics!: EntityTable<BodyMetric, 'id'>;
   appSettings!: EntityTable<AppSetting, 'key'>;
 
-  constructor(name = 'liftwise') {
+  constructor(name = DATABASE_NAME) {
     super(name);
 
-    this.version(1).stores({
-      appSettings: '&key, updatedAt',
-    });
+    this.version(1).stores(VERSION_1_STORES);
+    this.version(2).stores(VERSION_2_STORES).upgrade(migrateVersion1ToVersion2);
   }
 }
 
 export const database = new LiftwiseDatabase();
-
-export async function saveAppSetting(setting: AppSetting): Promise<void> {
-  const validatedSetting = appSettingSchema.parse(setting);
-
-  await database.transaction('rw', database.appSettings, async () => {
-    await database.appSettings.put(validatedSetting);
-  });
-}

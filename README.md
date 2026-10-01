@@ -2,7 +2,7 @@
 
 Liftwise is a local-first, offline-first, iPhone-first gym manager and workout logger. It is being built as a maintainable product, not a demo.
 
-Version **0.1.0** provides the application foundation: an installable mobile shell, offline asset caching, accessible feature navigation, versioned local persistence, automated quality checks, and placeholders for future product areas. It intentionally contains no workout-domain functionality.
+Version **0.2.0** adds the durable local data foundation: validated domain entities, explicit relationships, repository-owned writes, schema migrations, and reload-safe workout persistence. It intentionally does not add the full workout UI.
 
 ## Product principles
 
@@ -17,7 +17,7 @@ Version **0.1.0** provides the application foundation: an installable mobile she
 
 React, TypeScript, Vite, Tailwind CSS, React Router, Dexie, Zod, vite-plugin-pwa/Workbox, Vitest, React Testing Library, Playwright, ESLint, and Prettier.
 
-React Hook Form and Recharts will be added when forms and charts exist; v0.1.0 avoids unused dependencies and premature abstractions.
+React Hook Form and Recharts will be added when forms and charts exist; v0.2.0 avoids unused dependencies and premature abstractions.
 
 ## Getting started
 
@@ -54,19 +54,20 @@ pnpm test:e2e
 src/
   app/          routing, navigation, and application shell
   components/   reusable presentation components
+  domain/       entities, validation, and derived calculations
   features/     product-area modules
-  lib/storage/  IndexedDB boundary and validation
+  lib/storage/  IndexedDB database, migrations, and repositories
   styles/       global mobile-first styles
 tests/          unit and component tests
 e2e/            production-preview browser tests
 docs/           architecture, decisions, testing, and release notes
 ```
 
-See [Architecture](docs/ARCHITECTURE.md), [Testing](docs/TESTING.md), [iPhone testing](docs/IPHONE_TESTING.md), and the [Roadmap](ROADMAP.md).
+See [Database](docs/DATABASE.md), [Architecture](docs/ARCHITECTURE.md), [Testing](docs/TESTING.md), [iPhone testing](docs/IPHONE_TESTING.md), and the [Roadmap](ROADMAP.md).
 
 ## Data and privacy
 
-Liftwise v0.1.0 sends no user data anywhere. Future important records must use IndexedDB rather than `localStorage`, with stable identifiers, schema migrations, runtime validation, timestamps, and safe writes. Clearing site data or deleting the app currently removes local data; export and recovery controls are planned before workout records ship.
+Liftwise sends no user data anywhere. Important records use IndexedDB rather than `localStorage`, with UUIDs, schema migrations, runtime validation, ISO timestamps, and transactional writes. Workout sets are written by repository operations immediately rather than accumulated in React state. Clearing site data or deleting the app still removes local data; export and recovery controls are required before the workout UI ships.
 
 ## License
 

@@ -2,7 +2,7 @@
 
 ## Goals
 
-Liftwise prioritizes reliable installed-iPhone operation, offline availability, device-local privacy, and safe workout data. The application is a static client and has no backend boundary in v0.1.0.
+Liftwise prioritizes reliable installed-iPhone operation, offline availability, device-local privacy, and safe workout data. The application is a static client and has no backend boundary in v0.2.0.
 
 ## Layers
 
@@ -13,16 +13,19 @@ Shared app shell, routing, and presentation components
 ```
 
 - `src/app` owns composition, top-level routing, navigation, and PWA-facing shell behavior.
-- `src/features` owns product areas. A feature may contain its own components, hooks, schemas, and services as it grows.
+- `src/domain` owns framework-independent entity contracts, validation, and derived calculations.
+- `src/features` owns product areas. A feature may contain its own components and hooks as it grows.
 - `src/components` contains shared presentation only. Components should not reach directly into persistence.
-- `src/lib/storage` owns database versions, migrations, transaction boundaries, and validation at storage edges.
-- Domain calculations will be framework-independent TypeScript modules and tested without rendering React.
+- `src/lib/storage` owns database versions, migrations, repositories, transaction boundaries, and validation at storage edges.
+- Domain calculations are framework-independent TypeScript modules and are tested without rendering React.
 
 Dependencies should point inward: feature UI may call domain or persistence services, while storage and domain code must not import React.
 
 ## Persistence
 
-IndexedDB through Dexie is the durable source of truth. Database version 1 creates only a generic application-settings table; workout entities are deliberately absent. Future schemas require:
+IndexedDB through Dexie is the durable source of truth. Database version 2 contains Exercise, Program, ProgramDay, ProgramExercise, WorkoutSession, WorkoutExercise, WorkoutSet, BodyMetric, and AppSettings stores. React components do not access tables directly; repositories validate inputs and persisted reads, check relationships, and own transactions. See `docs/DATABASE.md` for the schema and deletion rules.
+
+Released schema version 1 remains registered, and the v1→v2 migration preserves existing settings while adding their creation timestamp. Future schemas require:
 
 - stable, generated identifiers;
 - created and updated timestamps;
@@ -31,6 +34,8 @@ IndexedDB through Dexie is the durable source of truth. Database version 1 creat
 - transactions for multi-record consistency;
 - immediate writes after important workout actions;
 - export and recovery design before irreplaceable records ship.
+
+Completed-set volume is calculated from validated set records and is not persisted as duplicated state.
 
 `localStorage` is reserved for tiny, non-critical preferences and is not currently used.
 
@@ -46,7 +51,7 @@ Semantic landmarks, visible focus styles, a skip link, text labels, 44-pixel-or-
 
 ## Testing boundaries
 
-- Unit tests cover schemas, storage, migrations, and future domain calculations.
+- Unit and integration tests cover schemas, repository behavior, relationships, deletions, migrations, reload persistence, and domain calculations.
 - Component tests cover accessible rendering, navigation, and user behavior.
 - Playwright tests cover the production bundle, key routes, manifest, and service-worker registration on mobile Safari and desktop Chromium profiles.
 - Manual physical-iPhone checks remain required for installation, safe areas, lifecycle interruption, and true offline behavior.

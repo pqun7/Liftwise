@@ -15,7 +15,7 @@ export function SettingsPage() {
           body="The app currently needs no account or configuration."
         />
       </div>
-      <p className="version-label">Liftwise v0.1.0</p>
+      <p className="version-label">Liftwise v0.2.0</p>
     </section>
   );
 }

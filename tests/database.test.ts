@@ -1,34 +1,47 @@
 import Dexie from 'dexie';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { appSettingSchema, LiftwiseDatabase } from '../src/lib/storage/database';
+import { LiftwiseDatabase } from '../src/lib/storage/database';
+import { AppSettingsRepository } from '../src/lib/storage/repositories/appSettingsRepository';
+import { VERSION_1_STORES } from '../src/lib/storage/schema';
+import { cleanupTestDatabases, trackDatabaseName } from './helpers/database';
 
-const databaseNames: string[] = [];
+afterEach(cleanupTestDatabases);
 
-afterEach(async () => {
-  await Promise.all(databaseNames.splice(0).map((name) => Dexie.delete(name)));
-});
+async function createLegacySetting(name: string, updatedAt: string): Promise<void> {
+  trackDatabaseName(name);
+  const legacyDatabase = new Dexie(name);
+  legacyDatabase.version(1).stores(VERSION_1_STORES);
+  await legacyDatabase.table('appSettings').put({ key: 'units', value: 'metric', updatedAt });
+  legacyDatabase.close();
+}
 
-describe('LiftwiseDatabase', () => {
-  it('persists validated settings in the versioned database', async () => {
-    const name = `liftwise-test-${crypto.randomUUID()}`;
-    databaseNames.push(name);
-    const database = new LiftwiseDatabase(name);
-    const setting = appSettingSchema.parse({
-      key: 'example',
-      value: true,
-      updatedAt: new Date().toISOString(),
+describe('LiftwiseDatabase migrations', () => {
+  it('upgrades v1 settings without losing their data', async () => {
+    const name = `liftwise-migration-${crypto.randomUUID()}`;
+    await createLegacySetting(name, '2026-09-30T12:00:00.000Z');
+    const migratedDatabase = new LiftwiseDatabase(name);
+    await migratedDatabase.open();
+
+    const setting = await new AppSettingsRepository(migratedDatabase).get('units');
+    expect(migratedDatabase.verno).toBe(2);
+    expect(setting).toEqual({
+      key: 'units',
+      value: 'metric',
+      createdAt: '2026-09-30T12:00:00.000Z',
+      updatedAt: '2026-09-30T12:00:00.000Z',
     });
-
-    await database.appSettings.put(setting);
-
-    await expect(database.appSettings.get('example')).resolves.toEqual(setting);
-    database.close();
+    migratedDatabase.close();
   });
 
-  it('rejects invalid timestamps before persistence', () => {
-    expect(() =>
-      appSettingSchema.parse({ key: 'example', value: true, updatedAt: 'not-a-date' }),
-    ).toThrow();
+  it('repairs an invalid legacy timestamp during migration', async () => {
+    const name = `liftwise-migration-${crypto.randomUUID()}`;
+    await createLegacySetting(name, 'invalid');
+    const migratedDatabase = new LiftwiseDatabase(name);
+    const setting = await new AppSettingsRepository(migratedDatabase).get('units');
+
+    expect(setting?.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(setting?.updatedAt).toBe(setting?.createdAt);
+    migratedDatabase.close();
   });
 });

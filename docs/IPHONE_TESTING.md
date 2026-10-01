@@ -43,6 +43,6 @@ Run this plan on a physical, supported iPhone before releasing an installable bu
 
 ## Data boundary
 
-v0.1.0 contains no workout records. In Safari Web Inspector, confirm there are no unexpected network requests after cached launch and no application data in `localStorage`. IndexedDB may contain only the versioned `appSettings` store.
+v0.2.0 contains the versioned domain schema but no workout-management UI. In Safari Web Inspector, confirm there are no unexpected network requests after cached launch and no application data in `localStorage`. IndexedDB should report schema version 2 with the stores documented in `docs/DATABASE.md`; a fresh installation may leave them empty.
 
 Record the iPhone model, iOS version, deployed commit, date, and any deviations in the release issue.

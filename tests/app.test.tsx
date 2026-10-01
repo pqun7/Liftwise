@@ -37,7 +37,7 @@ describe('Liftwise app shell', () => {
     await user.click(screen.getByRole('link', { name: /settings/i }));
 
     expect(screen.getByRole('heading', { name: /make liftwise yours/i })).toBeInTheDocument();
-    expect(screen.getByText('Liftwise v0.1.0')).toBeInTheDocument();
+    expect(screen.getByText('Liftwise v0.2.0')).toBeInTheDocument();
   });
 
   it('renders a safe not-found screen for unknown routes', () => {
