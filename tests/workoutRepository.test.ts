@@ -35,12 +35,13 @@ describe('WorkoutRepository', () => {
       rir: 2,
       completed: true,
     });
+    const persistedSession = await firstDatabase.workoutSessions.get(session.id);
     firstDatabase.close();
 
     const reloadedDatabase = new LiftwiseDatabase(name);
     const reloadedWorkout = await new WorkoutRepository(reloadedDatabase).get(session.id);
 
-    expect(reloadedWorkout?.session).toEqual(session);
+    expect(reloadedWorkout?.session).toEqual(persistedSession);
     expect(reloadedWorkout?.exercises[0]?.exercise).toEqual(workoutExercise);
     expect(reloadedWorkout?.exercises[0]?.sets).toEqual([set]);
     reloadedDatabase.close();

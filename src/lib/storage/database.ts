@@ -16,6 +16,7 @@ import {
   migrateVersion1ToVersion2,
   migrateVersion2ToVersion3,
   migrateVersion3ToVersion4,
+  migrateVersion4ToVersion5,
 } from './migrations';
 import {
   DATABASE_NAME,
@@ -23,6 +24,7 @@ import {
   VERSION_2_STORES,
   VERSION_3_STORES,
   VERSION_4_STORES,
+  VERSION_5_STORES,
 } from './schema';
 
 export class LiftwiseDatabase extends Dexie {
@@ -44,6 +46,7 @@ export class LiftwiseDatabase extends Dexie {
     this.version(2).stores(VERSION_2_STORES).upgrade(migrateVersion1ToVersion2);
     this.version(3).stores(VERSION_3_STORES).upgrade(migrateVersion2ToVersion3);
     this.version(4).stores(VERSION_4_STORES).upgrade(migrateVersion3ToVersion4);
+    this.version(5).stores(VERSION_5_STORES).upgrade(migrateVersion4ToVersion5);
   }
 }
 

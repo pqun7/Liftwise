@@ -1,5 +1,48 @@
 # Development log
 
+## 2026-10-02 — v0.6.0 workout session core, snapshots, and recovery
+
+### Goal
+
+Make a complete offline workout durable after every meaningful action and historically independent from the editable program.
+
+### Work completed
+
+- Added planned and quick workout start, session exercise/set editing, pause/resume, rest state, completion, discard confirmation, recovery, and recent history.
+- Snapshotted the user-relevant prescription and exercise-name fallback when a planned session starts; no RepDB record is copied.
+- Added immediate repository transactions for set, exercise, ordering, note, current-exercise, timer, and status changes.
+- Added Dexie v5, backup format v2, and explicit v0.5 backup migration.
+
+### Important decisions
+
+- `ProgramExercise` remains mutable intent; `WorkoutExercise` owns the immutable historical prescription snapshot.
+- `updatedAt` is the durable last-modified timestamp. Elapsed/rest values are derived from persisted timestamps, never a decrementing counter.
+- Discarded sessions remain explicit historical records; an unfinished session is never silently removed.
+
+### Problems encountered
+
+- Export order is not an identity guarantee, so backup assertions locate workout exercises by stable exercise ID.
+- Browser update activation needed a repository check before allowing a reload.
+
+### Bugs fixed
+
+- Program edits/deletion can no longer change or remove an existing session's prescription history.
+- Refresh/reopen no longer loses completed sets or duplicates them.
+
+### Tests added
+
+- Snapshot immutability, quick workout, immediate writes, exercise ordering/removal, timestamp timers, crash/reopen recovery, completed-only previous performance, program deletion safety, v4→v5 migration, and workout backup round trips.
+
+### Known limitations
+
+- Advanced gestures, supersets, progression, substitutions, plate calculation, and analytics remain out of scope.
+- Physical-iPhone lifecycle and PWA suspension testing remains required; WebKit emulation is not a physical-device test.
+- The existing production chunk-size warning remains.
+
+### Next version
+
+Stop after v0.6.0. Any later release should build on this persistence model without weakening snapshot or recovery guarantees.
+
 ## 2026-10-01 — v0.5.0 data safety, backup, and migration safety
 
 ### Goal

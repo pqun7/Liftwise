@@ -18,7 +18,7 @@ test('loads the application shell and navigates across features', async ({ page,
 
   await expect(page.getByRole('heading', { name: 'Welcome to Liftwise' })).toBeVisible();
   await page.getByRole('link', { name: 'Workout' }).click();
-  await expect(page.getByRole('heading', { name: 'Train without distraction' })).toBeVisible({
+  await expect(page.getByRole('heading', { name: 'Start training' })).toBeVisible({
     timeout: 15_000,
   });
   await expect(page).toHaveURL(/\/workout$/);

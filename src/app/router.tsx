@@ -26,6 +26,14 @@ import { ProgressPage } from '../features/progress/ProgressPage';
 import { DataSafetyPage } from '../features/dataSafety/DataSafetyPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 import { WorkoutPage } from '../features/workout/WorkoutPage';
+import { WorkoutRouteError } from '../features/workout/WorkoutRouteError';
+import { WorkoutExercisePickerPage } from '../features/workout/WorkoutExercisePickerPage';
+import { WorkoutSessionPage } from '../features/workout/WorkoutSessionPage';
+import {
+  workoutExercisePickerLoader,
+  workoutLandingLoader,
+  workoutSessionLoader,
+} from '../features/workout/loaders';
 import { AppShell } from './shell/AppShell';
 import { NotFoundPage } from './shell/NotFoundPage';
 
@@ -103,7 +111,24 @@ export const routeObjects: RouteObject[] = [
         loader: prescriptionLoader,
         errorElement: <ProgramRouteError />,
       },
-      { path: 'workout', element: <WorkoutPage /> },
+      {
+        path: 'workout',
+        element: <WorkoutPage />,
+        loader: workoutLandingLoader,
+        errorElement: <WorkoutRouteError />,
+      },
+      {
+        path: 'workout/:workoutId',
+        element: <WorkoutSessionPage />,
+        loader: workoutSessionLoader,
+        errorElement: <WorkoutRouteError />,
+      },
+      {
+        path: 'workout/:workoutId/exercises',
+        element: <WorkoutExercisePickerPage />,
+        loader: workoutExercisePickerLoader,
+        errorElement: <WorkoutRouteError />,
+      },
       { path: 'progress', element: <ProgressPage /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: 'settings/data-safety', element: <DataSafetyPage /> },

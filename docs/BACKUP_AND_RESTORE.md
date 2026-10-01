@@ -2,18 +2,18 @@
 
 ## Purpose
 
-Liftwise v0.5.0 makes device-local user data portable before live workout logging ships. Backup and restore remain entirely client-side: files are created and selected by the user and are never uploaded by Liftwise.
+Liftwise backups make device-local user data, including workout history, portable. Backup and restore remain entirely client-side: files are created and selected by the user and are never uploaded by Liftwise.
 
 ## Versioned envelope
 
-The current format is `backupVersion: 1`:
+The current format is `backupVersion: 2`:
 
 ```json
 {
   "application": "liftwise",
-  "backupVersion": 1,
-  "schemaVersion": 4,
-  "appVersion": "0.5.0",
+  "backupVersion": 2,
+  "schemaVersion": 5,
+  "appVersion": "0.6.0",
   "createdAt": "2026-10-01T00:00:00.000Z",
   "data": {},
   "checksum": "sha256-hex"
@@ -45,7 +45,7 @@ Restore uses this fixed sequence:
 
 No destructive write happens during steps 1–8. If any write or verification in steps 9–10 fails, Dexie aborts the transaction and the original data remains intact. The preview offers a fresh safety export before replacement.
 
-Version 0 backup files are supported through one explicit migration that renames the legacy `appSettings` collection to the portable-settings contract. Unknown future versions are rejected; Liftwise never guesses their meaning. Merge is intentionally not implemented because no safe conflict model exists yet.
+Version 1 files created by v0.5 are explicitly migrated by adding safe recovery defaults and resolving exercise-name fallbacks from local catalog/custom records. The earlier version-0 migration remains supported. Unknown future versions are rejected; Liftwise never guesses their meaning. Merge is intentionally not implemented because no safe conflict model exists yet.
 
 ## Reference handling
 
@@ -59,7 +59,7 @@ IndexedDB holds structured catalog and user data. Versioned Cache Storage holds 
 
 ## CSV foundation
 
-The shared CSV encoder handles quoting, commas, line breaks, UTF-8 BOM output, and reusable typed columns. v0.5.0 exports custom exercises only. Workout CSV rows are deliberately deferred until real workout behavior and semantics exist.
+The shared CSV encoder handles quoting, commas, line breaks, UTF-8 BOM output, and reusable typed columns. CSV currently exports custom exercises only; workout CSV semantics remain deliberately deferred.
 
 ## User workflow
 

@@ -53,10 +53,12 @@ The roadmap is directional. Reliability, privacy, and data safety take priority 
 
 ## v0.6.0 — Workout logging
 
-- Resilient active-workout flow
-- Immediate IndexedDB writes after important actions
-- Recovery from interruption, termination, and refresh
-- Rest timer designed for installed iPhone use
+- [x] Planned-workout prescription snapshots and program-independent history
+- [x] Quick Workout without a program
+- [x] Immediate IndexedDB writes after meaningful workout actions
+- [x] Recovery from interruption, termination, and refresh
+- [x] Timestamp-based duration and rest timers
+- [x] Workout-aware PWA update deferral and backup v2 migration
 
 ## v0.7.0 — History and progress
 

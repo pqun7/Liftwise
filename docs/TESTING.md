@@ -9,6 +9,7 @@ pnpm format:check
 pnpm lint
 pnpm typecheck
 pnpm test
+pnpm repdb:verify
 pnpm build
 pnpm test:e2e
 ```
@@ -19,9 +20,9 @@ GitHub Actions runs these checks on pull requests and pushes to `main`. Browser 
 
 ### Unit and storage tests
 
-Vitest runs TypeScript tests in JSDOM. `fake-indexeddb` provides the IndexedDB APIs required by Dexie. Tests use unique database names and close/delete them after each case. The storage suite covers validated CRUD, relationship enforcement, deletion rules, real v1→v2, v2→v3, and v3→v4 upgrades, closing/reopening workout and program graphs, provider initialization/restart/update behavior, stable IDs, and custom/provider coexistence. Deterministic committed v1/v2/v3 fixture definitions exercise every historical starting version without mutating released schemas.
+Vitest runs TypeScript tests in JSDOM. `fake-indexeddb` provides the IndexedDB APIs required by Dexie. Tests use unique database names and close/delete them after each case. The storage suite covers validated CRUD, relationship enforcement, deletion rules, real v1→v2, v2→v3, v3→v4, and v4→v5 upgrades, closing/reopening workout and program graphs, provider initialization/restart/update behavior, stable IDs, and custom/provider coexistence. Deterministic committed v1/v2/v3/v4 fixture definitions exercise every historical starting version without mutating released schemas.
 
-The data-safety suite covers versioned export, deterministic checksums, checksum tampering, invalid JSON/schema, future-version rejection, known-old-version migration, duplicate IDs, missing custom and provider references, exact round-trip reconstruction, database close/reopen, user-data-only deletion, RepDB preservation, and forced mid-import rollback. Storage API unsupported/granted behavior and reusable CSV quoting are tested separately.
+The data-safety suite covers backup v2 workout snapshots, deterministic checksums, checksum tampering, invalid JSON/schema, future-version rejection, v0.5/v1 migration, duplicate IDs, missing custom and provider references, exact round-trip reconstruction, database close/reopen, user-data-only deletion, RepDB preservation, and forced mid-import rollback. Workout tests cover snapshot immutability, immediate writes, timestamp timers, crash/reopen recovery without duplicates, completed-only previous performance, and history after program deletion.
 
 RepDB unit tests cover schema failures, duplicate IDs, safe image paths, mapping, both image shapes, muscle/equipment/difficulty/goal mapping, search, and filters. `pnpm repdb:verify` validates the generated 601-record artifact independently of UI tests.
 
@@ -33,7 +34,7 @@ React Testing Library tests the interface through accessible roles and names. Pr
 
 ### End-to-end tests
 
-Playwright starts the built production preview and runs iPhone Safari and desktop Chromium profiles. The suite checks navigation, manifest/service-worker behavior, hidden and keyboard-visible skip-link states, a real WebP response, the complete 1,056-image download, exercise catalog flows, and a complete create-program → add-day → add RepDB/custom prescriptions → reorder → reload → offline recovery flow. It also creates mixed provider/custom program data, downloads a backup, deletes user data, uploads the file, verifies preview counts, restores, switches offline, and verifies exact prescriptions on both browser projects.
+Playwright starts the built production preview and runs iPhone Safari and desktop Chromium profiles. The suite checks navigation, manifest/service-worker behavior, skip-link states, exercise media/catalog flows, Program Builder persistence, backup/restore, and production offline behavior. Repository integration tests carry deterministic crash/reopen and snapshot invariants; physical-iPhone suspension remains a manual release check.
 
 Install browsers once with:
 
@@ -45,4 +46,4 @@ Emulation does not replace a physical iPhone. Follow `docs/IPHONE_TESTING.md` be
 
 ## Future release requirements
 
-Workout features require tests for immediate writes, interruption recovery, duplicate-action safety, schema migration, validation failure, timer lifecycle, backup round trips, and calculations. A failed data-safety test blocks release.
+Future workout changes must retain tests for immediate writes, interruption recovery, duplicate-action safety, schema migration, validation failure, timer lifecycle, backup round trips, and calculations. A failed workout or data-safety test blocks release.

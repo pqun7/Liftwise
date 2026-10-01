@@ -24,7 +24,7 @@ import {
   workoutSetSchema,
 } from '../../domain/validation';
 
-export const BACKUP_VERSION = 1 as const;
+export const BACKUP_VERSION = 2 as const;
 
 export interface LiftwiseBackupData {
   customExercises: Exercise[];
@@ -40,7 +40,7 @@ export interface LiftwiseBackupData {
 
 export interface LiftwiseBackupEnvelope {
   application: 'liftwise';
-  backupVersion: 1;
+  backupVersion: 2;
   schemaVersion: number;
   appVersion: string;
   createdAt: string;
@@ -90,13 +90,59 @@ export const backupEnvelopeSchema: z.ZodType<LiftwiseBackupEnvelope> = z
   })
   .strict();
 
-export const legacyBackupEnvelopeSchema = z
+const legacyWorkoutSessionSchema = z
+  .object({
+    id: z.string().uuid(),
+    programId: z.string().uuid().nullable(),
+    programDayId: z.string().uuid().nullable(),
+    name: z.string().trim().min(1).max(120).nullable(),
+    status: z.enum(['active', 'completed', 'discarded']),
+    startedAt: isoTimestampSchema,
+    endedAt: isoTimestampSchema.nullable(),
+    notes: z.string().trim().max(2_000).nullable(),
+    createdAt: isoTimestampSchema,
+    updatedAt: isoTimestampSchema,
+  })
+  .strict();
+
+const legacyWorkoutExerciseSchema = z
+  .object({
+    id: z.string().uuid(),
+    workoutSessionId: z.string().uuid(),
+    exerciseId: z.union([z.string().uuid(), z.string().regex(/^repdb:[a-z0-9]+(?:-[a-z0-9]+)*$/)]),
+    programExerciseId: z.string().uuid().nullable(),
+    order: z.number().int().positive(),
+    notes: z.string().trim().max(2_000).nullable(),
+    createdAt: isoTimestampSchema,
+    updatedAt: isoTimestampSchema,
+  })
+  .strict();
+
+const legacyBackupDataFields = {
+  ...backupDataFields,
+  workoutSessions: z.array(legacyWorkoutSessionSchema),
+  workoutExercises: z.array(legacyWorkoutExerciseSchema),
+};
+
+export const version1BackupEnvelopeSchema = z
+  .object({
+    ...envelopeFields,
+    backupVersion: z.literal(1),
+    data: z
+      .object({ ...legacyBackupDataFields, portableSettings: z.array(appSettingSchema) })
+      .strict(),
+  })
+  .strict();
+
+export const version0BackupEnvelopeSchema = z
   .object({
     ...envelopeFields,
     backupVersion: z.literal(0),
-    data: z.object({ ...backupDataFields, appSettings: z.array(appSettingSchema) }).strict(),
+    data: z.object({ ...legacyBackupDataFields, appSettings: z.array(appSettingSchema) }).strict(),
   })
   .strict();
+
+export type LegacyBackupData = z.infer<typeof version1BackupEnvelopeSchema>['data'];
 
 export const backupHeaderSchema = z
   .object({

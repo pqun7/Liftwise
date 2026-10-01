@@ -34,7 +34,7 @@ async function createFixture(database: LiftwiseDatabase) {
   });
   const program = await programs.create({ name: 'Push Plan', description: 'Backup fixture' });
   const day = await programs.addDay({ programId: program.id, name: 'Push Day' });
-  const providerPrescription = await programs.addExercise({
+  await programs.addExercise({
     programDayId: day.id,
     exerciseId: providerExercise.id,
     order: 1,
@@ -54,26 +54,14 @@ async function createFixture(database: LiftwiseDatabase) {
     maxReps: 12,
     restSeconds: 90,
   });
-  const session = await workouts.createSession({
-    programId: program.id,
-    programDayId: day.id,
-    name: 'Historical fixture',
-  });
-  const workoutExercise = await workouts.addExercise({
-    workoutSessionId: session.id,
-    exerciseId: providerExercise.id,
-    programExerciseId: providerPrescription.id,
-    order: 1,
-  });
-  await workouts.addSet({
-    workoutExerciseId: workoutExercise.id,
-    setNumber: 1,
-    setType: 'working',
+  const workout = await workouts.startPlannedWorkout(day.id, '2026-10-01T10:00:00.000Z');
+  await workouts.updateSet(workout.exercises[0]!.sets[0]!.id, {
     weight: 80,
     reps: 8,
     rir: 2,
     completed: true,
   });
+  await workouts.finish(workout.session.id, new Date('2026-10-01T11:00:00.000Z'));
   await bodyMetrics.create({ weight: 82.5, notes: 'Morning' });
   return { providerExercise, customExercise, program, day };
 }
@@ -100,9 +88,9 @@ describe('Liftwise backup and restore', () => {
 
     expect(backup).toMatchObject({
       application: 'liftwise',
-      backupVersion: 1,
-      schemaVersion: 4,
-      appVersion: '0.5.0',
+      backupVersion: 2,
+      schemaVersion: 5,
+      appVersion: '0.6.0',
       createdAt: '2026-10-01T12:00:00.000Z',
     });
     expect(backup.checksum).toMatch(/^[0-9a-f]{64}$/);
@@ -113,6 +101,22 @@ describe('Liftwise backup and restore', () => {
     expect(backup.data.programExercises.map(({ exerciseId }) => exerciseId)).toContain(
       'repdb:bench-press',
     );
+    expect(backup.data.workoutSessions[0]).toMatchObject({
+      name: 'Push Day',
+      status: 'completed',
+      pausedDurationSeconds: 0,
+    });
+    expect(
+      backup.data.workoutExercises.find(({ exerciseId }) => exerciseId === 'repdb:bench-press'),
+    ).toMatchObject({
+      exerciseName: 'Bench Press',
+      plannedTargetSets: 3,
+      plannedMinReps: 6,
+      plannedMaxReps: 8,
+      plannedRirMin: 1,
+      plannedRirMax: 2,
+      plannedRestSeconds: 180,
+    });
   });
 
   it('rejects invalid JSON, invalid schemas, future versions, and checksum changes', async () => {
@@ -134,23 +138,63 @@ describe('Liftwise backup and restore', () => {
     });
   });
 
-  it('migrates the known legacy backup format before preview', async () => {
+  it('migrates the v0.5 backup format before preview', async () => {
     const database = createTestDatabase('backup-legacy');
     await createFixture(database);
     const { service } = serviceFor(database);
     const current = await service.createBackup('2026-10-01T12:00:00.000Z');
-    const { portableSettings, ...legacyData } = current.data;
+    const legacyData = {
+      ...current.data,
+      workoutSessions: current.data.workoutSessions.map((session) => {
+        const legacy: Record<string, unknown> = { ...session };
+        for (const key of [
+          'pausedAt',
+          'pausedDurationSeconds',
+          'currentExerciseId',
+          'restStartedAt',
+          'restEndsAt',
+        ]) {
+          delete legacy[key];
+        }
+        return legacy;
+      }),
+      workoutExercises: current.data.workoutExercises.map((exercise) => {
+        const legacy: Record<string, unknown> = { ...exercise };
+        for (const key of [
+          'exerciseName',
+          'plannedTargetSets',
+          'plannedMinReps',
+          'plannedMaxReps',
+          'plannedRirMin',
+          'plannedRirMax',
+          'plannedRestSeconds',
+          'plannedNotes',
+        ]) {
+          delete legacy[key];
+        }
+        return legacy;
+      }),
+    };
     const legacyPayload = {
       ...withoutChecksum(current),
-      backupVersion: 0 as const,
-      data: { ...legacyData, appSettings: portableSettings },
+      backupVersion: 1 as const,
+      schemaVersion: 4,
+      appVersion: '0.5.0',
+      data: legacyData,
     };
     const legacy = { ...legacyPayload, checksum: await sha256(legacyPayload) };
 
     const prepared = await service.prepareRestore(JSON.stringify(legacy));
 
-    expect(prepared.preview.sourceBackupVersion).toBe(0);
-    expect(prepared.data.portableSettings).toEqual(portableSettings);
+    expect(prepared.preview.sourceBackupVersion).toBe(1);
+    expect(prepared.data.workoutSessions[0]).toMatchObject({
+      pausedAt: null,
+      pausedDurationSeconds: 0,
+      restEndsAt: null,
+    });
+    expect(prepared.data.workoutExercises[0]?.exerciseName).toBe(
+      current.data.workoutExercises[0]?.exerciseName,
+    );
   });
 
   it('rejects duplicate IDs and missing custom references before import', async () => {

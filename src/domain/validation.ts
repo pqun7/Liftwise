@@ -208,13 +208,24 @@ export const workoutSessionSchema: z.ZodType<WorkoutSession> = z
     status: z.enum(workoutSessionStatuses),
     startedAt: isoTimestampSchema,
     endedAt: isoTimestampSchema.nullable(),
+    pausedAt: isoTimestampSchema.nullable(),
+    pausedDurationSeconds: z.number().int().nonnegative(),
+    currentExerciseId: entityIdSchema.nullable(),
+    restStartedAt: isoTimestampSchema.nullable(),
+    restEndsAt: isoTimestampSchema.nullable(),
     notes: nullableNotesSchema,
     ...timestampFields,
   })
   .strict()
   .refine(({ startedAt, endedAt }) => endedAt === null || endedAt >= startedAt, {
     message: 'A workout cannot end before it starts.',
-  });
+  })
+  .refine(
+    ({ restStartedAt, restEndsAt }) =>
+      (restStartedAt === null && restEndsAt === null) ||
+      (restStartedAt !== null && restEndsAt !== null && restEndsAt >= restStartedAt),
+    { message: 'Rest timer timestamps must be a valid pair.' },
+  );
 
 export const workoutExerciseSchema: z.ZodType<WorkoutExercise> = z
   .object({
@@ -222,11 +233,29 @@ export const workoutExerciseSchema: z.ZodType<WorkoutExercise> = z
     workoutSessionId: entityIdSchema,
     exerciseId: exerciseIdSchema,
     programExerciseId: entityIdSchema.nullable(),
+    exerciseName: z.string().trim().min(1).max(120),
     order: z.number().int().positive(),
+    plannedTargetSets: z.number().int().positive().nullable(),
+    plannedMinReps: z.number().int().nonnegative().nullable(),
+    plannedMaxReps: z.number().int().nonnegative().nullable(),
+    plannedRirMin: z.number().int().min(0).max(10).nullable(),
+    plannedRirMax: z.number().int().min(0).max(10).nullable(),
+    plannedRestSeconds: z.number().int().nonnegative().max(3_600).nullable(),
+    plannedNotes: nullableNotesSchema,
     notes: nullableNotesSchema,
     ...timestampFields,
   })
-  .strict();
+  .strict()
+  .refine(
+    ({ plannedMinReps, plannedMaxReps }) =>
+      plannedMinReps === null || plannedMaxReps === null || plannedMinReps <= plannedMaxReps,
+    { message: 'Minimum planned reps cannot exceed maximum planned reps.' },
+  )
+  .refine(
+    ({ plannedRirMin, plannedRirMax }) =>
+      plannedRirMin === null || plannedRirMax === null || plannedRirMin <= plannedRirMax,
+    { message: 'Minimum planned RIR cannot exceed maximum planned RIR.' },
+  );
 
 export const workoutSetSchema: z.ZodType<WorkoutSet> = z
   .object({

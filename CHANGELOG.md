@@ -4,6 +4,26 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-02
+
+### Added
+
+- Planned and quick workout flows with session-owned prescription snapshots and locally persisted sets.
+- Active-workout recovery, pause/resume, current-exercise state, notes, exercise ordering, and timestamp-based workout/rest timers.
+- Recent completed-workout access and previous performance from completed sessions only.
+- Backup format v2 carrying the complete v0.6 workout graph, with explicit v0.5 backup migration.
+
+### Changed
+
+- Added forward-only IndexedDB schema version 5; released versions 1–4 remain unchanged.
+- Meaningful workout actions now write immediately through repository-owned Dexie transactions.
+- PWA activation is deferred while an unfinished workout exists.
+
+### Security
+
+- Historical sessions retain their original prescription after a program is edited or deleted.
+- Backup restore retains the v0.5 validation, checksum, preview, transactional replacement, and rollback guarantees.
+
 ## [0.5.0] - 2026-10-01
 
 ### Added
@@ -108,7 +128,8 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - ESLint, Prettier, strict TypeScript, and GitHub Actions quality gates.
 - Architecture, ADR, testing, iPhone validation, roadmap, development log, and issue templates.
 
-[Unreleased]: https://github.com/pqun7/Liftwise/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/pqun7/Liftwise/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/pqun7/Liftwise/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/pqun7/Liftwise/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/pqun7/Liftwise/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/pqun7/Liftwise/compare/v0.3.0...v0.4.0

@@ -14,7 +14,9 @@ import {
   backupDataSchema,
   backupEnvelopeSchema,
   backupHeaderSchema,
-  legacyBackupEnvelopeSchema,
+  type LegacyBackupData,
+  version0BackupEnvelopeSchema,
+  version1BackupEnvelopeSchema,
   type LiftwiseBackupData,
   type LiftwiseBackupEnvelope,
 } from '../../lib/backup/backupSchema';
@@ -88,7 +90,7 @@ export class BackupService {
     validateBackupRelationships(data, await this.repository.listProviderExerciseIds());
     const payload = {
       application: 'liftwise' as const,
-      backupVersion: BACKUP_VERSION as 1,
+      backupVersion: BACKUP_VERSION,
       schemaVersion: DATABASE_VERSION,
       appVersion: APP_VERSION,
       createdAt,
@@ -113,7 +115,8 @@ export class BackupService {
         `Backup version ${header.data.backupVersion} requires a newer Liftwise release.`,
       );
     }
-    let data: LiftwiseBackupData;
+    let data: LiftwiseBackupData | undefined;
+    let legacyData: LegacyBackupData | undefined;
     let createdAt: string;
     let appVersion: string;
     let checksum: string;
@@ -126,13 +129,22 @@ export class BackupService {
       createdAt = parsed.data.createdAt;
       appVersion = parsed.data.appVersion;
       checksum = parsed.data.checksum;
+    } else if (header.data.backupVersion === 1) {
+      const parsed = version1BackupEnvelopeSchema.safeParse(raw);
+      if (!parsed.success) {
+        throw new BackupError('invalid-schema', 'The v0.5 backup contains invalid records.');
+      }
+      legacyData = parsed.data.data;
+      createdAt = parsed.data.createdAt;
+      appVersion = parsed.data.appVersion;
+      checksum = parsed.data.checksum;
     } else if (header.data.backupVersion === 0) {
-      const parsed = legacyBackupEnvelopeSchema.safeParse(raw);
+      const parsed = version0BackupEnvelopeSchema.safeParse(raw);
       if (!parsed.success) {
         throw new BackupError('invalid-schema', 'The legacy backup contains invalid records.');
       }
-      const { appSettings, ...legacyData } = parsed.data.data;
-      data = backupDataSchema.parse({ ...legacyData, portableSettings: appSettings });
+      const { appSettings, ...legacyPayload } = parsed.data.data;
+      legacyData = { ...legacyPayload, portableSettings: appSettings };
       createdAt = parsed.data.createdAt;
       appVersion = parsed.data.appVersion;
       checksum = parsed.data.checksum;
@@ -156,6 +168,9 @@ export class BackupService {
         `Database schema ${header.data.schemaVersion} requires a newer Liftwise release.`,
       );
     }
+
+    if (legacyData) data = await this.migrateLegacyData(legacyData);
+    if (!data) throw new BackupError('invalid-schema', 'The backup data could not be migrated.');
 
     const relationshipResult = validateBackupRelationships(
       data,
@@ -192,6 +207,38 @@ export class BackupService {
 
   async recordBackup(createdAt: string): Promise<void> {
     await this.settings.set(LAST_BACKUP_SETTING, createdAt);
+  }
+
+  private async migrateLegacyData(data: LegacyBackupData): Promise<LiftwiseBackupData> {
+    const names = await this.repository.getExerciseNames(
+      data.workoutExercises.map(({ exerciseId }) => exerciseId),
+    );
+    const customNames = new Map(data.customExercises.map(({ id, name }) => [id, name]));
+    return backupDataSchema.parse({
+      ...data,
+      workoutSessions: data.workoutSessions.map((session) => ({
+        ...session,
+        pausedAt: null,
+        pausedDurationSeconds: 0,
+        currentExerciseId: null,
+        restStartedAt: null,
+        restEndsAt: null,
+      })),
+      workoutExercises: data.workoutExercises.map((exercise) => ({
+        ...exercise,
+        exerciseName:
+          names.get(exercise.exerciseId) ??
+          customNames.get(exercise.exerciseId) ??
+          'Unavailable exercise',
+        plannedTargetSets: null,
+        plannedMinReps: null,
+        plannedMaxReps: null,
+        plannedRirMin: null,
+        plannedRirMax: null,
+        plannedRestSeconds: null,
+        plannedNotes: null,
+      })),
+    });
   }
 }
 

@@ -88,6 +88,15 @@ export function validateBackupRelationships(
     if (session.programDayId !== null && !dayIds.has(session.programDayId)) {
       throw new BackupError('missing-reference', `Workout ${session.id} has no program day.`);
     }
+    if (session.currentExerciseId !== null) {
+      const current = data.workoutExercises.find(({ id }) => id === session.currentExerciseId);
+      if (!current || current.workoutSessionId !== session.id) {
+        throw new BackupError(
+          'missing-reference',
+          `Workout ${session.id} has an invalid current exercise.`,
+        );
+      }
+    }
   }
   for (const exercise of data.workoutExercises) {
     if (!sessionIds.has(exercise.workoutSessionId)) {

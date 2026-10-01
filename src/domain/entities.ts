@@ -107,7 +107,7 @@ export interface ProgramExercise extends TimestampedEntity {
   notes: string | null;
 }
 
-export const workoutSessionStatuses = ['active', 'completed', 'discarded'] as const;
+export const workoutSessionStatuses = ['active', 'paused', 'completed', 'discarded'] as const;
 export type WorkoutSessionStatus = (typeof workoutSessionStatuses)[number];
 
 export interface WorkoutSession extends TimestampedEntity {
@@ -118,6 +118,11 @@ export interface WorkoutSession extends TimestampedEntity {
   status: WorkoutSessionStatus;
   startedAt: IsoTimestamp;
   endedAt: IsoTimestamp | null;
+  pausedAt: IsoTimestamp | null;
+  pausedDurationSeconds: number;
+  currentExerciseId: string | null;
+  restStartedAt: IsoTimestamp | null;
+  restEndsAt: IsoTimestamp | null;
   notes: string | null;
 }
 
@@ -126,7 +131,15 @@ export interface WorkoutExercise extends TimestampedEntity {
   workoutSessionId: string;
   exerciseId: string;
   programExerciseId: string | null;
+  exerciseName: string;
   order: number;
+  plannedTargetSets: number | null;
+  plannedMinReps: number | null;
+  plannedMaxReps: number | null;
+  plannedRirMin: number | null;
+  plannedRirMax: number | null;
+  plannedRestSeconds: number | null;
+  plannedNotes: string | null;
   notes: string | null;
 }
 

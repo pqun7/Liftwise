@@ -54,11 +54,11 @@ An ordered, editable prescription belonging to a program day. It references a st
 
 ### WorkoutSession
 
-A performed workout with active, completed, or discarded status; start/end timestamps; notes; and optional program provenance. Program references are not required, so ad-hoc and historical workouts remain valid.
+A performed workout with active, paused, completed, or discarded status; start/end/pause timestamps; accumulated paused duration; current-exercise ID; rest start/end timestamps; notes; and optional program provenance. Program references are optional, so quick and historical workouts remain valid. `updatedAt` is the durable last-modified timestamp.
 
 ### WorkoutExercise
 
-An ordered performed exercise belonging to a workout session. It always references an Exercise and may reference the ProgramExercise that inspired it. The `(workoutSessionId, order)` pair is unique.
+An ordered performed exercise belonging to a workout session. It references a stable Exercise ID, stores an exercise-name fallback, and may retain optional ProgramExercise provenance. Planned sets, reps, RIR, rest, and notes are copied here at workout start so history never reads mutable ProgramExercise values. The `(workoutSessionId, order)` pair is unique.
 
 ### WorkoutSet
 
@@ -103,7 +103,11 @@ Changes the ProgramDay compound order index from `(programId, dayNumber)` to `(p
 
 v0.5.0 does not change the IndexedDB schema, so the current Dexie version remains 4. Backup format versions are intentionally independent from database schema versions. The last successful backup timestamp uses the existing AppSettings store and is not itself portable.
 
-Committed, deterministic v1, v2, and v3 fixture definitions now exercise every released upgrade path to the latest database. Historical fixtures and old Dexie version declarations are immutable release evidence; new migrations add a new fixture/version instead of editing old ones.
+### Version 5 — v0.6.0
+
+Adds session recovery/timer fields and the session-owned prescription snapshot. The v4→v5 migration preserves every ID and relationship, fills recovery fields with safe defaults, and resolves the exercise-name fallback from the existing local catalog where available.
+
+Committed, deterministic v1, v2, v3, and v4 fixture definitions exercise every released upgrade path to the latest database. Historical fixtures and old Dexie version declarations are immutable release evidence; new migrations add a new fixture/version instead of editing old ones.
 
 ## Future migration strategy
 
@@ -121,7 +125,9 @@ Committed, deterministic v1, v2, and v3 fixture definitions now exercise every r
 - Multi-table actions use Dexie transactions so partial graphs are not committed.
 - Records are validated before writes and after reads.
 - The UI must show success only after the relevant repository promise resolves.
-- Active workout state will be reconstructed from WorkoutSession, WorkoutExercise, and WorkoutSet records after refresh or restart.
+- Active workout state is reconstructed from WorkoutSession, WorkoutExercise, and WorkoutSet records after refresh or restart.
+- Set edits/completion/deletion, session exercise changes, notes, ordering, current exercise, rest, pause, and resume update IndexedDB immediately in a repository transaction.
+- Workout duration and rest remaining are derived from persisted timestamps and `Date.now()`; an in-memory countdown is never authoritative.
 - Repositories return errors to callers; they do not hide failed writes.
 - Backup restore validates the complete portable graph before opening its replacement transaction.
 - Replacement clears only user-owned tables/rows, never RepDB catalog records or Cache Storage media.

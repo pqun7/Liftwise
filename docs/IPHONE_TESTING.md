@@ -84,6 +84,21 @@ WebKit emulation exercises this flow automatically but does not count as physica
 
 The automated Mobile Safari project covers this logical round trip, including offline verification, but physical iOS file-picker/download behavior and browser storage eviction still require this real-device pass.
 
+## Workout recovery acceptance
+
+1. Create and activate a program day containing Bench Press at 3 sets × 8 reps with a 180-second rest.
+2. Open Workout, start that planned day, and confirm the displayed prescription is 3 × 8.
+3. Enter and complete two sets. Background Liftwise, lock the phone, then force-close and reopen the installed app.
+4. Confirm the unfinished-workout card appears. Resume it and verify both completed sets appear exactly once.
+5. Complete another set and confirm the rest timer continues from its real end timestamp after backgrounding; it must not restart from 180 seconds.
+6. Pause and resume the workout, add a custom or RepDB exercise, reorder it, add a set, and confirm every change survives another reopen.
+7. Finish the workout. Edit the program prescription to 4 × 6, then open the completed workout from Recent workouts and confirm its history still shows 3 × 8.
+8. Start a Quick Workout without a program, add an exercise, complete a set, and confirm recovery after reopen.
+9. Repeat the planned or quick flow in Airplane Mode with Wi-Fi disabled. No set action, recovery screen, timer, exercise picker, or history screen may require network access.
+10. While a workout is active, deploy a new build and confirm accepting an update cannot force a reload; finish or discard the workout before applying it.
+
+Record any loss, duplicate set, stale prescription, timer restart, or forced update reload as a release blocker.
+
 ## Lifecycle and updates
 
 1. Background Liftwise, lock the phone for at least one minute, unlock, and return. Confirm the same route remains usable.
@@ -94,6 +109,6 @@ The automated Mobile Safari project covers this logical round trip, including of
 
 ## Data boundary
 
-v0.5.0 contains the Exercise Library, Program Builder, and Data Safety tools but no Live Workout Logger. In Safari Web Inspector, confirm there are no requests to RepDB, GitHub, or exercise-dataset.com during normal use and no application data in `localStorage`. IndexedDB should report schema version 4 with programs, ordered days, prescriptions, exercises, and catalog metadata. Exercise art belongs in versioned Cache Storage; clearing it from the app must leave IndexedDB records unchanged.
+v0.6.0 contains the Exercise Library, Program Builder, Data Safety tools, and durable Workout Session Core. In Safari Web Inspector, confirm there are no requests to RepDB, GitHub, or exercise-dataset.com during normal use and no application data in `localStorage`. IndexedDB should report schema version 5 with programs, session snapshots, recovery/timer fields, sets, exercises, and catalog metadata. Exercise art belongs in versioned Cache Storage; clearing it from the app must leave IndexedDB records unchanged.
 
 Record the iPhone model, iOS version, deployed commit, date, and any deviations in the release issue.

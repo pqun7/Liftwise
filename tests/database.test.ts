@@ -3,13 +3,21 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { LiftwiseDatabase } from '../src/lib/storage/database';
 import { AppSettingsRepository } from '../src/lib/storage/repositories/appSettingsRepository';
-import { VERSION_1_STORES, VERSION_2_STORES, VERSION_3_STORES } from '../src/lib/storage/schema';
+import {
+  VERSION_1_STORES,
+  VERSION_2_STORES,
+  VERSION_3_STORES,
+  VERSION_4_STORES,
+} from '../src/lib/storage/schema';
 import {
   version1SettingFixture,
   version2ExerciseFixture,
   version3DayFixture,
   version3ProgramExerciseFixture,
   version3ProgramFixture,
+  version4ExerciseFixture,
+  version4WorkoutExerciseFixture,
+  version4WorkoutSessionFixture,
 } from './fixtures/migrations';
 import { cleanupTestDatabases, trackDatabaseName } from './helpers/database';
 
@@ -20,6 +28,16 @@ async function createLegacySetting(name: string, updatedAt: string): Promise<voi
   const legacyDatabase = new Dexie(name);
   legacyDatabase.version(1).stores(VERSION_1_STORES);
   await legacyDatabase.table('appSettings').put({ ...version1SettingFixture, updatedAt });
+  legacyDatabase.close();
+}
+
+async function createVersion4Workout(name: string) {
+  trackDatabaseName(name);
+  const legacyDatabase = new Dexie(name);
+  legacyDatabase.version(4).stores(VERSION_4_STORES);
+  await legacyDatabase.table('exercises').put(version4ExerciseFixture);
+  await legacyDatabase.table('workoutSessions').put(version4WorkoutSessionFixture);
+  await legacyDatabase.table('workoutExercises').put(version4WorkoutExerciseFixture);
   legacyDatabase.close();
 }
 
@@ -55,7 +73,7 @@ describe('LiftwiseDatabase migrations', () => {
     await migratedDatabase.open();
 
     const setting = await new AppSettingsRepository(migratedDatabase).get('units');
-    expect(migratedDatabase.verno).toBe(4);
+    expect(migratedDatabase.verno).toBe(5);
     expect(setting).toEqual({
       key: 'units',
       value: 'metric',
@@ -72,7 +90,7 @@ describe('LiftwiseDatabase migrations', () => {
     await migratedDatabase.open();
 
     const exercise = await migratedDatabase.exercises.get(id);
-    expect(migratedDatabase.verno).toBe(4);
+    expect(migratedDatabase.verno).toBe(5);
     expect(exercise).toMatchObject({
       id,
       sourceProvider: 'custom',
@@ -102,7 +120,7 @@ describe('LiftwiseDatabase migrations', () => {
     const migratedDatabase = new LiftwiseDatabase(name);
     await migratedDatabase.open();
 
-    expect(migratedDatabase.verno).toBe(4);
+    expect(migratedDatabase.verno).toBe(5);
     expect(await migratedDatabase.programDays.get(ids.day)).toMatchObject({
       id: ids.day,
       programId: ids.program,
@@ -120,6 +138,39 @@ describe('LiftwiseDatabase migrations', () => {
       targetRirMax: null,
       restSeconds: null,
       notes: 'Pause',
+    });
+    migratedDatabase.close();
+  });
+
+  it('upgrades v4 workout records with recoverable session state and display snapshots', async () => {
+    const name = `liftwise-v4-migration-${crypto.randomUUID()}`;
+    await createVersion4Workout(name);
+    const migratedDatabase = new LiftwiseDatabase(name);
+    await migratedDatabase.open();
+
+    expect(migratedDatabase.verno).toBe(5);
+    expect(
+      await migratedDatabase.workoutSessions.get(version4WorkoutSessionFixture.id),
+    ).toMatchObject({
+      ...version4WorkoutSessionFixture,
+      pausedAt: null,
+      pausedDurationSeconds: 0,
+      currentExerciseId: null,
+      restStartedAt: null,
+      restEndsAt: null,
+    });
+    expect(
+      await migratedDatabase.workoutExercises.get(version4WorkoutExerciseFixture.id),
+    ).toMatchObject({
+      ...version4WorkoutExerciseFixture,
+      exerciseName: 'Legacy Row',
+      plannedTargetSets: null,
+      plannedMinReps: null,
+      plannedMaxReps: null,
+      plannedRirMin: null,
+      plannedRirMax: null,
+      plannedRestSeconds: null,
+      plannedNotes: null,
     });
     migratedDatabase.close();
   });

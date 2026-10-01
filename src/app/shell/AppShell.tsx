@@ -1,6 +1,7 @@
 import { NavLink, Outlet, ScrollRestoration } from 'react-router-dom';
 
 import { navigationItems } from '../navigation';
+import { ActiveWorkoutBanner } from '../../features/workout/ActiveWorkoutBanner';
 import { UpdatePrompt } from './UpdatePrompt';
 
 export function AppShell() {
@@ -24,6 +25,7 @@ export function AppShell() {
       </header>
 
       <main id="main-content" className="main-content" tabIndex={-1}>
+        <ActiveWorkoutBanner />
         <Outlet />
       </main>
 

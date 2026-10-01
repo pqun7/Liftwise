@@ -106,6 +106,16 @@ export class DataSafetyRepository {
     return new Set(ids);
   }
 
+  async getExerciseNames(ids: readonly string[]): Promise<Map<string, string>> {
+    if (ids.length === 0) return new Map();
+    const records = await this.db.exercises.bulkGet([...new Set(ids)]);
+    return new Map(
+      records
+        .filter((record) => record !== undefined)
+        .map((record) => [record.id, exerciseSchema.parse(record).name]),
+    );
+  }
+
   async audit(): Promise<DatabaseHealth> {
     try {
       const data = await this.exportUserData();
