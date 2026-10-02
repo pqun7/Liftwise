@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { setOffline } from './offline';
+import { saveEmptyProgram } from './programHelpers';
 
 async function dismissStatus(page: Page) {
   const dismiss = page.getByRole('button', { name: 'Dismiss', exact: true });
@@ -64,7 +65,7 @@ test('compact forms retain zoom, safe spacing, large text and keyboard focus', a
   ).toBeGreaterThanOrEqual(34);
   expect(
     await page
-      .locator('.top-bar')
+      .locator('.main-content')
       .evaluate((element) => parseFloat(getComputedStyle(element).paddingTop)),
   ).toBeGreaterThanOrEqual(44);
   await page.evaluate(() => {
@@ -131,7 +132,7 @@ test('all core training, charts, backup and CSV flows work with network disabled
     await expect(page.getByLabel('Program name')).toBeVisible();
     timings.program = Date.now() - started;
     await page.getByLabel('Program name').fill('Offline QA');
-    await page.getByRole('button', { name: 'Create program' }).press('Enter');
+    await saveEmptyProgram(page);
     await page.getByRole('link', { name: '+ Day' }).click();
     await page.getByLabel('Day name').fill('Offline Push');
     await page.getByRole('button', { name: 'Add day' }).press('Enter');

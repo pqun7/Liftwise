@@ -6,14 +6,16 @@ import { ActiveWorkoutBanner } from '../../features/workout/ActiveWorkoutBanner'
 import { UpdatePrompt } from './UpdatePrompt';
 
 export function AppShell() {
-  const home = useLocation().pathname === '/';
+  const pathname = useLocation().pathname;
+  const home = pathname === '/';
+  const plan = pathname === '/plan' || pathname.startsWith('/plan/');
   return (
-    <div className={`app-frame${home ? ' home-frame' : ''}`}>
+    <div className={`app-frame${home || plan ? ' home-frame' : ''}${plan ? ' plan-frame' : ''}`}>
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
 
-      {!home ? (
+      {!home && !plan ? (
         <header className="top-bar">
           <div>
             <p className="eyebrow">Your private training space</p>
@@ -36,7 +38,7 @@ export function AppShell() {
         </Suspense>
       </main>
 
-      <BottomNavigation home={home} />
+      <BottomNavigation home={home || plan} />
 
       <ScrollRestoration />
     </div>

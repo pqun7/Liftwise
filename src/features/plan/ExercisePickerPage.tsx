@@ -9,6 +9,7 @@ import {
 } from '../../domain/exerciseSearch';
 import { formatExerciseValue } from '../exercises/formatters';
 import type { HydratedProgramDay } from './programService';
+import { BuilderHeader } from './BuilderChrome';
 
 interface PickerData {
   day: HydratedProgramDay;
@@ -60,7 +61,8 @@ export function ExercisePickerPage() {
     setFilters((current) => ({ ...current, [key]: value || undefined }));
   const base = `/plan/${day.program.id}/days/${day.day.id}/exercises/add`;
   return (
-    <section className="page-stack" aria-labelledby="picker-title">
+    <section className="builder-page" aria-labelledby="picker-title">
+      <BuilderHeader title="Choose Exercise" back={`/plan/${day.program.id}/days/${day.day.id}`} />
       <Link className="back-link" to={`/plan/${day.program.id}/days/${day.day.id}`}>
         ← {day.day.name}
       </Link>

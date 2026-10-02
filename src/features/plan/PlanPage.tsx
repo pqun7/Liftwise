@@ -25,11 +25,16 @@ export function PlanPage() {
                 {program.id === activeProgramId ? (
                   <span className="source-chip">Active</span>
                 ) : null}
+                {program.draft ? <span className="source-chip">Draft</span> : null}
               </div>
               <p>{program.description ?? 'No program notes yet.'}</p>
             </div>
-            <Link to={`/plan/${program.id}`} aria-label={`Open ${program.name}`}>
-              Open program <span aria-hidden="true">→</span>
+            <Link
+              to={program.draft ? `/plan/${program.id}/edit` : `/plan/${program.id}`}
+              aria-label={`Open ${program.name}`}
+            >
+              {program.draft ? 'Continue building' : 'Open program'}{' '}
+              <span aria-hidden="true">→</span>
             </Link>
           </article>
         ))}

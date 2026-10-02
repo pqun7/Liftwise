@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { saveEmptyProgram } from './programHelpers';
 
 async function assertMobileInputIsZoomSafe(locator: Locator) {
   await expect(locator).toBeVisible();
@@ -46,6 +47,7 @@ test('mobile editable controls have zoom-safe computed typography and an unrestr
 
   await page.getByLabel('Program name').fill('Zoom Safe Plan');
   await page.getByLabel('Program name').press('Enter');
+  await saveEmptyProgram(page, true);
   await page.getByRole('link', { name: '+ Day' }).click();
   await expect(page.getByLabel('Day name')).not.toBeFocused();
   await assertMobileInputIsZoomSafe(page.getByLabel('Day name'));

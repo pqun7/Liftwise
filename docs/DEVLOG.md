@@ -1,5 +1,17 @@
 # Development log
 
+## 2026-10-02 — Guided Program Builder (unreleased)
+
+- Goal: implement the first three Plan reference screens plus Review, not the reference Workout Logger.
+- Work: shared header/stepper, segmented goal/level controls, seven-day selector, controlled split suggestions, persistent day tabs, compact media rows, accessible reorder actions, day settings and review/finalization.
+- Decisions: use canonical Program/ProgramDay/ProgramExercise records for drafts; optional metadata needs no new indexes or old-record rewrite. Dexie stays v6, backup stays v2. ADR-006 explains draft isolation from workouts.
+- Baseline: clean at `3076ab6`; format/lint/types/103 tests/RepDB/build passed. Six-worker E2E: 18 passed, 3 skipped, 3 pre-existing WebKit timing failures; all three passed unchanged with two workers.
+- Tests: durable draft reopen, IDs/prescriptions retained across templates, validation/removal confirmation, rollback, completed snapshot independence and backup round-trip; guided offline browser flow with responsive typography/navigation checks. Existing regression fixtures now use the real guided UI.
+- Problems fixed: layout cascade, compact weekday target sizing, WebKit's stale percentage-width fieldset legend after viewport resizing, and asynchronous navigation assertions. Existing fixtures now check the builder's safe-area container and allow time for the longer guided journey. No existing user data was cleared in testing.
+- Final verification: format/lint/types/RepDB/build passed; 109 unit/integration tests across 20 files passed, including migration/backup fixtures. Full E2E rerun: 22 passed, 3 intentional skips, 1 remaining WebKit layout failure; after its CSS fix, all 6 affected builder/accessibility/full-offline checks passed in WebKit and Chrome. Thus all 23 applicable browser scenarios have passed (11 WebKit, 12 Chrome). Builder widths checked at 320/375/390/393/402/430px, with 44px weekday targets and local scrolling at 320px. Pinch zoom, 16px editable typography, large text and safe-area padding remain protected. Existing initial-bundle and upstream Zod annotation warnings remain.
+- Limitations: physical-iPhone keyboard/VoiceOver/installed-PWA acceptance remains unperformed; no drag dependency, recurring schedule engine or logger redesign. Empty days can be saved for later completion.
+- Next: stop at this requested redesign; no Workout Logger redesign or next-release features.
+
 ## 2026-10-02 — Home experience (unreleased)
 
 - Goal: implement the supplied premium mobile references within the existing application.

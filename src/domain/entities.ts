@@ -83,6 +83,10 @@ export interface Program extends TimestampedEntity {
   name: string;
   description: string | null;
   archived: boolean;
+  goal?: 'strength' | 'hypertrophy' | 'general' | undefined;
+  level?: 'beginner' | 'intermediate' | 'advanced' | undefined;
+  splitTemplate?: 'ppl' | 'upper-lower' | 'full-body' | 'custom' | undefined;
+  draft?: boolean | undefined;
 }
 
 export interface ProgramDay extends TimestampedEntity {
@@ -91,6 +95,8 @@ export interface ProgramDay extends TimestampedEntity {
   name: string;
   order: number;
   notes: string | null;
+  weekday?: number | null | undefined;
+  defaultRestSeconds?: number | null | undefined;
 }
 
 export interface ProgramExercise extends TimestampedEntity {

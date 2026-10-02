@@ -4,6 +4,7 @@ import { RouterProvider } from 'react-router-dom';
 
 import { router } from './app/router';
 import './styles/index.css';
+import './styles/plan.css';
 
 const root = document.getElementById('root');
 

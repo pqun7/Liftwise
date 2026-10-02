@@ -74,7 +74,12 @@ export const deleteProgram = (id: string) => programs.delete(id);
 export const setActiveProgram = (id: string) => programs.setActive(id);
 
 export const createProgramDay = (programId: string, input: UpdateProgramDayInput) =>
-  programs.addDay({ programId, name: input.name ?? '', notes: input.notes ?? null });
+  programs.addDay({
+    programId,
+    name: input.name ?? '',
+    notes: input.notes ?? null,
+    defaultRestSeconds: input.defaultRestSeconds ?? null,
+  });
 export const updateProgramDay = (id: string, input: UpdateProgramDayInput) =>
   programs.updateDay(id, input);
 export const duplicateProgramDay = (id: string) => programs.duplicateDay(id);

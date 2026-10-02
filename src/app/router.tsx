@@ -52,6 +52,16 @@ const ProgramFormPage = lazy(() =>
   })),
 );
 import { ProgramRouteError } from '../features/plan/ProgramRouteError';
+const TrainingDaysPage = lazy(() =>
+  import('../features/plan/TrainingDaysPage').then((module) => ({
+    default: module.TrainingDaysPage,
+  })),
+);
+const ProgramReviewPage = lazy(() =>
+  import('../features/plan/ProgramReviewPage').then((module) => ({
+    default: module.ProgramReviewPage,
+  })),
+);
 import {
   exercisePickerLoader,
   prescriptionLoader,
@@ -59,6 +69,7 @@ import {
   programDayLoader,
   programListLoader,
   programLoader,
+  programReviewLoader,
 } from '../features/plan/loaders';
 const ProgressPage = lazy(() =>
   import('../features/progress/ProgressPage').then((module) => ({ default: module.ProgressPage })),
@@ -132,6 +143,18 @@ export const routeObjects: RouteObject[] = [
         errorElement: <ProgramRouteError />,
       },
       { path: 'plan/new', element: <ProgramFormPage mode="create" /> },
+      {
+        path: 'plan/:programId/build/days',
+        element: <TrainingDaysPage />,
+        loader: programLoader,
+        errorElement: <ProgramRouteError />,
+      },
+      {
+        path: 'plan/:programId/build/review',
+        element: <ProgramReviewPage />,
+        loader: programReviewLoader,
+        errorElement: <ProgramRouteError />,
+      },
       {
         path: 'plan/:programId',
         element: <ProgramDetailPage />,

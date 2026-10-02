@@ -5,6 +5,8 @@ import { Link, useLoaderData, useNavigate } from 'react-router-dom';
 import type { ProgramExercise } from '../../domain/entities';
 import type { HydratedProgramDay } from './programService';
 import { createPrescription, updatePrescription } from './programService';
+import { BuilderHeader } from './BuilderChrome';
+import { UnsavedChanges } from './UnsavedChanges';
 
 interface EditorData extends HydratedProgramDay {
   selected: HydratedProgramDay['exercises'][number]['exercise'];
@@ -30,7 +32,8 @@ export function PrescriptionFormPage() {
     register,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting },
+    reset,
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<Values>({
     defaultValues: {
       targetSets: prescription?.targetSets?.toString() ?? '3',
@@ -38,7 +41,9 @@ export function PrescriptionFormPage() {
       maxReps: prescription?.maxReps?.toString() ?? '8',
       targetRirMin: prescription?.targetRirMin?.toString() ?? '1',
       targetRirMax: prescription?.targetRirMax?.toString() ?? '2',
-      restSeconds: prescription?.restSeconds?.toString() ?? '180',
+      restSeconds: prescription
+        ? (prescription.restSeconds?.toString() ?? '')
+        : (day.defaultRestSeconds?.toString() ?? '180'),
       notes: prescription?.notes ?? '',
     },
   });
@@ -68,6 +73,7 @@ export function PrescriptionFormPage() {
     try {
       if (prescription) await updatePrescription(prescription.id, input);
       else await createPrescription(day.id, selected.id, input);
+      reset(values);
       await navigate(`/plan/${program.id}/days/${day.id}`, { replace: true });
     } catch {
       setSaveError('The prescription could not be saved. Check each value and try again.');
@@ -78,7 +84,9 @@ export function PrescriptionFormPage() {
     valueAsNumber: false,
   };
   return (
-    <section className="page-stack" aria-labelledby="prescription-title">
+    <section className="builder-page" aria-labelledby="prescription-title">
+      <BuilderHeader title="Prescription" back={`/plan/${program.id}/days/${day.id}`} />
+      <UnsavedChanges dirty={isDirty} saving={isSubmitting} />
       <Link className="back-link" to={`/plan/${program.id}/days/${day.id}`}>
         ← {day.name}
       </Link>
@@ -91,7 +99,7 @@ export function PrescriptionFormPage() {
         </p>
       </header>
       <form
-        className="exercise-form prescription-form"
+        className="builder-card exercise-form prescription-form"
         onSubmit={(event) => void submit(event)}
         noValidate
       >

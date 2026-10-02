@@ -135,6 +135,14 @@ Record any loss, duplicate set, stale prescription, timer restart, or forced upd
 4. Dismiss it once and confirm the current app remains usable.
 5. Reopen, accept the update, and confirm Liftwise reloads into the new version.
 
+## Program Builder reference acceptance (physical test pending)
+
+1. Plan → Create Program: compare header, stepper, details card, goal/level controls and CTA with the first reference screen. Focus every text field; verify no automatic zoom and retain manual pinch zoom.
+2. Choose weekdays and a split; change a weekday deliberately, then change templates. Confirm the choice stays intact. At 375/390/430px confirm all seven days are readable; only the selector may scroll at 320px.
+3. Add built-in and custom exercises, edit prescriptions/rest/notes, change day tabs and reorder using the handle's Up/Down alternatives. Compare the third reference screen; no actual weight/set logger belongs here.
+4. Back through builder steps, reload and reopen a saved draft. Verify exact metadata and prescriptions. Attempt to leave unsaved field edits; verify Keep editing and Leave behavior.
+5. Review and Save without starting a workout. Start separately through Workout and confirm prescription snapshots. Repeat after cache readiness in Airplane Mode; test keyboard scrolling, safe areas and VoiceOver.
+
 ## Data boundary
 
 v0.9.0 includes the Exercise Library, Program Builder, Data Safety, durable workouts, history and local charts. In Safari Web Inspector, confirm no requests to RepDB, GitHub or exercise-dataset.com during normal use and no critical data in `localStorage`. IndexedDB remains schema version 6; backup format remains v2. Exercise art belongs in independently clearable Cache Storage; clearing it must leave user records unchanged.

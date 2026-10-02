@@ -6,11 +6,14 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
+- Reference-led Program Builder: Basic Info, Training Days, compact exercise management and Review/Save, with shared stepper and accessible segmented selectors.
+- Durable inactive program drafts, optional goal/level/weekday/default-rest metadata, controlled split templates and unsaved-field navigation protection.
 - Reference-led mobile Home with suggested-workout, in-progress and rest-day states; photographic heroes, date selection, local program/history cards, weekly progress and insights.
 - Reusable Home components, Lucide navigation, contextual Exercise Library links, and three small bundled offline photographs.
 
 ### Changed
 
+- Existing exercise search, prescription editing and transactional reordering remain authoritative; programs activate only after explicit finalization. No database-index or released-migration changes.
 - Home now derives data through existing validated repositories; Start/Continue actions use the established workout engine. More opens the existing Settings route.
 - Date cards retain 44px targets via a compact local scroller on narrow devices. Home and its navigation stay centered at 430px on desktop.
 - Compact-form regression assertions now wait for computed typography after viewport resizing, retaining the 16px minimum.

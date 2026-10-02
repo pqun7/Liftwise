@@ -68,9 +68,16 @@ export function validateBackupRelationships(
     workoutSetPositions.add(key);
   }
 
+  const scheduledDays = new Set<string>();
   for (const day of data.programDays) {
     if (!programIds.has(day.programId)) {
       throw new BackupError('missing-reference', `Program day ${day.id} has no program.`);
+    }
+    if (day.weekday != null) {
+      const key = `${day.programId}:${day.weekday}`;
+      if (scheduledDays.has(key))
+        throw new BackupError('duplicate-id', 'A program has duplicate training weekdays.');
+      scheduledDays.add(key);
     }
   }
   for (const exercise of data.programExercises) {
@@ -141,6 +148,8 @@ export function validateBackupRelationships(
   if (typeof activeProgram?.value === 'string' && !programIds.has(activeProgram.value)) {
     throw new BackupError('missing-reference', 'The active program setting references no program.');
   }
+  if (data.programs.some((program) => program.id === activeProgram?.value && program.draft))
+    throw new BackupError('invalid-schema', 'An unfinished program draft cannot be active.');
 
   return { unresolvedExerciseIds: unresolvedExerciseIds.sort() };
 }

@@ -50,7 +50,7 @@ export function ProgramDetailPage() {
         {program.description ? <p>{program.description}</p> : null}
       </header>
       <div className="program-actions">
-        {activeProgramId !== program.id ? (
+        {activeProgramId !== program.id && !program.draft ? (
           <button
             type="button"
             disabled={busy}
@@ -60,6 +60,7 @@ export function ProgramDetailPage() {
           </button>
         ) : null}
         <Link to={`/plan/${program.id}/edit`}>Edit</Link>
+        <Link to={`/plan/${program.id}/build/review`}>Review program</Link>
         <button
           type="button"
           disabled={busy}

@@ -59,6 +59,8 @@ RepDB's raw schema stops at the provider adapter. Program and workout records re
 
 ## Program prescription and workout history
 
+The guided builder reuses Program repositories and existing exercise/prescription routes. Basic Info → Days → Exercises → Review saves canonical draft records at meaningful transitions. Optional metadata is validated at repository/backup boundaries; finalization removes the draft flag and may select the first active program atomically. Existing saved-program edits continue to persist immediately. See ADR-006; there is no competing draft database or copied exercise catalog.
+
 ```text
 Exercise → stable exerciseId → ProgramExercise prescription → ProgramDay → Program
                                   │

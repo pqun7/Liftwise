@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { setOffline } from './offline';
+import { saveEmptyProgram } from './programHelpers';
 
 async function dismissPwaStatus(page: import('@playwright/test').Page) {
   const dismiss = page.getByRole('button', { name: 'Dismiss' });
@@ -159,6 +160,7 @@ test('builds and reloads an exact program prescription offline', async ({
   context,
   browserName,
 }) => {
+  test.setTimeout(90_000);
   await page.goto('/exercises/new');
   await page.getByLabel('Name').fill('Custom Cable Press');
   await page.getByLabel('Primary muscle').fill('Chest');
@@ -173,7 +175,7 @@ test('builds and reloads an exact program prescription offline', async ({
   await page.getByRole('link', { name: 'Create program' }).click();
   await page.getByLabel('Program name').fill('Push Pull Legs');
   await page.getByLabel('Description or notes').fill('Offline strength plan');
-  await page.getByRole('button', { name: 'Create program' }).click();
+  await saveEmptyProgram(page);
   await expect(page.getByRole('heading', { name: 'Push Pull Legs' })).toBeVisible();
   await expect(page.getByText('Active')).toBeVisible();
 
@@ -207,6 +209,7 @@ test('builds and reloads an exact program prescription offline', async ({
   await page.getByLabel('Maximum reps').fill('12');
   await page.getByLabel('Rest duration in seconds').fill('90');
   await page.getByRole('button', { name: 'Add to day' }).click();
+  await page.getByRole('button', { name: 'Reorder Custom Cable Press' }).click();
   await page.getByRole('button', { name: 'Move Custom Cable Press up' }).click();
 
   await page.reload();
@@ -249,7 +252,7 @@ test('backs up, deletes, restores, and verifies an exact program offline', async
   await page.goto('/plan');
   await page.getByRole('link', { name: 'Create program' }).click();
   await page.getByLabel('Program name').fill('Backup Push Plan');
-  await page.getByRole('button', { name: 'Create program' }).click();
+  await saveEmptyProgram(page);
   await page.getByRole('link', { name: '+ Day' }).click();
   await page.getByLabel('Day name').fill('Backup Push Day');
   await page.getByRole('button', { name: 'Add day' }).click();

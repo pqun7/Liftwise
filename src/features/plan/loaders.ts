@@ -27,7 +27,12 @@ export async function programDayLoader({ params }: LoaderFunctionArgs) {
   const dayId = required(params.dayId, 'Program day ID');
   const day = await getHydratedDay(programId, dayId);
   if (!day) throw new Response('Program day not found.', { status: 404 });
-  return { day };
+  return { day, graph: await getProgram(programId) };
+}
+
+export async function programReviewLoader(args: LoaderFunctionArgs) {
+  const data = await programLoader(args);
+  return { ...data, exercises: await listPickerExercises() };
 }
 
 export async function programDayFormLoader(args: LoaderFunctionArgs) {

@@ -159,6 +159,10 @@ export const programSchema: z.ZodType<Program> = z
     name: z.string().trim().min(1).max(120),
     description: z.string().trim().max(2_000).nullable(),
     archived: z.boolean(),
+    goal: z.enum(['strength', 'hypertrophy', 'general']).optional(),
+    level: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
+    splitTemplate: z.enum(['ppl', 'upper-lower', 'full-body', 'custom']).optional(),
+    draft: z.boolean().optional(),
     ...timestampFields,
   })
   .strict();
@@ -170,6 +174,8 @@ export const programDaySchema: z.ZodType<ProgramDay> = z
     name: z.string().trim().min(1).max(120),
     order: z.number().int().positive(),
     notes: nullableNotesSchema,
+    weekday: z.number().int().min(0).max(6).nullable().optional(),
+    defaultRestSeconds: z.number().int().min(0).max(3600).nullable().optional(),
     ...timestampFields,
   })
   .strict();

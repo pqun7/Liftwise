@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { setOffline } from './offline';
+import { saveEmptyProgram } from './programHelpers';
 
 async function dismissStatus(page: Page) {
   const dismiss = page.getByRole('button', { name: 'Dismiss', exact: true });
@@ -48,7 +49,7 @@ test('Home adapts to local program, active workout and rest states with cached p
   await auditHome(page);
   await page.locator('.home-hero').getByRole('link', { name: 'Create Program' }).click();
   await page.getByLabel('Program name').fill('Push Pull Legs');
-  await page.getByRole('button', { name: 'Create program' }).press('Enter');
+  await saveEmptyProgram(page);
   await page.getByRole('link', { name: '+ Day' }).click();
   await page.getByLabel('Day name').fill('Push Day');
   await page.getByRole('button', { name: 'Add day' }).press('Enter');

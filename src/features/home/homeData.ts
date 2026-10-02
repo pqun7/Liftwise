@@ -62,7 +62,7 @@ export function deriveHomeData(
       session.status === 'completed' && Date.parse(session.startedAt) >= monday.getTime(),
   );
   const activeProgram = records.programs.find(
-    ({ program }) => program.id === records.activeProgramId && !program.archived,
+    ({ program }) => program.id === records.activeProgramId && !program.archived && !program.draft,
   );
   const days = activeProgram?.days.filter(({ exercises }) => exercises.length > 0) ?? [];
   const lastIndex = days.findIndex(({ day }) => day.id === records.lastProgramDayId);

@@ -26,7 +26,7 @@ See [v1.0 release notes](docs/RELEASE_NOTES_v1.0.0.md) for verification scope an
 - Select dates to inspect this week's real completed sessions; view weekly progress, recent workouts and your programs.
 - Use the compact, photo-backed mobile layout offline. More in the bottom navigation opens Settings.
 
-Program days currently have an order, not a date schedule. Home shows next-in-program suggestions, not fabricated scheduled dates, workout goals or duration estimates.
+Program days may record intended weekdays. Home still shows next-in-program suggestions rather than a date-aware calendar schedule, fabricated workout goals or duration estimates.
 
 ### Exercise Library
 
@@ -38,6 +38,9 @@ Program days currently have an order, not a date schedule. Home shows next-in-pr
 
 ### Program Builder
 
+- Follow Basic Info → Training Days → Exercises → Review/Save.
+- Choose goal, level, intended weekdays and a split template; manual selections and existing prescriptions are preserved.
+- Resume locally saved drafts from Plan. Drafts cannot be activated or started as workouts until saved.
 - Create multiple workout programs
 - Choose an active program
 - Add and organize workout days
@@ -52,7 +55,7 @@ Program days currently have an order, not a date schedule. Home shows next-in-pr
 - Duplicate programs and days
 - Edit or delete saved items
 
-Your programs are saved locally on your device.
+Your programs are saved locally on your device. Each completed builder step persists promptly; field edits show a warning before being abandoned. Empty days may be saved and filled later. Default day rest is used for new prescriptions, not retroactively applied to existing ones.
 
 ### Data Safety
 

@@ -334,6 +334,7 @@ export class WorkoutRepository {
           'Program',
           day.programId,
         );
+        if (program.draft) throw new Error('Save the program before starting a workout.');
         const prescriptions = await this.db.programExercises
           .where('programDayId')
           .equals(programDayId)

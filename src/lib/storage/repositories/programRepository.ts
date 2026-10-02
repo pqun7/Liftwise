@@ -13,12 +13,20 @@ const ACTIVE_PROGRAM_KEY = 'activeProgramId';
 export interface CreateProgramInput {
   name: string;
   description?: string | null;
+  goal?: Program['goal'];
+  level?: Program['level'];
+  splitTemplate?: Program['splitTemplate'];
+  draft?: boolean;
 }
 
 export interface UpdateProgramInput {
   name?: string;
   description?: string | null;
   archived?: boolean;
+  goal?: Program['goal'];
+  level?: Program['level'];
+  splitTemplate?: Program['splitTemplate'];
+  draft?: boolean;
 }
 
 export interface CreateProgramDayInput {
@@ -26,11 +34,15 @@ export interface CreateProgramDayInput {
   name: string;
   order?: number;
   notes?: string | null;
+  weekday?: number | null;
+  defaultRestSeconds?: number | null;
 }
 
 export interface UpdateProgramDayInput {
   name?: string;
   notes?: string | null;
+  weekday?: number | null;
+  defaultRestSeconds?: number | null;
 }
 
 export interface ProgramExercisePrescriptionInput {
@@ -71,6 +83,7 @@ export class ProgramRepository {
     return this.db.transaction('rw', [this.db.programs, this.db.appSettings], async () => {
       const timestamp = createTimestamp();
       const program = programSchema.parse({
+        ...input,
         id: createEntityId(),
         name: input.name,
         description: input.description ?? null,
@@ -79,7 +92,7 @@ export class ProgramRepository {
         updatedAt: timestamp,
       });
       await this.db.programs.add(program);
-      if ((await this.db.appSettings.get(ACTIVE_PROGRAM_KEY)) === undefined) {
+      if (!program.draft && (await this.db.appSettings.get(ACTIVE_PROGRAM_KEY)) === undefined) {
         await this.db.appSettings.put(
           appSettingSchema.parse({
             key: ACTIVE_PROGRAM_KEY,
@@ -98,13 +111,18 @@ export class ProgramRepository {
       const current = requireRecord(await this.db.programs.get(id), 'Program', id);
       const updated = programSchema.parse({
         ...current,
+        ...input,
         name: input.name ?? current.name,
+        goal: input.goal ?? current.goal,
+        level: input.level ?? current.level,
+        splitTemplate: input.splitTemplate ?? current.splitTemplate,
+        draft: input.draft ?? current.draft,
         description: input.description === undefined ? current.description : input.description,
         archived: input.archived ?? current.archived,
         updatedAt: createTimestamp(),
       });
       await this.db.programs.put(updated);
-      if (updated.archived && (await this.getActiveIdInTransaction()) === id) {
+      if ((updated.archived || updated.draft) && (await this.getActiveIdInTransaction()) === id) {
         await this.db.appSettings.delete(ACTIVE_PROGRAM_KEY);
       }
       return updated;
@@ -179,7 +197,8 @@ export class ProgramRepository {
         return;
       }
       const program = requireRecord(await this.db.programs.get(id), 'Program', id);
-      if (program.archived) throw new Error('An archived program cannot be active.');
+      if (program.archived || program.draft)
+        throw new Error('Save this program before activating it.');
       const current = await this.db.appSettings.get(ACTIVE_PROGRAM_KEY);
       const timestamp = createTimestamp();
       const setting: AppSetting = appSettingSchema.parse({
@@ -209,6 +228,8 @@ export class ProgramRepository {
         .toArray();
       const timestamp = createTimestamp();
       const day = programDaySchema.parse({
+        weekday: input.weekday,
+        defaultRestSeconds: input.defaultRestSeconds,
         id: createEntityId(),
         programId: input.programId,
         name: input.name,
@@ -217,6 +238,8 @@ export class ProgramRepository {
         createdAt: timestamp,
         updatedAt: timestamp,
       });
+      if (day.weekday != null && existing.some((item) => item.weekday === day.weekday))
+        throw new Error('This weekday already has a training day.');
       await this.db.programDays.add(day);
       await this.db.programs.put({ ...program, updatedAt: timestamp });
       return day;
@@ -229,10 +252,20 @@ export class ProgramRepository {
       const timestamp = createTimestamp();
       const updated = programDaySchema.parse({
         ...current,
+        ...input,
         name: input.name ?? current.name,
         notes: input.notes === undefined ? current.notes : input.notes,
         updatedAt: timestamp,
       });
+      const siblings = await this.db.programDays
+        .where('programId')
+        .equals(current.programId)
+        .toArray();
+      if (
+        updated.weekday != null &&
+        siblings.some((item) => item.id !== id && item.weekday === updated.weekday)
+      )
+        throw new Error('This weekday already has a training day.');
       await this.db.programDays.put(updated);
       await this.touchProgram(current.programId, timestamp);
       return updated;
@@ -255,6 +288,7 @@ export class ProgramRepository {
           id: createEntityId(),
           name: `${source.name} Copy`,
           order: siblings.length + 1,
+          weekday: null,
           createdAt: timestamp,
           updatedAt: timestamp,
         });

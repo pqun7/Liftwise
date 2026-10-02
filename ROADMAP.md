@@ -92,6 +92,8 @@ No machine learning or progression engine is included.
 
 ## Later
 
+- [x] Reference-led guided Program Builder with durable drafts and Review/Save (unreleased)
+- [ ] Physical-iPhone builder keyboard, VoiceOver and offline acceptance
 - [x] Reference-led Home experience backed by local programs and session snapshots (unreleased)
 - [ ] Physical-iPhone acceptance of Home date selection, photographs, safe areas and recovery navigation
 

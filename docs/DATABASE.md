@@ -6,6 +6,12 @@ The `liftwise` IndexedDB database is the source of truth for all durable Liftwis
 
 React components must not contain complex database queries or write directly to tables. They will call the repositories in `src/lib/storage/repositories`. No core record uses `localStorage`.
 
+### Guided builder metadata
+
+Program optionally stores `goal`, `level`, `splitTemplate` and `draft`; ProgramDay optionally stores `weekday` (0=Monday, 6=Sunday) and `defaultRestSeconds`. Older rows retain their meaning without defaults being inserted. No indexes change: Dexie remains v6 and all released migrations/fixtures are unchanged. Backup v2 preserves these optional fields; older v1/v2 backups remain readable. Backups containing new fields require this or a later app build.
+
+Drafts are canonical records, not a second graph. Step transitions, exercise changes and reordering persist through existing repositories; finalization and first-program activation are atomic. A draft cannot be active or start a workout. Deselected days require confirmation before a transaction removes prescriptions; historical snapshots remain intact. Weekdays are planning metadata, not a new calendar execution engine. Default rest only initializes future prescriptions.
+
 ## Entity relationships
 
 ```text
