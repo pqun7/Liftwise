@@ -6,7 +6,7 @@ Environment: Windows, production Vite preview, local pnpm scripts. Physical iPho
 
 - Portrait widths 320/375/390/393/414/430px, 200% root text, simulated 44px top/34px bottom safe insets, landscape, keyboard outline, unrestricted viewport and editable mobile typography.
 - Offline catalog/search, program/prescription creation, planned and Quick Workouts, set logging, rest state, pause/resume/recovery, completed history/charts, CSV, JSON backup preview/transactional restore.
-- Chromium checks native offline launch/reload and cold feature chunks. Windows WebKit uses network-request aborts because its offline switch also blocks service-worker chunk loading; no physical iOS claim is made. Linux uses native offline mode.
+- Chromium checks native offline launch/reload and cold feature chunks. Playwright WebKit uses network-request aborts because its offline switch also blocks service-worker chunk loading (reproduced on Windows and Linux); no physical iOS claim is made.
 - External application requests are rejected by the audit. This Windows host injects Kaspersky requests; only that specific antivirus hostname is excluded, not application dependencies.
 - Wake Lock unsupported/denied/visibility/pause/exit/pending acquisition, safe update checks and another-tab controlling events, quota failures, root error recovery and catalog restart/retry.
 - Historical database v1–v5 fixtures migrate to v6; supported backup v0/v1/v2 and rollback/reopen tests remain unchanged in meaning. No new DB or backup version.
@@ -36,6 +36,7 @@ Browser-estimated storage after catalog, two workouts, a program and restored ba
 - Vitest: 93/93 tests, 18 files passed, including historical migrations and backup/rollback/reopen tests. A missing timestamp in a new mock was corrected without weakening validation.
 - Playwright (`--workers=2`): 19 passed, 3 intentional project-specific skips, 0 failed (final full run, 1.7 minutes). Mobile Safari: 10 passed/1 skip; Desktop Chrome: 9 passed/2 skips. Full optional media download passed in Chromium.
 - First full-gate browser run exposed three WebKit failures (catalog scan delay and status-overlay interception). Corrected implementation, passed targeted reruns, then passed the full final browser suite unchanged in assertions.
+- First GitHub run passed quality checks but failed four WebKit offline scenarios; Linux also required the cached-chunk network-abort mode. The helper was corrected without skipping flows or relaxing their assertions. Final hosted outcomes are recorded in GitHub Actions for the release commit; publication requires a green run.
 - PWA/offline: manifest/installability configuration, native Chromium offline document reload, cached feature screens/catalog/charts and network-blocked Windows WebKit core workflows passed. Physical installability remains manual.
 
 The local pnpm runtime required `--config.verify-deps-before-run=false` to use already-installed dependencies after the package version changed; no dependency/lockfile changes were made. Affected checks were rerun after fixes.

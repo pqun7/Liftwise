@@ -11,6 +11,7 @@
 - Final verification: format/lint/types/RepDB/build passed; 93 unit/integration tests passed; final full browser suite passed 19 scenarios with 3 intentional project-specific skips. Initial WebKit failures were fixed in implementation and reverified, not hidden with retries or relaxed assertions.
 - Performance follow-up: the first WebKit audit showed a redundant full-record catalog scan; replaced it with an existing indexed count before remeasuring. Landscape touch controls now inherit the same 16px minimum as portrait.
 - Final-gate findings: WebKit reproduced a status-toast overlay covering a custom-form submit button, and the redundant catalog scan delayed two existing assertions. Fixed layout/scan behavior rather than relaxing assertions.
+- GitHub verification found the Playwright cached-chunk offline-switch limitation also affects Linux. Applied the same network-abort harness to WebKit across platforms; Chromium retains native offline/reload coverage. No product runtime or offline cache behavior was weakened.
 - Limitations: browser storage can be evicted; Wake Lock may be denied/revoked. Windows WebKit offline document navigation differs from iOS. Existing bundle/dependency annotation warnings remain visible.
 - Next: stop at v0.9.0; v1.0 requires physical acceptance and no unresolved Critical/High defects.
 
