@@ -1,3 +1,5 @@
+import { Button } from '../../components/ui/Button';
+import { Input, Textarea } from '../../components/ui/FormControl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useLoaderData, useNavigate, useParams } from 'react-router-dom';
@@ -73,12 +75,12 @@ export function ProgramDayFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' 
       >
         <label>
           <span>Day name</span>
-          <input {...register('name', { required: 'Enter a day name.' })} placeholder="Push Day" />
+          <Input {...register('name', { required: 'Enter a day name.' })} placeholder="Push Day" />
           {errors.name ? <small role="alert">{errors.name.message}</small> : null}
         </label>
         <label>
           <span>Default rest in seconds</span>
-          <input
+          <Input
             type="number"
             inputMode="numeric"
             min="0"
@@ -90,16 +92,21 @@ export function ProgramDayFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' 
         </label>
         <label>
           <span>Day notes</span>
-          <textarea {...register('notes')} rows={4} />
+          <Textarea {...register('notes')} rows={4} />
         </label>
         {saveError ? (
           <p className="form-error" role="alert">
             {saveError}
           </p>
         ) : null}
-        <button className="primary-action" type="submit" disabled={isSubmitting}>
+        <Button
+          variant="primary"
+          className="w-full min-h-[54px]"
+          type="submit"
+          disabled={isSubmitting}
+        >
           {isSubmitting ? 'Saving…' : day ? 'Save day' : 'Add day'}
-        </button>
+        </Button>
       </form>
     </section>
   );

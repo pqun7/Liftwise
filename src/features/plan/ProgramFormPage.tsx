@@ -1,3 +1,6 @@
+import { Card } from '../../components/ui/Card';
+import { Button } from '../../components/ui/Button';
+import { Input, Textarea } from '../../components/ui/FormControl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useLoaderData, useNavigate } from 'react-router-dom';
@@ -61,11 +64,11 @@ export function ProgramFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' }>)
       />
       <UnsavedChanges dirty={isDirty} saving={isSubmitting} />
       <form className="builder-basic-form" onSubmit={(event) => void submit(event)} noValidate>
-        <div className="builder-card exercise-form">
+        <Card as="div" className="exercise-form grid gap-5">
           <h2>Program details</h2>
           <label>
             <span>Program name</span>
-            <input
+            <Input
               autoComplete="off"
               maxLength={120}
               {...register('name', {
@@ -76,7 +79,7 @@ export function ProgramFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' }>)
           </label>
           <label>
             <span>Description (optional)</span>
-            <textarea
+            <Textarea
               aria-label="Description or notes"
               maxLength={2000}
               {...register('description')}
@@ -95,16 +98,21 @@ export function ProgramFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' }>)
             value={watch('level')}
             onChange={(value) => setValue('level', value, { shouldDirty: true })}
           />
-        </div>
+        </Card>
         {saveError ? (
           <p className="form-error" role="alert">
             {saveError}
           </p>
         ) : null}
         <BuilderFooter>
-          <button className="builder-primary" type="submit" disabled={isSubmitting}>
+          <Button
+            variant="primary"
+            className="w-full min-h-[54px]"
+            type="submit"
+            disabled={isSubmitting}
+          >
             <NextLabel>{isSubmitting ? 'Saving…' : 'Next: Choose Days'}</NextLabel>
-          </button>
+          </Button>
         </BuilderFooter>
       </form>
     </section>

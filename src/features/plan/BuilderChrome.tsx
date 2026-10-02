@@ -1,3 +1,5 @@
+import { SegmentedControl } from '../../components/ui/SegmentedControl';
+import { iconButtonClasses } from '../../components/ui/controlStyles';
 import { Check, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
@@ -27,7 +29,7 @@ export function BuilderHeader({
   return (
     <>
       <header className="builder-header">
-        <Link to={back} aria-label="Back" className="builder-back">
+        <Link to={back} aria-label="Back" className={iconButtonClasses()}>
           <ArrowLeft size={20} aria-hidden="true" />
         </Link>
         <h1>{title}</h1>
@@ -75,35 +77,4 @@ export function NextLabel({ children }: { children: ReactNode }) {
     </>
   );
 }
-export function SegmentedSelector<T extends string>({
-  legend,
-  options,
-  value,
-  onChange,
-}: {
-  legend: string;
-  options: readonly T[];
-  value: T;
-  onChange: (value: T) => void;
-}) {
-  return (
-    <fieldset className="builder-segment">
-      <legend>{legend}</legend>
-      <div>
-        {options.map((option) => (
-          <label key={option} className={value === option ? 'is-selected' : ''}>
-            <input
-              type="radio"
-              name={legend}
-              value={option}
-              checked={value === option}
-              onChange={() => onChange(option)}
-            />
-            <span>{option}</span>
-            {value === option ? <Check size={12} aria-hidden="true" /> : null}
-          </label>
-        ))}
-      </div>
-    </fieldset>
-  );
-}
+export const SegmentedSelector = SegmentedControl;

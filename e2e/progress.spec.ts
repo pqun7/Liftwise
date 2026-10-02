@@ -67,7 +67,8 @@ test('completed history, PRs, charts, measurements and CSV stay usable offline',
       .evaluate((input) => Number.parseFloat(getComputedStyle(input).fontSize)),
   ).toBeGreaterThanOrEqual(16);
   await expect(page.getByRole('region', { name: 'Volume (kg·reps)' })).toContainText('1000');
-  await page.getByLabel('Date range').selectOption('ALL');
+  await page.getByRole('radio', { name: 'ALL', exact: true }).click();
+  await expect(page.getByRole('radio', { name: 'ALL', exact: true })).toBeChecked();
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;
   });

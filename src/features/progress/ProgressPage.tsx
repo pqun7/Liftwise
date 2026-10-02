@@ -1,3 +1,7 @@
+import { MobilePage } from '../../components/layout/MobilePage';
+import { SegmentedControl } from '../../components/ui/SegmentedControl';
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
 import { useState } from 'react';
 import { Link, useLoaderData, useSearchParams, useRevalidator } from 'react-router-dom';
 import { PageIntro } from '../../components/PageIntro';
@@ -12,22 +16,16 @@ import { downloadTextFile } from '../dataSafety/downloads';
 export function RangeControl({ range }: Readonly<{ range: DateRange }>) {
   const [params, setParams] = useSearchParams();
   return (
-    <label className="filter-field">
-      Date range
-      <select
-        aria-label="Date range"
-        value={range}
-        onChange={(event) => {
-          const next = new URLSearchParams(params);
-          next.set('range', event.target.value);
-          void setParams(next);
-        }}
-      >
-        {ranges.map((value) => (
-          <option key={value}>{value}</option>
-        ))}
-      </select>
-    </label>
+    <SegmentedControl
+      legend="Date range"
+      options={ranges}
+      value={range}
+      onChange={(value) => {
+        const next = new URLSearchParams(params);
+        next.set('range', value);
+        void setParams(next);
+      }}
+    />
   );
 }
 export function ProgressPage() {
@@ -59,14 +57,14 @@ export function ProgressPage() {
     }
   };
   return (
-    <section className="page-stack" aria-labelledby="progress-title">
+    <MobilePage className="grid gap-4" aria-labelledby="progress-title">
       <PageIntro
         titleId="progress-title"
         eyebrow="Progress"
         title="See the work add up"
         description="History and explainable trends, calculated only on this device."
       />
-      <section className="session-exercise-card" aria-labelledby="weekly-title">
+      <Card className="grid gap-2" aria-labelledby="weekly-title">
         <h2 id="weekly-title">This week</h2>
         <p>
           {summary.workouts} completed workouts · {summary.workingSets} working sets
@@ -75,9 +73,9 @@ export function ProgressPage() {
           {formatDuration(summary.durationSeconds)} training · {Math.round(summary.volume)} kg·reps
           logged load volume
         </p>
-      </section>
+      </Card>
       <RangeControl range={range} />
-      <section aria-labelledby="history-title">
+      <Card aria-labelledby="history-title">
         <h2 id="history-title">Workout history</h2>
         {!workouts.length ? (
           <p>No completed workouts in this range.</p>
@@ -100,8 +98,8 @@ export function ProgressPage() {
             })}
           </ul>
         )}
-      </section>
-      <section>
+      </Card>
+      <Card>
         <h2>Exercise history</h2>
         <p>Choose an exercise performed in this range.</p>
         <ul className="progress-history">
@@ -111,33 +109,33 @@ export function ProgressPage() {
             </li>
           ))}
         </ul>
-      </section>
+      </Card>
       <BodyMetrics
         entries={bodyMetrics}
         refresh={async () => {
           await revalidator.revalidate();
         }}
       />
-      <section>
+      <Card>
         <h2>Export user data</h2>
         <p>
           CSV includes your records, not the RepDB catalog. JSON backups remain the restore format.
         </p>
         <div className="row-actions">
           {(['workouts.csv', 'sets.csv', 'body_metrics.csv'] as const).map((filename) => (
-            <button
+            <Button
               type="button"
               disabled={exporting}
               key={filename}
               onClick={() => void exportCsv(filename)}
             >
               Export {filename}
-            </button>
+            </Button>
           ))}
         </div>
         {error ? <p role="alert">{error}</p> : null}
         <Link to="/settings/data-safety">Backup and restore</Link>
-      </section>
-    </section>
+      </Card>
+    </MobilePage>
   );
 }

@@ -1,3 +1,5 @@
+import { Button } from '../../components/ui/Button';
+import { Input, Textarea } from '../../components/ui/FormControl';
 import { useState } from 'react';
 import type { BodyMetric } from '../../domain/entities';
 import { bodyMetricRepository } from '../../lib/storage/repositories/bodyMetricRepository';
@@ -67,7 +69,7 @@ export function BodyMetrics({
       >
         <label>
           Date
-          <input
+          <Input
             name="date"
             type="date"
             required
@@ -78,26 +80,26 @@ export function BodyMetrics({
           {fields.map(({ key, label }) => (
             <label key={key}>
               {label}
-              <input name={key} inputMode="decimal" defaultValue={editing?.[key] ?? ''} />
+              <Input name={key} inputMode="decimal" defaultValue={editing?.[key] ?? ''} />
             </label>
           ))}
         </div>
         <label>
           Measurement notes
-          <textarea name="notes" defaultValue={editing?.notes ?? ''} />
+          <Textarea name="notes" defaultValue={editing?.notes ?? ''} />
         </label>
         {error ? (
           <p role="alert" className="form-error">
             {error}
           </p>
         ) : null}
-        <button disabled={busy} className="primary-action" type="submit">
+        <Button disabled={busy} variant="primary" className="w-full min-h-[54px]" type="submit">
           {editing ? 'Save measurement' : 'Add measurement'}
-        </button>
+        </Button>
         {editing ? (
-          <button type="button" onClick={() => setEditing(null)}>
+          <Button type="button" onClick={() => setEditing(null)}>
             Cancel edit
-          </button>
+          </Button>
         ) : null}
       </form>
       <ul className="progress-history">
@@ -111,10 +113,10 @@ export function BodyMetrics({
                 .join(' · ')}
             </p>
             <div className="row-actions">
-              <button type="button" disabled={busy} onClick={() => setEditing(entry)}>
+              <Button type="button" disabled={busy} onClick={() => setEditing(entry)}>
                 Edit measurement
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 disabled={busy}
                 onClick={() => {
@@ -132,7 +134,7 @@ export function BodyMetrics({
                 }}
               >
                 Delete measurement
-              </button>
+              </Button>
             </div>
           </li>
         ))}

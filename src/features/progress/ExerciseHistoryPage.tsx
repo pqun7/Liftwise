@@ -1,3 +1,6 @@
+import { MobilePage } from '../../components/layout/MobilePage';
+import { Card } from '../../components/ui/Card';
+import { Select } from '../../components/ui/FormControl';
 import { lazy, Suspense, useState } from 'react';
 import { Link, useLoaderData } from 'react-router-dom';
 import { PageIntro } from '../../components/PageIntro';
@@ -29,7 +32,7 @@ export function ExerciseHistoryPage() {
     .reverse();
   const name = allPoints.at(-1)?.name ?? 'Exercise history';
   return (
-    <section className="page-stack" aria-labelledby="exercise-history-title">
+    <MobilePage className="grid gap-4" aria-labelledby="exercise-history-title">
       <Link className="back-link" to="/progress">
         ← Progress
       </Link>
@@ -39,7 +42,7 @@ export function ExerciseHistoryPage() {
         title={name}
         description="Completed-session records and snapshots. Estimates are not measured maximums."
       />
-      <section className="session-exercise-card">
+      <Card className="grid gap-2">
         <h2>Last performance</h2>
         <p>
           {summary.last ? new Date(summary.last.date).toLocaleDateString() : 'Not performed yet'}
@@ -62,11 +65,11 @@ export function ExerciseHistoryPage() {
             {display(allPoints.filter((point) => point.e1rm !== null).at(-1)?.e1rm ?? null)} kg
           </p>
         </details>
-      </section>
+      </Card>
       <RangeControl range={range} />
       <label className="filter-field">
         Chart metric
-        <select
+        <Select
           aria-label="Chart metric"
           value={metric}
           onChange={(event) => setMetric(event.target.value as Metric)}
@@ -76,9 +79,9 @@ export function ExerciseHistoryPage() {
               {metricLabels[key]}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
-      <section aria-label={metricLabels[metric]}>
+      <Card aria-label={metricLabels[metric]}>
         <h2>{metricLabels[metric]}</h2>
         <Suspense fallback={<p>Loading local chart…</p>}>
           <TrendChart
@@ -102,8 +105,8 @@ export function ExerciseHistoryPage() {
             </ul>
           </details>
         )}
-      </section>
-      <section>
+      </Card>
+      <Card>
         <h2>Personal records</h2>
         <p>First performances establish a baseline. Ties are not PRs.</p>
         {!prs.length ? (
@@ -129,7 +132,7 @@ export function ExerciseHistoryPage() {
             ))}
           </ul>
         )}
-      </section>
+      </Card>
       <details>
         <summary>How metrics work</summary>
         <p>
@@ -145,6 +148,6 @@ export function ExerciseHistoryPage() {
           awards.
         </p>
       </details>
-    </section>
+    </MobilePage>
   );
 }

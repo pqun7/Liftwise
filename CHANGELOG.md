@@ -4,6 +4,11 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Refactored
+
+- Tailwind-first shared buttons, cards, named icon actions, form controls, segmented selectors and section headers. Home, Plan, Workout and Progress share semantic emerald tokens and one 430px safe-area-aware shell/navigation.
+- Workout exercise/timer presentation extracted without changing timestamp timers or persistence; legacy styles are isolated below utilities for incremental migration.
+
 ### Added
 
 - Reference-led Program Builder: Basic Info, Training Days, compact exercise management and Review/Save, with shared stepper and accessible segmented selectors.

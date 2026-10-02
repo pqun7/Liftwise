@@ -1,3 +1,7 @@
+import { IconButton } from '../../components/ui/IconButton';
+import { Button } from '../../components/ui/Button';
+import { buttonClasses } from '../../components/ui/controlStyles';
+import { Card } from '../../components/ui/Card';
 import { useState } from 'react';
 import { Link, useLoaderData, useRevalidator } from 'react-router-dom';
 import {
@@ -67,10 +71,10 @@ export function ProgramDayPage() {
       ) : null}
       <div className="builder-exercises">
         {data.exercises.map(({ prescription, exercise }, index) => (
-          <article key={prescription.id} className="builder-exercise">
+          <Card as="article" key={prescription.id} padding="none" className="builder-exercise">
             <div className="builder-exercise-row">
-              <button
-                className="builder-reorder"
+              <IconButton
+                className="rounded-xl"
                 type="button"
                 aria-label={`Reorder ${exercise.name}`}
                 aria-expanded={expanded === prescription.id}
@@ -79,7 +83,7 @@ export function ProgramDayPage() {
                 }
               >
                 <GripVertical size={19} aria-hidden="true" />
-              </button>
+              </IconButton>
               <Link
                 className="builder-exercise-main"
                 to={`${base}/days/${data.day.id}/exercises/${prescription.id}/edit`}
@@ -98,7 +102,7 @@ export function ProgramDayPage() {
             </div>
             {expanded === prescription.id ? (
               <div className="builder-row-actions" aria-label={`${exercise.name} actions`}>
-                <button
+                <Button
                   type="button"
                   disabled={busy || index === 0}
                   aria-label={`Move ${exercise.name} up`}
@@ -106,8 +110,8 @@ export function ProgramDayPage() {
                 >
                   <ArrowUp size={17} aria-hidden="true" />
                   Up
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   disabled={busy || index === data.exercises.length - 1}
                   aria-label={`Move ${exercise.name} down`}
@@ -115,8 +119,8 @@ export function ProgramDayPage() {
                 >
                   <ArrowDown size={17} aria-hidden="true" />
                   Down
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   className="danger-text"
                   disabled={busy}
@@ -126,11 +130,11 @@ export function ProgramDayPage() {
                   }}
                 >
                   Remove
-                </button>
+                </Button>
               </div>
             ) : null}
             <p className="builder-exercise-rest">{formatRest(prescription.restSeconds)}</p>
-          </article>
+          </Card>
         ))}
       </div>
       {!data.exercises.length ? <p className="builder-empty">No exercises added yet.</p> : null}
@@ -155,7 +159,10 @@ export function ProgramDayPage() {
         {data.day.notes ? <p>{data.day.notes}</p> : null}
       </section>
       <BuilderFooter>
-        <Link className="builder-primary" to={`${base}/build/review`}>
+        <Link
+          className={buttonClasses('primary', 'w-full min-h-[54px]')}
+          to={`${base}/build/review`}
+        >
           <NextLabel>Next: Review</NextLabel>
         </Link>
       </BuilderFooter>

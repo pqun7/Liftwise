@@ -1,3 +1,5 @@
+import { Button } from '../../components/ui/Button';
+import { Input, Textarea } from '../../components/ui/FormControl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useLoaderData, useNavigate } from 'react-router-dom';
@@ -105,7 +107,7 @@ export function PrescriptionFormPage() {
       >
         <label>
           <span>Target sets</span>
-          <input
+          <Input
             type="number"
             inputMode="numeric"
             min="1"
@@ -119,18 +121,18 @@ export function PrescriptionFormPage() {
         <div className="field-pair">
           <label>
             <span>Minimum reps</span>
-            <input type="number" inputMode="numeric" {...register('minReps', numberRules)} />
+            <Input type="number" inputMode="numeric" {...register('minReps', numberRules)} />
           </label>
           <label>
             <span>Maximum reps</span>
-            <input type="number" inputMode="numeric" {...register('maxReps', numberRules)} />
+            <Input type="number" inputMode="numeric" {...register('maxReps', numberRules)} />
             {errors.maxReps ? <small role="alert">{errors.maxReps.message}</small> : null}
           </label>
         </div>
         <div className="field-pair">
           <label>
             <span>Minimum RIR</span>
-            <input
+            <Input
               type="number"
               inputMode="numeric"
               min="0"
@@ -140,7 +142,7 @@ export function PrescriptionFormPage() {
           </label>
           <label>
             <span>Maximum RIR</span>
-            <input
+            <Input
               type="number"
               inputMode="numeric"
               min="0"
@@ -152,7 +154,7 @@ export function PrescriptionFormPage() {
         </div>
         <label>
           <span>Rest duration in seconds</span>
-          <input
+          <Input
             type="number"
             inputMode="numeric"
             min="0"
@@ -163,16 +165,21 @@ export function PrescriptionFormPage() {
         </label>
         <label>
           <span>Exercise notes</span>
-          <textarea rows={3} {...register('notes')} />
+          <Textarea rows={3} {...register('notes')} />
         </label>
         {saveError ? (
           <p className="form-error" role="alert">
             {saveError}
           </p>
         ) : null}
-        <button className="primary-action" type="submit" disabled={isSubmitting}>
+        <Button
+          variant="primary"
+          className="w-full min-h-[54px]"
+          type="submit"
+          disabled={isSubmitting}
+        >
           {isSubmitting ? 'Saving…' : prescription ? 'Save prescription' : 'Add to day'}
-        </button>
+        </Button>
       </form>
     </section>
   );

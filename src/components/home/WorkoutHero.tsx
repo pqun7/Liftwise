@@ -1,3 +1,6 @@
+import { Button } from '../ui/Button';
+import { buttonClasses } from '../ui/controlStyles';
+import { Card } from '../ui/Card';
 import { ArrowRight, Dumbbell, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import bench from '../../assets/images/workout-bench.webp';
@@ -19,8 +22,11 @@ export function WorkoutHero({
 }) {
   const day = scheduled ? data.suggestion : null;
   return (
-    <article
-      className={`home-hero${day ? '' : ' home-hero-rest'}`}
+    <Card
+      as="article"
+      padding="none"
+      radius="hero"
+      className={`home-hero relative isolate min-h-[275px] overflow-hidden ${day ? '' : 'home-hero-rest'}`}
       aria-labelledby="home-hero-title"
     >
       <img
@@ -54,13 +60,20 @@ export function WorkoutHero({
         ) : null}
         <div className="home-hero-actions">
           {day ? (
-            <button type="button" className="home-primary" disabled={busy} onClick={start}>
+            <Button
+              type="button"
+              variant="primary"
+              size="large"
+              className="flex-1"
+              disabled={busy}
+              onClick={start}
+            >
               <Play size={19} fill="currentColor" aria-hidden="true" />
               {busy ? 'Starting…' : 'Start Workout'}
-            </button>
+            </Button>
           ) : (
             <Link
-              className="home-primary"
+              className={buttonClasses('primary', 'flex-1', 'large')}
               to="/exercises"
               aria-label="Browse Exercises — Exercise Library"
             >
@@ -73,12 +86,12 @@ export function WorkoutHero({
               <ArrowRight size={22} aria-hidden="true" />
             </Link>
           ) : (
-            <Link className="home-secondary" to="/plan/new">
+            <Link className={buttonClasses('secondary')} to="/plan/new">
               Create Program
             </Link>
           )}
         </div>
       </div>
-    </article>
+    </Card>
   );
 }

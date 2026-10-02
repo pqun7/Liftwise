@@ -11,12 +11,7 @@ async function auditHome(page: Page) {
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
     .toBe(true);
-  for (const selector of [
-    '.home-primary',
-    '.home-day',
-    '.home-local',
-    '.home-bottom-nav .nav-item',
-  ]) {
+  for (const selector of ['.home-primary', '.home-day', '.home-local', '.bottom-nav .nav-item']) {
     for (const locator of await page.locator(selector).all()) {
       const box = await locator.boundingBox();
       expect(box!.height).toBeGreaterThanOrEqual(44);
@@ -88,7 +83,7 @@ test('Home adapts to local program, active workout and rest states with cached p
   await expect(page.locator('[data-home-state=scheduled]')).toBeVisible();
   await page.setViewportSize({ width: 1024, height: 900 });
   await expect(page.locator('.home-frame')).toHaveCSS('width', '430px');
-  await expect(page.locator('.home-bottom-nav')).toHaveCSS('width', '430px');
+  await expect(page.locator('.bottom-nav')).toHaveCSS('width', '430px');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'Start Workout', exact: true }).click();
   await page.getByLabel('Set 1 weight', { exact: true }).fill('100');

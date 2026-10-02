@@ -1,3 +1,5 @@
+import { Button } from '../../components/ui/Button';
+import { NumericInput, Select } from '../../components/ui/FormControl';
 import { useRef, useState } from 'react';
 import type { WorkoutSet, WorkoutSetType } from '../../domain/entities';
 import {
@@ -85,7 +87,7 @@ export function WorkoutSetRow({
       <span className="set-number">{set.setNumber}</span>
       <label>
         <span>kg</span>
-        <input
+        <NumericInput
           inputMode="decimal"
           enterKeyHint="next"
           disabled={!mutable}
@@ -103,7 +105,7 @@ export function WorkoutSetRow({
       </label>
       <label>
         <span>Reps</span>
-        <input
+        <NumericInput
           ref={nextField}
           inputMode="numeric"
           enterKeyHint="next"
@@ -122,7 +124,7 @@ export function WorkoutSetRow({
       </label>
       <label>
         <span>RIR</span>
-        <input
+        <NumericInput
           ref={rirField}
           inputMode="decimal"
           enterKeyHint="done"
@@ -135,53 +137,53 @@ export function WorkoutSetRow({
       </label>
       {editable ? (
         <div className="set-speed-actions">
-          <button
+          <Button
             type="button"
             disabled={busy || !previousSet}
             onClick={() => previousSet && copy(previousSet)}
           >
             Copy Previous Set
-          </button>
-          <button type="button" disabled={busy || !recent} onClick={() => recent && copy(recent)}>
+          </Button>
+          <Button type="button" disabled={busy || !recent} onClick={() => recent && copy(recent)}>
             Use last values
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             disabled={busy}
             aria-label={'Set ' + set.setNumber + ' weight minus ' + DEFAULT_WEIGHT_STEP + ' kg'}
             onClick={() => adjust('weight', -DEFAULT_WEIGHT_STEP)}
           >
             −{DEFAULT_WEIGHT_STEP} kg
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             disabled={busy}
             aria-label={'Set ' + set.setNumber + ' weight plus ' + DEFAULT_WEIGHT_STEP + ' kg'}
             onClick={() => adjust('weight', DEFAULT_WEIGHT_STEP)}
           >
             +{DEFAULT_WEIGHT_STEP} kg
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             disabled={busy}
             aria-label={'Set ' + set.setNumber + ' reps minus one'}
             onClick={() => adjust('reps', -1)}
           >
             −1 rep
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             disabled={busy}
             aria-label={'Set ' + set.setNumber + ' reps plus one'}
             onClick={() => adjust('reps', 1)}
           >
             +1 rep
-          </button>
+          </Button>
         </div>
       ) : null}
       <label className="set-type-field">
         <span>Type</span>
-        <select
+        <Select
           disabled={!mutable || busy}
           value={set.setType}
           aria-label={'Set ' + set.setNumber + ' type'}
@@ -194,10 +196,11 @@ export function WorkoutSetRow({
           <option value="working">Working</option>
           <option value="drop">Drop</option>
           <option value="failure">Failure</option>
-        </select>
+        </Select>
       </label>
-      <button
-        className="set-complete-action"
+      <Button
+        variant={set.completed ? 'secondary' : 'primary'}
+        className="set-complete-action col-span-full w-full"
         type="button"
         disabled={!mutable || busy}
         aria-pressed={set.completed}
@@ -216,10 +219,10 @@ export function WorkoutSetRow({
         }
       >
         {set.completed ? 'Completed' : 'Complete set'}
-      </button>
+      </Button>
       {mutable ? (
         <div className="set-speed-actions">
-          <button
+          <Button
             type="button"
             disabled={busy}
             onClick={() =>
@@ -234,8 +237,8 @@ export function WorkoutSetRow({
             }
           >
             Duplicate Set
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             disabled={busy}
             aria-label={'Delete set ' + set.setNumber}
@@ -245,7 +248,7 @@ export function WorkoutSetRow({
             }}
           >
             Delete
-          </button>
+          </Button>
         </div>
       ) : null}
       {error ? (

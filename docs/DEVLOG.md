@@ -1,5 +1,16 @@
 # Development log
 
+## 2026-10-02 — Shared Tailwind UI (unreleased)
+
+- Goal: incrementally unify Home, Plan, Workout and Progress without replacing working feature state/domain architecture.
+- Work: shared Button/Card/IconButton/form controls/segmented selector/section header; one mobile shell/navigation; extracted workout exercise/timer views; semantic Tailwind aliases and base-layer legacy compatibility.
+- Decisions: no new packages, schemas, backup versions, routes or parallel state. Existing fitness calculations and action handlers remain authoritative. ADR-007 records the cascade/migration boundary.
+- Tests: shared-control semantic/ref/disabled/routing/timer contracts; browser-computed colors, widths, touch targets and input typography across the four features. Existing offline recovery, snapshot, backup, migration and analytics tests retained.
+- Problems fixed: conflicting primitive utility defaults replaced with explicit sizes/padding; style helpers separated for Fast Refresh; native radio hit targets remain tappable in WebKit. Existing duration formatting preserved. A concurrent Google-hosted Manrope edit was preserved as a self-hosted 164,700-byte licensed asset and precached, eliminating runtime font requests.
+- Final verification: format/lint/types/RepDB/build passed; 117 unit/integration tests across 21 files passed, including migration/backup fixtures. Final full browser run: 23 passed, 3 intentional skips, 2 Progress navigation-assertion failures; both passed after awaiting the selected state in targeted WebKit/Chromium reruns. All 25 applicable scenarios therefore passed (12 WebKit, 13 Chromium). Shared UI rerun: 2 passed. Computed colors, 44px navigation targets, 16px editable typography and no horizontal overflow checked at 320/375/390/393/402/430px. Local font verified in Cache Storage; production precache contains 51 entries, 3913.06 KiB.
+- Limitations: physical iPhone/VoiceOver acceptance remains required; Windows WebKit renders the variable font lighter than Chromium in saved screenshots. Untouched feature layouts still use quarantined legacy rules. Existing bundle-size and upstream Zod annotation warnings remain.
+- Next: stop at this UI architecture refactor.
+
 ## 2026-10-02 — Guided Program Builder (unreleased)
 
 - Goal: implement the first three Plan reference screens plus Review, not the reference Workout Logger.

@@ -1,8 +1,12 @@
+import { RestTimer } from './RestTimer';
+import { MobilePage } from '../../components/layout/MobilePage';
+import { Button } from '../../components/ui/Button';
+import { Textarea } from '../../components/ui/FormControl';
 import { useEffect, useState } from 'react';
 import { Link, useLoaderData, useNavigate, useRevalidator } from 'react-router-dom';
 
 import type { SetCompletionUndo } from '../../lib/storage/repositories/workoutRepository';
-import { WorkoutSetRow } from './WorkoutSetRow';
+import { WorkoutExerciseCard } from './WorkoutExerciseCard';
 import { KeepAwake } from './KeepAwake';
 import {
   formatDuration,
@@ -24,7 +28,6 @@ import {
   undoWorkoutCompletion,
   type HydratedWorkoutGraph,
 } from './workoutService';
-import { formatPreviousSets, formatWorkoutPrescription } from './workoutFormat';
 
 export function WorkoutSessionPage() {
   const { workout } = useLoaderData<{ workout: HydratedWorkoutGraph }>();
@@ -61,7 +64,7 @@ export function WorkoutSessionPage() {
   const rest = restRemainingSeconds(session, now);
 
   return (
-    <section className="page-stack workout-session" aria-labelledby="session-title">
+    <MobilePage className="workout-session grid gap-4" aria-labelledby="session-title">
       <Link className="back-link" to="/workout">
         ← Workouts
       </Link>
@@ -98,7 +101,7 @@ export function WorkoutSessionPage() {
         {undo && now <= undo.expiresAt ? (
           <aside className="workout-undo" role="status">
             Set saved{' '}
-            <button
+            <Button
               type="button"
               disabled={busy}
               onClick={() =>
@@ -109,13 +112,13 @@ export function WorkoutSessionPage() {
               }
             >
               Undo completion
-            </button>
+            </Button>
           </aside>
         ) : null}
       </div>
       {mutable ? (
         <div className="workout-session-actions">
-          <button
+          <Button
             type="button"
             disabled={busy}
             onClick={() =>
@@ -125,9 +128,9 @@ export function WorkoutSessionPage() {
             }
           >
             {session.status === 'paused' ? 'Resume' : 'Pause'}
-          </button>
-          <button
-            className="primary-action"
+          </Button>
+          <Button
+            variant="primary"
             type="button"
             disabled={busy}
             onClick={() =>
@@ -138,8 +141,8 @@ export function WorkoutSessionPage() {
             }
           >
             Finish Workout
-          </button>
-          <button
+          </Button>
+          <Button
             className="danger-text"
             type="button"
             disabled={busy}
@@ -156,25 +159,17 @@ export function WorkoutSessionPage() {
             }}
           >
             Discard
-          </button>
+          </Button>
         </div>
       ) : null}
 
       {session.restEndsAt ? (
-        <aside className="rest-timer" aria-live="polite">
-          <div>
-            <span>Rest</span>
-            <strong>{formatDuration(rest)}</strong>
-          </div>
-          <button type="button" onClick={() => void run(() => clearWorkoutRest(session.id))}>
-            End rest
-          </button>
-        </aside>
+        <RestTimer remaining={rest} onEnd={() => void run(() => clearWorkoutRest(session.id))} />
       ) : null}
 
       <label className="workout-notes">
         <span>Workout notes</span>
-        <textarea
+        <Textarea
           defaultValue={session.notes ?? ''}
           disabled={!mutable}
           onBlur={(event) =>
@@ -191,157 +186,46 @@ export function WorkoutSessionPage() {
       ) : null}
 
       <div className="session-exercise-list">
-        {workout.exercises.map((entry, index) => {
-          const current = session.currentExerciseId === entry.exercise.id;
-          const allComplete =
-            entry.sets.length > 0 && entry.sets.every(({ completed }) => completed);
-          const hidden = collapsed.has(entry.exercise.id);
-          return (
-            <article
-              className={`session-exercise-card${current ? ' current-exercise' : ''}`}
-              key={entry.exercise.id}
-              id={'exercise-' + entry.exercise.id}
-              aria-label={entry.exercise.exerciseName}
-            >
-              <header>
-                <div>
-                  <p className="section-kicker">Exercise {entry.exercise.order}</p>
-                  <h2>{entry.exercise.exerciseName}</h2>
-                  <p>{formatWorkoutPrescription(entry.exercise)}</p>
-                </div>
-                {mutable && !current ? (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      void run(() => setCurrentWorkoutExercise(session.id, entry.exercise.id))
-                    }
-                  >
-                    Set current
-                  </button>
-                ) : null}
-              </header>
-              {entry.exercise.plannedNotes ? (
-                <p className="planned-note">Plan: {entry.exercise.plannedNotes}</p>
-              ) : null}
-              {entry.exercise.skipped ? (
-                <p className="section-kicker">Skipped · saved locally</p>
-              ) : null}
-              {allComplete || hidden ? (
-                <button
-                  type="button"
-                  aria-expanded={!hidden}
-                  onClick={() =>
-                    setCollapsed((current) => {
-                      const changed = new Set(current);
-                      if (hidden) changed.delete(entry.exercise.id);
-                      else changed.add(entry.exercise.id);
-                      return changed;
-                    })
-                  }
-                >
-                  {hidden ? 'Expand exercise' : 'Collapse completed exercise'}
-                </button>
-              ) : null}
-              <div hidden={hidden}>
-                <div className="previous-today">
-                  <section aria-label="Previous performance">
-                    <h3>Previous</h3>
-                    <p className="previous-performance">
-                      {formatPreviousSets(entry.previous?.sets ?? [])}
-                    </p>
-                  </section>
-                  <section aria-label="Today performance">
-                    <h3>Today</h3>
-                    <p className="previous-performance">
-                      {entry.sets.some(({ completed }) => completed)
-                        ? formatPreviousSets(entry.sets.filter(({ completed }) => completed))
-                        : 'No completed sets yet'}
-                    </p>
-                    <p>
-                      {entry.sets.filter(({ completed }) => completed).length}/{entry.sets.length}{' '}
-                      sets complete
-                    </p>
-                  </section>
-                </div>
-                <div className="workout-set-list">
-                  {entry.sets.map((set) => (
-                    <WorkoutSetRow
-                      key={`${set.id}:${entry.exercise.exerciseId}`}
-                      set={set}
-                      today={entry.sets}
-                      previous={entry.previous?.sets ?? []}
-                      mutable={mutable && !entry.exercise.skipped}
-                      completed={setUndo}
-                      refresh={refresh}
-                    />
-                  ))}
-                </div>
-              </div>
-              {mutable ? (
-                <div className="row-actions">
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() =>
-                      void run(() =>
-                        skipWorkoutExercise(entry.exercise.id, !entry.exercise.skipped),
-                      )
-                    }
-                  >
-                    {entry.exercise.skipped ? 'Resume exercise' : 'Skip exercise'}
-                  </button>
-                  {!entry.sets.some(({ completed }) => completed) ? (
-                    <Link to={`/workout/${session.id}/exercises?replace=${entry.exercise.id}`}>
-                      Replace Exercise for This Workout
-                    </Link>
-                  ) : null}
-                  <button
-                    type="button"
-                    onClick={() => void run(() => addWorkoutSet(entry.exercise.id))}
-                  >
-                    ＋ Add set
-                  </button>
-                  <button
-                    type="button"
-                    disabled={index === 0}
-                    aria-label={`Move ${entry.exercise.exerciseName} up`}
-                    onClick={() => {
-                      const ids = workout.exercises.map(({ exercise }) => exercise.id);
-                      [ids[index - 1], ids[index]] = [ids[index]!, ids[index - 1]!];
-                      void run(() => reorderWorkoutExercises(session.id, ids));
-                    }}
-                  >
-                    ↑
-                  </button>
-                  <button
-                    type="button"
-                    disabled={index === workout.exercises.length - 1}
-                    aria-label={`Move ${entry.exercise.exerciseName} down`}
-                    onClick={() => {
-                      const ids = workout.exercises.map(({ exercise }) => exercise.id);
-                      [ids[index], ids[index + 1]] = [ids[index + 1]!, ids[index]!];
-                      void run(() => reorderWorkoutExercises(session.id, ids));
-                    }}
-                  >
-                    ↓
-                  </button>
-                  <button
-                    className="danger-text"
-                    type="button"
-                    onClick={() => {
-                      if (
-                        window.confirm(`Remove ${entry.exercise.exerciseName} from this workout?`)
-                      )
-                        void run(() => removeWorkoutExercise(entry.exercise.id));
-                    }}
-                  >
-                    Remove
-                  </button>
-                </div>
-              ) : null}
-            </article>
-          );
-        })}
+        {workout.exercises.map((entry, index) => (
+          <WorkoutExerciseCard
+            key={entry.exercise.id}
+            entry={entry}
+            sessionId={session.id}
+            mutable={mutable}
+            current={session.currentExerciseId === entry.exercise.id}
+            hidden={collapsed.has(entry.exercise.id)}
+            busy={busy}
+            canMoveUp={index > 0}
+            canMoveDown={index < workout.exercises.length - 1}
+            refresh={refresh}
+            onCompleted={setUndo}
+            onCurrent={() =>
+              void run(() => setCurrentWorkoutExercise(session.id, entry.exercise.id))
+            }
+            onCollapse={() =>
+              setCollapsed((current) => {
+                const changed = new Set(current);
+                if (changed.has(entry.exercise.id)) changed.delete(entry.exercise.id);
+                else changed.add(entry.exercise.id);
+                return changed;
+              })
+            }
+            onSkip={() =>
+              void run(() => skipWorkoutExercise(entry.exercise.id, !entry.exercise.skipped))
+            }
+            onAddSet={() => void run(() => addWorkoutSet(entry.exercise.id))}
+            onMove={(direction) => {
+              const ids = workout.exercises.map(({ exercise }) => exercise.id);
+              const target = index + direction;
+              [ids[index], ids[target]] = [ids[target]!, ids[index]!];
+              void run(() => reorderWorkoutExercises(session.id, ids));
+            }}
+            onRemove={() => {
+              if (window.confirm(`Remove ${entry.exercise.exerciseName} from this workout?`))
+                void run(() => removeWorkoutExercise(entry.exercise.id));
+            }}
+          />
+        ))}
       </div>
       {workout.exercises.length === 0 ? (
         <div className="empty-state">
@@ -349,6 +233,6 @@ export function WorkoutSessionPage() {
           <p>Add an exercise to begin logging sets.</p>
         </div>
       ) : null}
-    </section>
+    </MobilePage>
   );
 }

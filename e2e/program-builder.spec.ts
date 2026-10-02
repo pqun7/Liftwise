@@ -125,7 +125,7 @@ test('guided Plan draft, exercise management, review and workout snapshots survi
   await page.screenshot({ path: testInfo.outputPath('plan-exercises.png'), fullPage: true });
   await page.getByRole('link', { name: 'Next: Review' }).click();
   await expect(page.getByRole('heading', { name: 'Review Program', exact: true })).toBeVisible();
-  await expect(page.locator('.builder-review-day').first()).toContainText(
+  await expect(page.getByRole('region', { name: 'Push Day review' })).toContainText(
     '3 sets · 6–8 reps · 1–2 RIR',
   );
   await page.screenshot({ path: testInfo.outputPath('plan-review.png'), fullPage: true });

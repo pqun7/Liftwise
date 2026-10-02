@@ -1,3 +1,5 @@
+import { buttonClasses } from '../ui/controlStyles';
+import { Card } from '../ui/Card';
 import { ChevronRight, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import dumbbells from '../../assets/images/dumbbells.webp';
@@ -10,7 +12,13 @@ export function ActiveWorkoutCard({ workout }: { workout: WorkoutGraph }) {
   const to = `/workout/${workout.session.id}`;
   const exerciseAnchor = workout.session.currentExerciseId ?? workout.exercises[0]?.exercise.id;
   return (
-    <article className="home-hero home-hero-active" aria-labelledby="home-active-title">
+    <Card
+      as="article"
+      padding="none"
+      radius="hero"
+      className="home-hero home-hero-active relative isolate overflow-hidden"
+      aria-labelledby="home-active-title"
+    >
       <img
         src={dumbbells}
         className="home-hero-image"
@@ -44,12 +52,12 @@ export function ActiveWorkoutCard({ workout }: { workout: WorkoutGraph }) {
           <span>{completion.percent}%</span>
         </div>
         <div className="home-hero-actions">
-          <Link className="home-primary" to={to}>
+          <Link className={buttonClasses('primary', 'flex-1', 'large')} to={to}>
             <Play size={18} fill="currentColor" aria-hidden="true" />
             Continue Workout
           </Link>
           <Link
-            className="home-secondary"
+            className={buttonClasses('secondary')}
             to={exerciseAnchor ? `${to}#exercise-${exerciseAnchor}` : to}
           >
             View Details
@@ -57,6 +65,6 @@ export function ActiveWorkoutCard({ workout }: { workout: WorkoutGraph }) {
           </Link>
         </div>
       </div>
-    </article>
+    </Card>
   );
 }

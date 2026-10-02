@@ -1,10 +1,11 @@
+import { Card } from '../ui/Card';
 import { Clock3, Flame } from 'lucide-react';
 import { countLabel, trainingTime, type HomeData } from '../../features/home/homeData';
 
 export function InsightCard({ data }: { data: HomeData }) {
   const difference = data.summary.workouts - data.previousSummary.workouts;
   return (
-    <section className="home-surface home-insights" aria-labelledby="home-insights-title">
+    <Card className="grid gap-3 home-insights" aria-labelledby="home-insights-title">
       <h2 id="home-insights-title">Insights</h2>
       <div className="home-insight-grid">
         <div>
@@ -26,6 +27,6 @@ export function InsightCard({ data }: { data: HomeData }) {
           </p>
         </div>
       </div>
-    </section>
+    </Card>
   );
 }

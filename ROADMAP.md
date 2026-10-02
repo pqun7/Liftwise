@@ -2,6 +2,12 @@
 
 The roadmap is directional. Reliability, privacy, and data safety take priority over dates.
 
+## Shared UI maintenance (unreleased)
+
+- [x] Consolidate high-value Tailwind primitives and mobile shell across Home/Plan/Workout/Progress.
+- [x] Preserve feature state, canonical analytics, persistence and accessible mobile controls.
+- Remaining legacy feature layouts migrate only when touched; no full-app rewrite is planned.
+
 ## v0.1.0 — Project foundation
 
 - [x] Mobile-first React and TypeScript application shell

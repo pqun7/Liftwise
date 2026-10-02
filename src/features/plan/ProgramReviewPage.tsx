@@ -1,3 +1,6 @@
+import { MobilePage } from '../../components/layout/MobilePage';
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
 import { useState } from 'react';
 import { Link, useLoaderData, useNavigate } from 'react-router-dom';
 import type { ProgramGraph } from '../../lib/storage/repositories/programRepository';
@@ -29,7 +32,7 @@ export function ProgramReviewPage() {
     ? `/plan/${graph.program.id}/days/${first.id}`
     : `/plan/${graph.program.id}/build/days`;
   return (
-    <section className="builder-page">
+    <MobilePage className="builder-page flex flex-col gap-3">
       <BuilderHeader
         title="Review Program"
         step={3}
@@ -37,7 +40,7 @@ export function ProgramReviewPage() {
         back={back}
         exercisesPath={back}
       />
-      <section className="builder-card">
+      <Card className="grid gap-2">
         <p className="builder-eyebrow">Your training plan</p>
         <h2>{graph.program.name}</h2>
         {graph.program.description ? <p>{graph.program.description}</p> : null}
@@ -46,10 +49,10 @@ export function ProgramReviewPage() {
           {graph.program.level ? <span>{graph.program.level}</span> : null}
         </div>
         <Link to={`/plan/${graph.program.id}/edit`}>Edit details</Link>
-      </section>
+      </Card>
       <h2 className="builder-section-title">Training schedule</h2>
       {graph.days.map(({ day, exercises: prescriptions }) => (
-        <section key={day.id} className="builder-card builder-review-day">
+        <Card key={day.id} className="grid gap-2" aria-label={`${day.name} review`}>
           <div>
             <p className="builder-eyebrow">
               {day.weekday != null ? weekdays[day.weekday] : 'Unscheduled'}
@@ -77,7 +80,7 @@ export function ProgramReviewPage() {
           ) : (
             <p>No exercises yet. You can add them later.</p>
           )}
-        </section>
+        </Card>
       ))}
       <p className="builder-info">
         Saving a program does not start a workout. Actual sets remain separate.
@@ -88,15 +91,15 @@ export function ProgramReviewPage() {
         </p>
       ) : null}
       <BuilderFooter>
-        <button
-          className="builder-primary"
+        <Button
+          variant="primary"
           type="button"
           disabled={busy || !graph.days.length}
           onClick={() => void save()}
         >
           {busy ? 'Saving…' : 'Save Program'}
-        </button>
+        </Button>
       </BuilderFooter>
-    </section>
+    </MobilePage>
   );
 }

@@ -1,3 +1,4 @@
+import { MobilePage } from '../../components/layout/MobilePage';
 import { useEffect, useState } from 'react';
 import { Link, useLoaderData, useNavigate, useRevalidator } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
@@ -22,7 +23,6 @@ import {
   workoutCompletion,
   type HomeData,
 } from './homeData';
-import '../../styles/home.css';
 
 export function HomePage() {
   const data = useLoaderData<HomeData>();
@@ -72,7 +72,7 @@ export function HomePage() {
   };
 
   return (
-    <div className="home-page" data-home-state={state}>
+    <MobilePage className="home-page grid gap-4" data-home-state={state}>
       <HomeHeader greeting={data.greeting} active={state === 'in-progress'} />
       {state !== 'in-progress' ? (
         <WeekSelector days={data.week} selected={selected} onSelect={setSelection} />
@@ -207,6 +207,6 @@ export function HomePage() {
         Want to train your own way? Start a Quick Workout
         <ChevronRight size={17} aria-hidden="true" />
       </Link>
-    </div>
+    </MobilePage>
   );
 }

@@ -1,10 +1,11 @@
+import { Card } from '../ui/Card';
 import { Check, ChevronRight, Circle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { HomeData } from '../../features/home/homeData';
 
 export function WeeklyProgress({ data }: { data: HomeData }) {
   return (
-    <section className="home-surface home-weekly" aria-labelledby="home-weekly-title">
+    <Card className="grid gap-3 home-weekly" aria-labelledby="home-weekly-title">
       <Link className="home-section-header" to="/progress">
         <h2 id="home-weekly-title">Weekly Progress</h2>
         <span>
@@ -34,6 +35,6 @@ export function WeeklyProgress({ data }: { data: HomeData }) {
         {data.summary.workouts} completed workouts this week, {data.summary.workingSets} working
         sets.
       </p>
-    </section>
+    </Card>
   );
 }

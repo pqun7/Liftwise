@@ -1,3 +1,7 @@
+import { Button } from '../../components/ui/Button';
+import { buttonClasses } from '../../components/ui/controlStyles';
+import { Card } from '../../components/ui/Card';
+import { MobilePage } from '../../components/layout/MobilePage';
 import { useState } from 'react';
 import { Link, useLoaderData, useNavigate } from 'react-router-dom';
 
@@ -23,7 +27,7 @@ export function WorkoutPage() {
   };
 
   return (
-    <section className="page-stack" aria-labelledby="workout-title">
+    <MobilePage className="grid gap-4" aria-labelledby="workout-title">
       <PageIntro
         titleId="workout-title"
         eyebrow="Workout"
@@ -36,35 +40,36 @@ export function WorkoutPage() {
         </p>
       ) : null}
       {data.unfinished ? (
-        <section className="workout-start-card" aria-labelledby="continue-title">
+        <Card className="grid gap-2" aria-labelledby="continue-title">
           <p className="section-kicker">In progress</p>
           <h2 id="continue-title">{data.unfinished.name}</h2>
           <p>
             {data.unfinished.completedSets} / {data.unfinished.totalSets} sets completed
           </p>
-          <Link className="primary-action" to={`/workout/${data.unfinished.id}`}>
+          <Link className={buttonClasses('primary')} to={`/workout/${data.unfinished.id}`}>
             Resume Workout
           </Link>
-        </section>
+        </Card>
       ) : (
-        <button
-          className="quick-workout-action"
+        <Button
+          variant="primary"
+          className="min-h-[58px] flex-col"
           type="button"
           disabled={busy}
           onClick={() => void start(startQuickWorkout)}
         >
           <span>Start Quick Workout</span>
           <small>No program required</small>
-        </button>
+        </Button>
       )}
 
-      <section className="workout-start-card" aria-labelledby="planned-title">
+      <Card className="grid gap-2" aria-labelledby="planned-title">
         <p className="section-kicker">Planned workout</p>
         <h2 id="planned-title">{data.activeProgram?.name ?? 'No active program'}</h2>
         {data.days.length ? (
           <div className="workout-day-list">
             {data.days.map((day) => (
-              <button
+              <Button
                 type="button"
                 key={day.id}
                 disabled={busy || data.unfinished !== null}
@@ -72,7 +77,7 @@ export function WorkoutPage() {
               >
                 <span>Day {day.order}</span>
                 <strong>{day.name}</strong>
-              </button>
+              </Button>
             ))}
           </div>
         ) : (
@@ -80,10 +85,10 @@ export function WorkoutPage() {
             Create and activate a program in <Link to="/plan">Plan</Link>, or use Quick Workout.
           </p>
         )}
-      </section>
+      </Card>
 
       {data.recent.length ? (
-        <section className="workout-start-card" aria-labelledby="history-title">
+        <Card className="grid gap-2" aria-labelledby="history-title">
           <p className="section-kicker">History</p>
           <h2 id="history-title">Recent workouts</h2>
           <div className="workout-history-list">
@@ -99,8 +104,8 @@ export function WorkoutPage() {
               </Link>
             ))}
           </div>
-        </section>
+        </Card>
       ) : null}
-    </section>
+    </MobilePage>
   );
 }
