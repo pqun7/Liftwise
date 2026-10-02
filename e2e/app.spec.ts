@@ -179,7 +179,7 @@ test('builds and reloads an exact program prescription offline', async ({
   await expect(page.getByRole('heading', { name: 'Push Pull Legs' })).toBeVisible();
   await expect(page.getByText('Active')).toBeVisible();
 
-  await page.getByRole('link', { name: '+ Day' }).click();
+  await page.getByRole('link', { name: 'Add training day' }).click();
   await page.getByLabel('Day name').fill('Push Day');
   await page.getByLabel('Day notes').fill('Chest and shoulders');
   await page.getByRole('button', { name: 'Add day' }).click();
@@ -222,7 +222,8 @@ test('builds and reloads an exact program prescription offline', async ({
   try {
     if (browserName === 'webkit') {
       await page.getByRole('link', { name: /Push Pull Legs/ }).click();
-      await page.getByRole('link', { name: /Push Day/ }).click();
+      await page.getByRole('button', { name: 'Options for Push Day' }).click();
+      await page.getByRole('link', { name: 'View day details' }).click();
     } else {
       await page.reload();
     }
@@ -253,7 +254,7 @@ test('backs up, deletes, restores, and verifies an exact program offline', async
   await page.getByRole('link', { name: 'Create program' }).click();
   await page.getByLabel('Program name').fill('Backup Push Plan');
   await saveEmptyProgram(page);
-  await page.getByRole('link', { name: '+ Day' }).click();
+  await page.getByRole('link', { name: 'Add training day' }).click();
   await page.getByLabel('Day name').fill('Backup Push Day');
   await page.getByRole('button', { name: 'Add day' }).click();
 
@@ -302,8 +303,9 @@ test('backs up, deletes, restores, and verifies an exact program offline', async
   await setOffline(context, browserName, true);
   try {
     await page.getByRole('link', { name: 'Plan' }).click();
-    await page.getByRole('link', { name: 'Open Backup Push Plan' }).click();
-    await page.getByRole('link', { name: /Backup Push Day/ }).click();
+    await page.getByRole('link', { name: 'Edit Program' }).click();
+    await page.getByRole('button', { name: 'Options for Backup Push Day' }).click();
+    await page.getByRole('link', { name: 'View day details' }).click();
     await expect(page.getByRole('heading', { name: 'Barbell Bench Press' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Backup Cable Press' })).toBeVisible();
     await expect(page.getByText('3 sets · 6–8 reps')).toBeVisible();

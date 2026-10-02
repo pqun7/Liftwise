@@ -1,5 +1,22 @@
 # Development log
 
+## 2026-10-02 — Program-first workflow (unreleased)
+
+- Goal/work: simplify Program first, then Home/Workout. Real previewable templates, weekday/name distinction, inline targets, immediate day-scoped exercise addition and cross-day move/copy.
+- Decisions: existing repositories/drafts/snapshots remain authoritative; template version metadata stays in bundled definitions. Confirm replacements and validate references before atomic writes. No schema, backup, font or dependency changes.
+- Safety: no new Quick Workout entry points; legacy unplanned sessions/history retained. Program edits never modify performed history. Duration estimates use documented assumptions, not invented performance.
+- Tests: template catalog resolution, targets, rollback, move/copy/collision, snapshots and reopen; browser coverage updates for program-first creation and legacy-session recovery. Physical-iPhone testing pending.
+- Sources/limitations: see PROGRAM_TEMPLATES.md. Templates are editable healthy-adult starting points, not endorsed or individualized routines. Stop after this overhaul.
+
+## 2026-10-02 — Workout landing (unreleased)
+
+- Goal/work: preparation-first Workout landing, separate from the focused logger. Added reusable photographic hero and ordered prescription preview using shared Tailwind primitives and unchanged fonts.
+- Decisions: reuse Home's next-in-program rotation for undated plans; use existing local weekday values for dated plans. Unfinished sessions take priority; completed-today uses the completion timestamp. Optional workouts require explicit choice. No invented duration, calendar dates, progress or performance.
+- Safety: active check and creation share one IndexedDB transaction, including competing tabs; route only after commit. Snapshots/prefill remain owned by the existing repository; prefilled sets remain incomplete. No schema, migration, backup, dependencies or logger changes.
+- Tests: eight focused state/UI/rollback/concurrent-start/reopen tests; existing logger journey now checks preview, mobile widths, completed-today and same-ID Continue from landing. Existing offline and builder fixtures use explicit Start after selecting a day.
+- Limitations: physical iPhone remains required. Static exercise illustrations are optional; unavailable provider references are preserved and block planned start until reviewed in Plan.
+- Next: stop at the Workout landing redesign.
+
 ## 2026-10-02 — Focused active workout logger (unreleased)
 
 - Goal: implement the supplied iPhone logger reference without redesigning other features or changing fonts.

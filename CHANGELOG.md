@@ -4,6 +4,18 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Program-first workflow
+
+- Real Full Body 3-day, Upper/Lower 4-day and PPL 6-day templates with preview, confirmed transactional replacement and editable evidence-informed targets.
+- Continuous weekly editor: separate weekday/name, inline rename/targets, day-scoped fast exercise addition, move/copy across days and persisted ordering.
+- Simplified five-state Home and program-led Workout entry. New Quick Workout creation removed; old sessions/history preserved. No schema, backup, font or dependency changes.
+
+### Workout landing
+
+- Real-data scheduled, in-progress, rest-day, no-program and completed-today landing states, with ordered prescription previews, exercise links and program-day selection.
+- Continue opens the same saved session; competing start requests check/create atomically. Choosing a day alone never starts training.
+- Shared Tailwind cards, bundled gym photography and safe-area-aware Start action for long previews. Existing fonts, logger, schemas and backup formats unchanged.
+
 ### Workout logger
 
 - Focused, Tailwind-first active workout view with exercise progress, catalog imagery/fallback, compact set grid, current-set adjustments, rest ring and explicit Complete/Next/Finish actions. Current fonts are unchanged.

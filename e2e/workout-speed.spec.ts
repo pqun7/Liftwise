@@ -1,3 +1,4 @@
+import { openLegacyUnplannedFixture } from './workoutUi';
 import { finishLogger } from './workoutUi';
 import { expect, test, type Page } from '@playwright/test';
 
@@ -27,7 +28,7 @@ test('gym-speed Quick Workout survives undo, skip, replacement, and reload on iP
   await page.goto('/workout');
   const dismiss = page.getByRole('button', { name: 'Dismiss' });
   if (await dismiss.isVisible()) await dismiss.click();
-  await page.getByRole('button', { name: /Start Quick Workout/ }).click();
+  await openLegacyUnplannedFixture(page);
   await addExercise(page, 'Speed Bench');
   await page.getByLabel('Set 1 weight', { exact: true }).fill('100');
   await page.getByLabel('Set 1 reps', { exact: true }).fill('8');
@@ -40,7 +41,7 @@ test('gym-speed Quick Workout survives undo, skip, replacement, and reload on iP
   );
   await finishLogger(page);
   await expect(page.getByRole('heading', { name: 'Start training' })).toBeVisible();
-  await page.getByRole('button', { name: /Start Quick Workout/ }).click();
+  await openLegacyUnplannedFixture(page);
   await addExercise(page, 'Speed Bench');
   const bench = page.getByRole('region', { name: 'Set logger' });
   await expect(page.getByRole('link', { name: 'Last workout' })).toContainText('100');

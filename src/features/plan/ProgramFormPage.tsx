@@ -1,7 +1,7 @@
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input, Textarea } from '../../components/ui/FormControl';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useLoaderData, useNavigate } from 'react-router-dom';
 
@@ -22,6 +22,7 @@ export function ProgramFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' }>)
   const loaderData = useLoaderData<{ graph: ProgramGraph } | undefined>();
   const program = mode === 'edit' ? loaderData?.graph.program : undefined;
   const navigate = useNavigate();
+  const committedNavigation = useRef(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const {
     register,
@@ -49,8 +50,10 @@ export function ProgramFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' }>)
       };
       const saved = await programBuilder.saveBasics(input, program?.id);
       reset(values);
+      committedNavigation.current = true;
       await navigate(`/plan/${saved.id}/build/days`, { replace: true });
     } catch {
+      committedNavigation.current = false;
       setSaveError('The program could not be saved. Your existing data is unchanged.');
     }
   });
@@ -62,7 +65,11 @@ export function ProgramFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' }>)
         step={0}
         {...(program ? { programId: program.id } : {})}
       />
-      <UnsavedChanges dirty={isDirty} saving={isSubmitting} />
+      <UnsavedChanges
+        dirty={isDirty}
+        saving={isSubmitting}
+        committedNavigation={committedNavigation}
+      />
       <form className="builder-basic-form" onSubmit={(event) => void submit(event)} noValidate>
         <Card as="div" className="exercise-form grid gap-5">
           <h2>Program details</h2>

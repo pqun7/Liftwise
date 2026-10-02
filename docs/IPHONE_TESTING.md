@@ -160,3 +160,17 @@ Record the iPhone model, iOS version, deployed commit, date, and any deviations 
 3. Tap Start Workout, complete a set, then return Home. Confirm the in-progress hero reports the exact saved state; Continue returns to that session. Finish and confirm rest-day/recent-history content.
 4. After installation/cache readiness, enable Airplane Mode and repeat navigation/recovery. Confirm all three Home photographs load; this does not require the optional RepDB image pack.
 5. Verify narrow-screen calendar scrolling, 44px touch targets, VoiceOver day/status names, keyboard focus, pinch zoom, Reduce Motion and navigation clear of the home indicator. Desktop browser checks do not substitute for these physical-device steps.
+
+## Workout landing acceptance (unperformed on physical iPhone)
+
+- Open Workout with no program: Create Program is primary; Quick Workout remains optional.
+- With a scheduled day, verify ordered preview/prescription/illustrations and select another day without creating a session. Start once; rapid taps must open only one session.
+- Leave a session, open Workout and Continue: recover the same ID and exact sets, with bottom navigation visible only on landing.
+- Finish today: show saved completion/history, not a default repeated Start. Rest days show recovery and an explicit optional-workout choice.
+- Check 375/390/393/402/430px, long previews with pinned Start above navigation, safe areas, scrolling, focus, pinch zoom and offline launch/Continue. Missing images must not block use.
+
+## Program-first acceptance (pending physical device)
+
+Create Upper/Lower → preview four real days → apply → rename a day → change its weekday → edit targets inline → add a custom exercise from its clearly named day → move/copy/reorder → Save Program → reopen offline and verify exact data. Check widths 375/390/393/402/430, visible focus, VoiceOver labels, 44px targets and 16px inputs; pinch zoom remains enabled.
+
+Check Home no-program/scheduled/active/rest/completed priorities; only one dominant action. No new Quick Workout creation. Choose a different active-program day, start once, log actual values, resume after suspension and confirm program targets/history remain independent. Verify an old unplanned session still resumes. Automated WebKit is not physical PWA/keyboard/suspension testing.

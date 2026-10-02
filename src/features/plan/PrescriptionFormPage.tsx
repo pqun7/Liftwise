@@ -1,8 +1,8 @@
 import { Button } from '../../components/ui/Button';
 import { Input, Textarea } from '../../components/ui/FormControl';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, useLoaderData, useNavigate } from 'react-router-dom';
+import { Link, useLoaderData, useNavigate, useSearchParams } from 'react-router-dom';
 
 import type { ProgramExercise } from '../../domain/entities';
 import type { HydratedProgramDay } from './programService';
@@ -29,6 +29,12 @@ export function PrescriptionFormPage() {
   const { data } = useLoaderData<{ data: EditorData }>();
   const { selected, prescription, day, program } = data;
   const navigate = useNavigate();
+  const committedNavigation = useRef(false);
+  const [params] = useSearchParams();
+  const returnTo =
+    params.get('return') === 'editor'
+      ? `/plan/${program.id}#day-${day.id}`
+      : `/plan/${program.id}/days/${day.id}`;
   const [saveError, setSaveError] = useState<string | null>(null);
   const {
     register,
@@ -76,8 +82,10 @@ export function PrescriptionFormPage() {
       if (prescription) await updatePrescription(prescription.id, input);
       else await createPrescription(day.id, selected.id, input);
       reset(values);
-      await navigate(`/plan/${program.id}/days/${day.id}`, { replace: true });
+      committedNavigation.current = true;
+      await navigate(returnTo, { replace: true });
     } catch {
+      committedNavigation.current = false;
       setSaveError('The prescription could not be saved. Check each value and try again.');
     }
   });
@@ -87,9 +95,13 @@ export function PrescriptionFormPage() {
   };
   return (
     <section className="builder-page" aria-labelledby="prescription-title">
-      <BuilderHeader title="Prescription" back={`/plan/${program.id}/days/${day.id}`} />
-      <UnsavedChanges dirty={isDirty} saving={isSubmitting} />
-      <Link className="back-link" to={`/plan/${program.id}/days/${day.id}`}>
+      <BuilderHeader title="Prescription" back={returnTo} />
+      <UnsavedChanges
+        dirty={isDirty}
+        saving={isSubmitting}
+        committedNavigation={committedNavigation}
+      />
+      <Link className="back-link" to={returnTo}>
         ← {day.name}
       </Link>
       <header className="program-header">

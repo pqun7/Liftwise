@@ -5,9 +5,9 @@ test('shared controls and navigation stay coherent at mobile widths', async ({
 }, testInfo) => {
   test.setTimeout(90_000);
   const screens = [
-    { route: '/', action: 'Browse Exercises — Exercise Library', role: 'link' as const },
+    { route: '/', action: 'Create Program', role: 'link' as const },
     { route: '/plan/new', action: 'Next: Choose Days', role: 'button' as const },
-    { route: '/workout', action: 'Start Quick Workout', role: 'button' as const },
+    { route: '/workout', action: 'Create Program', role: 'link' as const },
     { route: '/progress', action: 'Add measurement', role: 'button' as const },
   ];
   for (const { route, action, role } of screens) {

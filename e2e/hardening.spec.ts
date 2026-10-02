@@ -1,3 +1,4 @@
+import { openLegacyUnplannedFixture } from './workoutUi';
 import { finishLogger } from './workoutUi';
 import { expect, test, type Page } from '@playwright/test';
 import { setOffline } from './offline';
@@ -134,7 +135,7 @@ test('all core training, charts, backup and CSV flows work with network disabled
     timings.program = Date.now() - started;
     await page.getByLabel('Program name').fill('Offline QA');
     await saveEmptyProgram(page);
-    await page.getByRole('link', { name: '+ Day' }).click();
+    await page.getByRole('link', { name: 'Add training day' }).click();
     await page.getByLabel('Day name').fill('Offline Push');
     await page.getByRole('button', { name: 'Add day' }).press('Enter');
     await page.getByRole('link', { name: 'Add exercise', exact: true }).click();
@@ -149,6 +150,7 @@ test('all core training, charts, backup and CSV flows work with network disabled
     await page.getByRole('link', { name: 'Workout', exact: true }).click();
     started = Date.now();
     await page.getByRole('button', { name: /Offline Push/ }).click();
+    await page.getByRole('button', { name: 'Start Workout', exact: true }).click();
     await expect(page.getByLabel('Set 1 weight', { exact: true })).toBeVisible();
     timings.workout = Date.now() - started;
     await page.getByLabel('Workout menu', { exact: true }).click();
@@ -189,7 +191,7 @@ test('all core training, charts, backup and CSV flows work with network disabled
     await expect(page.getByLabel('Keep screen awake while training')).toBeChecked();
     await page.getByLabel('Workout menu', { exact: true }).click();
     await finishLogger(page);
-    await page.getByRole('button', { name: /Start Quick Workout/ }).click();
+    await openLegacyUnplannedFixture(page);
     await page.getByRole('link', { name: 'Add Exercise', exact: true }).click();
     await page.getByRole('searchbox', { name: 'Search exercises' }).fill('Barbell Bench Press');
     await page
@@ -247,10 +249,10 @@ test('all core training, charts, backup and CSV flows work with network disabled
     await expect(page.getByText('3 sets · 6–8 reps · 1–2 RIR')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(2);
     await page.getByRole('link', { name: 'Plan', exact: true }).click();
-    await expect(page.getByRole('link', { name: /Offline QA/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Offline QA', exact: true })).toBeVisible();
     expect(external).toEqual([]);
     await page.getByRole('link', { name: 'Workout', exact: true }).click();
-    await page.getByRole('button', { name: /Start Quick Workout/ }).click();
+    await openLegacyUnplannedFixture(page);
     await expect(page.getByLabel('Keep screen awake while training')).toBeChecked();
     const storage = await page.evaluate(
       async () => navigator.storage?.estimate?.().catch(() => null) ?? null,

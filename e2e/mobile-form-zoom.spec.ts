@@ -1,3 +1,4 @@
+import { openLegacyUnplannedFixture } from './workoutUi';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { saveEmptyProgram } from './programHelpers';
 
@@ -48,7 +49,7 @@ test('mobile editable controls have zoom-safe computed typography and an unrestr
   await page.getByLabel('Program name').fill('Zoom Safe Plan');
   await page.getByLabel('Program name').press('Enter');
   await saveEmptyProgram(page, true);
-  await page.getByRole('link', { name: '+ Day' }).click();
+  await page.getByRole('link', { name: 'Add training day' }).click();
   await expect(page.getByLabel('Day name')).not.toBeFocused();
   await assertMobileInputIsZoomSafe(page.getByLabel('Day name'));
   await assertMobileInputIsZoomSafe(page.getByLabel('Day notes'));
@@ -94,8 +95,7 @@ test('mobile editable controls have zoom-safe computed typography and an unrestr
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/workout');
-  await page.getByRole('button', { name: /Start Quick Workout/ }).focus();
-  await page.keyboard.press('Enter');
+  await openLegacyUnplannedFixture(page);
   await page.getByRole('button', { name: 'Workout Overview', exact: true }).click();
   await assertMobileInputIsZoomSafe(page.getByLabel('Workout notes'));
   await page.getByRole('link', { name: 'Add Exercise' }).click();

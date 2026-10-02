@@ -2,11 +2,23 @@
 
 The roadmap is directional. Reliability, privacy, and data safety take priority over dates.
 
+## Program-first workflow (unreleased)
+
+- [x] Real versioned templates, continuous days/exercises editor and transactional move/copy.
+- [x] Simple Home and program-only workout creation; retain unplanned history.
+- [ ] Physical-iPhone installed-PWA/VoiceOver acceptance.
+
 ## Shared UI maintenance (unreleased)
 
 - [x] Consolidate high-value Tailwind primitives and mobile shell across Home/Plan/Workout/Progress.
 - [x] Preserve feature state, canonical analytics, persistence and accessible mobile controls.
 - Remaining legacy feature layouts migrate only when touched; no full-app rewrite is planned.
+
+## Workout landing (unreleased)
+
+- [x] Local program/history-derived landing states and exercise previews.
+- [x] Atomic start-or-continue and explicit alternative program-day selection.
+- [ ] Physical-iPhone installed-PWA acceptance.
 
 ## Active workout presentation (unreleased)
 

@@ -46,8 +46,11 @@ test('Home adapts to local program, active workout and rest states with cached p
   await page.locator('.home-hero').getByRole('link', { name: 'Create Program' }).click();
   await page.getByLabel('Program name').fill('Push Pull Legs');
   await saveEmptyProgram(page);
-  await page.getByRole('link', { name: '+ Day' }).click();
+  await page.getByRole('link', { name: 'Add training day' }).click();
   await page.getByLabel('Day name').fill('Push Day');
+  await page
+    .getByLabel('Weekday', { exact: true })
+    .selectOption(String(await page.evaluate(() => (new Date().getDay() + 6) % 7)));
   await page.getByRole('button', { name: 'Add day' }).press('Enter');
   await page.getByRole('link', { name: 'Add exercise', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search exercises' }).fill('Barbell Bench Press');

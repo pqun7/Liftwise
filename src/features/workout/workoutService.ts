@@ -1,8 +1,9 @@
-import type { Exercise, Program, ProgramDay } from '../../domain/entities';
+import type { Exercise, Program, ProgramDay, ProgramExercise } from '../../domain/entities';
+import { getHomeData } from '../home/homeService';
+import { deriveWorkoutLanding, type WorkoutLandingState } from './workoutLanding';
 import { initializeRepdbCatalog } from '../../data/providers/repdb/initialize';
-import { database } from '../../lib/storage/database';
+import { database, type LiftwiseDatabase } from '../../lib/storage/database';
 import { ExerciseRepository } from '../../lib/storage/repositories/exerciseRepository';
-import { ProgramRepository } from '../../lib/storage/repositories/programRepository';
 import {
   WorkoutRepository,
   type UpdateWorkoutSetInput,
@@ -11,14 +12,24 @@ import {
 } from '../../lib/storage/repositories/workoutRepository';
 
 const workouts = new WorkoutRepository(database);
-const programs = new ProgramRepository(database);
 const exercises = new ExerciseRepository(database);
 
 export interface WorkoutLandingData {
+  state: WorkoutLandingState;
+  todayDayId: string | null;
+  nextDayId: string | null;
+  completedToday: WorkoutListSummary | null;
+  previews: { day: ProgramDay; entries: WorkoutPreviewEntry[] }[];
   unfinished: WorkoutRecoverySummary | null;
   activeProgram: Program | null;
   days: ProgramDay[];
   recent: WorkoutListSummary[];
+}
+
+export interface WorkoutPreviewEntry {
+  prescription: ProgramExercise;
+  exercise: Exercise | null;
+  previous: WorkoutExerciseWithSets | null;
 }
 
 export interface WorkoutListSummary {
@@ -60,27 +71,51 @@ function recoverySummary(graph: WorkoutGraph): WorkoutRecoverySummary {
   };
 }
 
-export async function getWorkoutLanding(): Promise<WorkoutLandingData> {
-  const [unfinishedGraph, activeProgramId, recentGraphs] = await Promise.all([
-    workouts.getUnfinished(),
-    programs.getActiveId(),
-    workouts.listCompleted(10),
-  ]);
-  const activeGraph = activeProgramId ? await programs.get(activeProgramId) : undefined;
+export async function getWorkoutLanding(
+  db: LiftwiseDatabase = database,
+  now = new Date(),
+): Promise<WorkoutLandingData> {
+  const home = await getHomeData(db, now);
+  const derived = deriveWorkoutLanding(home, now);
+  const catalog = new ExerciseRepository(db);
+  const history = new WorkoutRepository(db);
+  const activeGraph = home.programs.find(({ program }) => program.id === home.activeProgramId);
+  const summarize = (graph: WorkoutGraph): WorkoutListSummary => {
+    const sets = graph.exercises.flatMap(({ sets }) => sets);
+    return {
+      id: graph.session.id,
+      name: graph.session.name ?? 'Quick Workout',
+      startedAt: graph.session.startedAt,
+      completedSets: sets.filter(({ completed }) => completed).length,
+      totalSets: sets.length,
+    };
+  };
+  const previews = await Promise.all(
+    home.nextDays.map(async ({ day, exercises: prescriptions }) => ({
+      day,
+      entries: await Promise.all(
+        prescriptions.map(async (prescription) => ({
+          prescription,
+          exercise: (await catalog.get(prescription.exerciseId)) ?? null,
+          previous:
+            (await history.getPreviousCompletedExercise(
+              prescription.exerciseId,
+              now.toISOString(),
+            )) ?? null,
+        })),
+      ),
+    })),
+  );
   return {
-    unfinished: unfinishedGraph ? recoverySummary(unfinishedGraph) : null,
+    state: derived.state,
+    todayDayId: derived.todayDayId,
+    nextDayId: derived.nextDayId,
+    completedToday: derived.completedToday ? summarize(derived.completedToday) : null,
+    previews,
+    unfinished: home.active ? recoverySummary(home.active) : null,
     activeProgram: activeGraph?.program ?? null,
-    days: activeGraph?.days.map(({ day }) => day) ?? [],
-    recent: recentGraphs.map((graph) => {
-      const sets = graph.exercises.flatMap(({ sets }) => sets);
-      return {
-        id: graph.session.id,
-        name: graph.session.name ?? 'Quick Workout',
-        startedAt: graph.session.startedAt,
-        completedSets: sets.filter(({ completed }) => completed).length,
-        totalSets: sets.length,
-      };
-    }),
+    days: home.nextDays.map(({ day }) => day),
+    recent: home.recent.map(summarize),
   };
 }
 
@@ -89,13 +124,35 @@ export async function getRecoverySummary(): Promise<WorkoutRecoverySummary | nul
   return graph ? recoverySummary(graph) : null;
 }
 
-export async function startQuickWorkout(): Promise<string> {
-  return (await workouts.createSession({ name: 'Quick Workout' })).id;
+/** Serialize the active check with creation, including across tabs. Never navigate before commit. */
+export async function getOrStartWorkout(
+  programDayId: string | null,
+  db: LiftwiseDatabase = database,
+): Promise<string> {
+  const repository = new WorkoutRepository(db);
+  return db.transaction(
+    'rw',
+    [
+      db.programs,
+      db.programDays,
+      db.programExercises,
+      db.exercises,
+      db.workoutSessions,
+      db.workoutExercises,
+      db.workoutSets,
+    ],
+    async () => {
+      const active = await repository.getUnfinished();
+      if (active) return active.session.id;
+      return programDayId
+        ? (await repository.startPlannedWorkout(programDayId)).session.id
+        : (await repository.createSession({ name: 'Quick Workout' })).id;
+    },
+  );
 }
 
-export async function startPlannedWorkout(programDayId: string): Promise<string> {
-  return (await workouts.startPlannedWorkout(programDayId)).session.id;
-}
+export const startQuickWorkout = () => getOrStartWorkout(null);
+export const startPlannedWorkout = (programDayId: string) => getOrStartWorkout(programDayId);
 
 export async function getHydratedWorkout(id: string): Promise<HydratedWorkoutGraph | undefined> {
   const graph = await workouts.get(id);

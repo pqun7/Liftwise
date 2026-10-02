@@ -19,7 +19,11 @@ export async function programLoader({ params }: LoaderFunctionArgs) {
   const programId = required(params.programId, 'Program ID');
   const graph = await getProgram(programId);
   if (!graph) throw new Response('Program not found.', { status: 404 });
-  return { graph, activeProgramId: (await listPrograms()).activeProgramId };
+  return {
+    graph,
+    activeProgramId: (await listPrograms()).activeProgramId,
+    catalog: await listPickerExercises(),
+  };
 }
 
 export async function programDayLoader({ params }: LoaderFunctionArgs) {

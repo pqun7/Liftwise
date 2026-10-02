@@ -1,3 +1,4 @@
+import { openLegacyUnplannedFixture } from './workoutUi';
 import { finishLogger } from './workoutUi';
 import { expect, test } from '@playwright/test';
 import { setOffline } from './offline';
@@ -18,7 +19,7 @@ test('completed history, PRs, charts, measurements and CSV stay usable offline',
     await page.goto('/workout');
     const dismiss = page.getByRole('button', { name: 'Dismiss' });
     if (await dismiss.isVisible()) await dismiss.click();
-    await page.getByRole('button', { name: /Start Quick Workout/ }).click();
+    await openLegacyUnplannedFixture(page);
     await page.getByRole('link', { name: 'Add Exercise', exact: true }).click();
     await page.getByRole('searchbox', { name: 'Search exercises' }).fill('Progress Bench');
     await page.getByRole('button', { name: /Progress Bench/ }).click();

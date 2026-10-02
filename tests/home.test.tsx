@@ -69,6 +69,15 @@ describe('Home derived state and local data', () => {
     const data = await getHomeData(db, new Date(2026, 9, 2, 12));
     expect(data.week.map(({ date }) => date)).toEqual([28, 29, 30, 1, 2, 3, 4]);
     expect(data.week.find(({ isToday }) => isToday)?.key).toBe('2026-10-02');
+    expect(data.week.map(({ kind }) => kind)).toEqual([
+      'rest',
+      'rest',
+      'rest',
+      'rest',
+      'rest',
+      'future',
+      'future',
+    ]);
     expect(data.summary.workouts).toBe(0);
     expect(data.recent).toEqual([]);
     expect(data.catalogCount).toBeNull();
@@ -104,12 +113,16 @@ describe('Home derived state and local data', () => {
     expect(data.suggestion?.day.id).toBe(pull.id);
     expect(data.recent[0]?.exercises[0]?.exercise.plannedTargetSets).toBe(3);
     expect(data.week.find(({ date }) => date === 6)?.completed).toBe(1);
+    expect(data.week.find(({ date }) => date === 6)).toMatchObject({
+      kind: 'training',
+      performance: 1,
+    });
     expect(data.summary.workouts).toBe(1);
     expect(data.summary.workingSets).toBe(1);
     expect(data.summary.durationSeconds).toBe(3600);
   });
 
-  it('shows a rest day after training today, excludes older years from weekly totals', async () => {
+  it('shows a rest day after training, excludes older years from weekly totals', async () => {
     const { db, workouts, push } = await programFixture();
     for (const date of [new Date(2025, 0, 1, 10), new Date(2026, 9, 7, 10)]) {
       const graph = await workouts.startPlannedWorkout(push.id, date.toISOString());
@@ -227,4 +240,16 @@ describe('Home interactions', () => {
     expect(screen.getByText('0 of 1 exercise · 2 sets left')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Start Workout' })).not.toBeInTheDocument();
   });
+});
+
+it('dated programs respect Monday-first weekdays and order the upcoming rest-day workout', async () => {
+  const { db, programs, push, pull } = await programFixture();
+  await programs.updateDay(push.id, { weekday: 0 });
+  await programs.updateDay(pull.id, { weekday: 2 });
+  const monday = await getHomeData(db, new Date(2026, 9, 5, 12));
+  expect(monday.suggestion?.day.id).toBe(push.id);
+  const tuesday = await getHomeData(db, new Date(2026, 9, 6, 12));
+  expect(homeState(tuesday, tuesday.today)).toBe('rest-day');
+  expect(tuesday.suggestion).toBeNull();
+  expect(tuesday.nextDays[0]?.day.id).toBe(pull.id);
 });

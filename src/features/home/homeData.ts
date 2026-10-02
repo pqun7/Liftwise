@@ -1,3 +1,4 @@
+import { estimatedProgramMinutes } from '../plan/programDisplay';
 import { weeklySummary } from '../../domain/analytics';
 import type { WorkoutGraph } from '../../lib/storage/repositories/workoutRepository';
 import type { ProgramGraph } from '../../lib/storage/repositories/programRepository';
@@ -26,6 +27,8 @@ export interface HomeDay {
   accessibleDate: string;
   isToday: boolean;
   completed: number;
+  kind: 'training' | 'rest' | 'future';
+  performance: number;
 }
 
 export interface HomeData {
@@ -59,7 +62,9 @@ export function deriveHomeData(
   const previousSunday = new Date(monday.getTime() - 1);
   const weekHistory = records.history.filter(
     ({ session }) =>
-      session.status === 'completed' && Date.parse(session.startedAt) >= monday.getTime(),
+      session.status === 'completed' &&
+      Date.parse(session.endedAt ?? session.startedAt) >= monday.getTime() &&
+      Date.parse(session.endedAt ?? session.startedAt) <= now.getTime(),
   );
   const activeProgram = records.programs.find(
     ({ program }) => program.id === records.activeProgramId && !program.archived && !program.draft,
@@ -67,14 +72,45 @@ export function deriveHomeData(
   const days = activeProgram?.days.filter(({ exercises }) => exercises.length > 0) ?? [];
   const lastIndex = days.findIndex(({ day }) => day.id === records.lastProgramDayId);
   const nextIndex = days.length ? (lastIndex + 1) % days.length : 0;
-  const nextDays = [...days.slice(nextIndex), ...days.slice(0, nextIndex)];
+  const nextDays = days.some(({ day }) => day.weekday != null)
+    ? [...days].sort((a, b) => {
+        const distance = (weekday: number | null | undefined) =>
+          weekday == null ? 8 : (weekday - ((now.getDay() + 6) % 7) + 7) % 7;
+        return distance(a.day.weekday) - distance(b.day.weekday);
+      })
+    : [...days.slice(nextIndex), ...days.slice(0, nextIndex)];
   const trainedToday = weekHistory.some(
-    ({ session }) => localDateKey(new Date(session.startedAt)) === today,
+    ({ session }) => localDateKey(new Date(session.endedAt ?? session.startedAt)) === today,
   );
+  const scheduledWeekdays = new Set(
+    days.flatMap(({ day }) => (day.weekday == null ? [] : [day.weekday])),
+  );
+  const workoutsByDay = new Map<string, WorkoutGraph[]>();
+  for (const workout of weekHistory) {
+    const key = localDateKey(new Date(workout.session.endedAt ?? workout.session.startedAt));
+    workoutsByDay.set(key, [...(workoutsByDay.get(key) ?? []), workout]);
+  }
+  if (records.active) {
+    const key = localDateKey(new Date(records.active.session.startedAt));
+    workoutsByDay.set(key, [...(workoutsByDay.get(key) ?? []), records.active]);
+  }
+  const dayEffort = (workouts: WorkoutGraph[]) =>
+    workouts.reduce((total, workout) => {
+      const completion = workoutCompletion(workout);
+      return total + completion.completedSets + completion.completedExercises * 0.75;
+    }, 0);
+  const maxEffort = Math.max(1, ...[...workoutsByDay.values()].map(dayEffort));
   const week = Array.from({ length: 7 }, (_, index): HomeDay => {
     const date = new Date(monday);
     date.setDate(monday.getDate() + index);
     const key = localDateKey(date);
+    const workouts = workoutsByDay.get(key) ?? [];
+    const isToday = key === today;
+    const isFuture = key > today;
+    const isTrainingDay =
+      workouts.length > 0 ||
+      scheduledWeekdays.has(index) ||
+      (isToday && days.length > 0 && !scheduledWeekdays.size);
     return {
       key,
       label: date.toLocaleDateString('en', { weekday: 'short' }),
@@ -84,10 +120,12 @@ export function deriveHomeData(
         month: 'long',
         day: 'numeric',
       }),
-      isToday: key === today,
-      completed: weekHistory.filter(
-        ({ session }) => localDateKey(new Date(session.startedAt)) === key,
-      ).length,
+      isToday,
+      completed: workouts.filter(({ session }) => session.status === 'completed').length,
+      kind: isFuture ? 'future' : isTrainingDay ? 'training' : 'rest',
+      performance: workouts.length
+        ? Math.max(0.18, Math.min(1, dayEffort(workouts) / maxEffort))
+        : 0,
     };
   });
   return {
@@ -101,7 +139,11 @@ export function deriveHomeData(
           : 'Good evening,',
     week,
     weekHistory,
-    suggestion: !trainedToday ? (nextDays[0] ?? null) : null,
+    suggestion: !trainedToday
+      ? days.some(({ day }) => day.weekday != null)
+        ? (days.find(({ day }) => day.weekday === (now.getDay() + 6) % 7) ?? null)
+        : (nextDays[0] ?? null)
+      : null,
     nextDays,
     summary: weeklySummary(records.history, now),
     previousSummary: weeklySummary(records.history, previousSunday),
@@ -136,7 +178,8 @@ export function workoutCompletion(workout: WorkoutGraph) {
 export function programDayMetadata(entry: ProgramGraph['days'][number]): string {
   const sets = entry.exercises.reduce((sum, exercise) => sum + (exercise.targetSets ?? 0), 0);
   const unknown = entry.exercises.some(({ targetSets }) => targetSets === null);
-  return `${countLabel(entry.exercises.length, 'exercise')} · ${sets}${unknown ? '+' : ''} planned ${sets === 1 && !unknown ? 'set' : 'sets'}`;
+  const minutes = estimatedProgramMinutes(entry.exercises);
+  return `${countLabel(entry.exercises.length, 'exercise')} · ${sets}${unknown ? '+' : ''} planned ${sets === 1 && !unknown ? 'set' : 'sets'}${minutes == null ? '' : ` · ~${minutes} min estimate`}`;
 }
 
 export function trainingTime(seconds: number): string {

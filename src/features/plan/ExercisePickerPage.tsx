@@ -1,5 +1,5 @@
-import { useDeferredValue, useMemo, useState } from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { useDeferredValue, useMemo, useRef, useState } from 'react';
+import { Link, useLoaderData, useNavigate, useSearchParams } from 'react-router-dom';
 
 import type { Exercise } from '../../domain/entities';
 import {
@@ -10,6 +10,10 @@ import {
 import { formatExerciseValue } from '../exercises/formatters';
 import type { HydratedProgramDay } from './programService';
 import { BuilderHeader } from './BuilderChrome';
+import { Button } from '../../components/ui/Button';
+import { createPrescription } from './programService';
+import { targetDefaults } from './programTemplates';
+import { ExerciseImage } from '../exercises/ExerciseImage';
 
 interface PickerData {
   day: HydratedProgramDay;
@@ -39,6 +43,33 @@ function SelectFilter({
 
 export function ExercisePickerPage() {
   const { day, exercises } = useLoaderData<PickerData>();
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const [busy, setBusy] = useState(false);
+  const pending = useRef(false);
+  const returnTo =
+    params.get('return') === 'editor'
+      ? `/plan/${day.program.id}#day-${day.day.id}`
+      : `/plan/${day.program.id}/days/${day.day.id}`;
+  const [error, setError] = useState<string | null>(null);
+  const add = async (exercise: Exercise) => {
+    if (pending.current) return;
+    pending.current = true;
+    setBusy(true);
+    setError(null);
+    try {
+      await createPrescription(
+        day.day.id,
+        exercise.id,
+        exercise.mechanic === 'isolation' ? targetDefaults.isolation : targetDefaults.compound,
+      );
+      await navigate(returnTo, { replace: true });
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : 'Could not add exercise. Retry.');
+      setBusy(false);
+      pending.current = false;
+    }
+  };
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
   const [filters, setFilters] = useState<ExerciseFilters>({});
@@ -62,14 +93,22 @@ export function ExercisePickerPage() {
   const base = `/plan/${day.program.id}/days/${day.day.id}/exercises/add`;
   return (
     <section className="builder-page" aria-labelledby="picker-title">
-      <BuilderHeader title="Choose Exercise" back={`/plan/${day.program.id}/days/${day.day.id}`} />
-      <Link className="back-link" to={`/plan/${day.program.id}/days/${day.day.id}`}>
+      <BuilderHeader title="Add Exercise" back={returnTo} />
+      <Link className="back-link" to={returnTo}>
         ← {day.day.name}
       </Link>
       <header className="program-header">
         <p className="section-kicker">Add exercise</p>
-        <h1 id="picker-title">Choose a movement</h1>
-        <p>Built-in and custom exercises use the same stable Liftwise reference.</p>
+        <h1 id="picker-title">Add to {day.day.name}</h1>
+        <p>
+          {day.day.weekday == null
+            ? 'Unscheduled'
+            : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][
+                day.day.weekday
+              ]}{' '}
+          · Targets are prefilled and editable.
+        </p>
+        {error ? <p role="alert">{error}</p> : null}
       </header>
       <label className="search-field">
         <span className="sr-only">Search exercises</span>
@@ -127,21 +166,49 @@ export function ExercisePickerPage() {
         Showing {results.length} matching exercises
       </p>
       <div className="picker-list">
+        {!results.length ? (
+          <p className="builder-empty">
+            No exercises found. Try another search or clear the filters.
+          </p>
+        ) : null}
         {results.map((exercise) => (
-          <Link
-            className="picker-row"
+          <article
             key={exercise.id}
-            to={`${base}/${encodeURIComponent(exercise.id)}`}
+            className="grid gap-2 rounded-[18px] border border-border bg-surface p-3"
           >
-            <div>
-              <strong>{exercise.name}</strong>
-              <span>
-                {formatExerciseValue(exercise.primaryMuscles[0] ?? exercise.bodyPart)} ·{' '}
-                {formatExerciseValue(exercise.equipment ?? 'bodyweight')}
-              </span>
+            <div className="flex items-center gap-3">
+              <ExerciseImage
+                image={exercise.images.start ?? exercise.images.main ?? null}
+                className="!h-14 !w-14 rounded-xl object-contain"
+              />
+              <Button
+                variant="ghost"
+                className="flex-1 flex-col items-start text-left"
+                disabled={busy || day.exercises.some((entry) => entry.exercise.id === exercise.id)}
+                aria-label={`Add ${exercise.name} to ${day.day.name}`}
+                onClick={() => void add(exercise)}
+              >
+                <div>
+                  <strong>{exercise.name}</strong>
+                  <span>
+                    {formatExerciseValue(exercise.primaryMuscles[0] ?? exercise.bodyPart)} ·{' '}
+                    {formatExerciseValue(exercise.equipment ?? 'bodyweight')}
+                  </span>
+                </div>
+                <span className="text-xs text-mint">
+                  {day.exercises.some((entry) => entry.exercise.id === exercise.id)
+                    ? 'Already on this day'
+                    : '+ Add with default target'}
+                </span>
+              </Button>
             </div>
-            <span aria-hidden="true">＋</span>
-          </Link>
+            <Link
+              className="flex min-h-11 items-center text-xs text-secondary"
+              to={`${base}/${encodeURIComponent(exercise.id)}${params.get('return') === 'editor' ? '?return=editor' : ''}`}
+            >
+              Configure {exercise.name} before adding
+            </Link>
+          </article>
         ))}
       </div>
     </section>

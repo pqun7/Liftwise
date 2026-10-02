@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { programTemplates, type ProgramTemplateId } from './programTemplates';
 import type { Program } from '../../domain/entities';
 import { database, type LiftwiseDatabase } from '../../lib/storage/database';
 import {
@@ -19,8 +20,8 @@ export const splitTemplates = [
   {
     id: 'ppl',
     name: 'Push Pull Legs',
-    hint: '3 days · Popular',
-    days: [0, 2, 4],
+    hint: '6 days · Experienced / Higher frequency',
+    days: [0, 1, 2, 3, 4, 5],
     names: ['Push Day', 'Pull Day', 'Legs Day'],
   },
   {
@@ -95,7 +96,7 @@ export class ProgramBuilderService {
             ? await this.programs.updateDay(entry.day.id, { weekday })
             : await this.programs.addDay({
                 programId,
-                name: split.names[index % (split.names.length || 1)] ?? `Training Day ${index + 1}`,
+                name: split.names[index % (split.names.length || 1)] ?? weekdays[weekday]!,
                 weekday,
                 defaultRestSeconds: 180,
               });
@@ -108,6 +109,50 @@ export class ProgramBuilderService {
     );
   }
 
+  async applyTemplate(programId: string, templateId: ProgramTemplateId, replace = false) {
+    const template = programTemplates.find((item) => item.id === templateId);
+    if (!template) throw new Error('Unknown template.');
+    return this.db.transaction(
+      'rw',
+      [
+        this.db.programs,
+        this.db.programDays,
+        this.db.programExercises,
+        this.db.exercises,
+        this.db.workoutExercises,
+        this.db.workoutSessions,
+        this.db.appSettings,
+      ],
+      async () => {
+        const graph = await this.programs.get(programId);
+        if (!graph) throw new Error('Program not found.');
+        if (graph.days.length && !replace)
+          throw new Error('Confirm replacement of existing days first.');
+        // Validate ALL catalog references before removing any user prescriptions.
+        for (const day of template.days)
+          for (const exercise of day.exercises) {
+            if (!(await this.db.exercises.get(exercise.exerciseId)))
+              throw new Error(
+                `Template exercise unavailable: ${exercise.exerciseId}. No changes saved.`,
+              );
+          }
+        for (const { day } of graph.days) await this.programs.deleteDay(day.id);
+        for (const source of template.days) {
+          const day = await this.programs.addDay({
+            programId,
+            name: source.name,
+            weekday: source.weekday,
+            defaultRestSeconds: 150,
+          });
+          for (const prescription of source.exercises)
+            await this.programs.addExercise({ programDayId: day.id, ...prescription });
+        }
+        await this.programs.update(programId, { splitTemplate: template.split });
+        return this.programs.get(programId);
+      },
+    );
+  }
+
   async finish(programId: string) {
     return this.db.transaction(
       'rw',
@@ -115,6 +160,11 @@ export class ProgramBuilderService {
       async () => {
         const graph = await this.programs.get(programId);
         if (!graph?.days.length) throw new Error('Add at least one training day before saving.');
+        const scheduled = graph.days.flatMap(({ day }) =>
+          day.weekday == null ? [] : [day.weekday],
+        );
+        if (graph.days.length > 7 || new Set(scheduled).size !== scheduled.length)
+          throw new Error('Use at most seven training days with unique weekdays before saving.');
         const saved = await this.programs.update(programId, { draft: false });
         if (!(await this.programs.getActiveId())) await this.programs.setActive(programId);
         return saved;

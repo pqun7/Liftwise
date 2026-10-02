@@ -1,159 +1,114 @@
 import { useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router-dom';
-import { Check, Circle, Dumbbell, ArrowUpDown, SlidersHorizontal, Info } from 'lucide-react';
+import type { Exercise } from '../../domain/entities';
 import type { ProgramGraph } from '../../lib/storage/repositories/programRepository';
-import { BuilderHeader, BuilderFooter, NextLabel } from './BuilderChrome';
-import { programBuilder, weekdays, splitTemplates, type SplitTemplate } from './builderService';
-import { UnsavedChanges } from './UnsavedChanges';
+import { BuilderHeader } from './BuilderChrome';
+import { programBuilder, weekdays } from './builderService';
+import { TemplateSelector } from './TemplateSelector';
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
 
 export function TrainingDaysPage() {
-  const { graph } = useLoaderData<{ graph: ProgramGraph }>();
+  const { graph, catalog } = useLoaderData<{ graph: ProgramGraph; catalog: Exercise[] }>();
   const navigate = useNavigate();
-  const [selected, setSelected] = useState<number[]>(() =>
-    graph.days.length
-      ? graph.days.slice(0, 7).map(({ day }, index) => day.weekday ?? index)
-      : [0, 2, 4],
+  const [custom, setCustom] = useState(graph.days.length > 0);
+  const [selected, setSelected] = useState<number[]>(
+    graph.days.length ? graph.days.map(({ day }, index) => day.weekday ?? index) : [0, 2, 4],
   );
-  const [template, setTemplate] = useState<SplitTemplate>(
-    graph.program.splitTemplate ?? (graph.days.length ? 'custom' : 'ppl'),
-  );
-  const [manualDays, setManualDays] = useState(graph.days.length > 0);
-  const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const submit = async () => {
-    if (!selected.length) {
-      setError('Choose at least one training day.');
-      return;
-    }
-    const available = graph.days.filter(
-      ({ day }) => day.weekday == null || selected.includes(day.weekday),
-    ).length;
-    const removes = graph.days.length > selected.length || available < graph.days.length;
-    if (
-      removes &&
-      !window.confirm(
-        'Remove deselected training days and their prescriptions? Workout history will stay intact.',
-      )
-    )
-      return;
+  const save = async (action: () => Promise<unknown>) => {
+    if (busy) return;
     setBusy(true);
     setError(null);
     try {
-      const saved = await programBuilder.chooseDays(graph.program.id, selected, template, removes);
-      setDirty(false);
-      await navigate(`/plan/${graph.program.id}/days/${saved!.days[0]!.day.id}`);
+      await action();
+      await navigate(`/plan/${graph.program.id}`);
     } catch (failure) {
       setError(
-        failure instanceof Error
-          ? failure.message
-          : 'Days could not be saved. Existing data is unchanged.',
+        failure instanceof Error ? failure.message : 'Could not save. Existing data is unchanged.',
       );
-    } finally {
       setBusy(false);
     }
   };
   return (
-    <section className="builder-page">
-      <BuilderHeader
-        title="Training Days"
-        back={`/plan/${graph.program.id}/edit`}
-        step={1}
-        programId={graph.program.id}
-      />
-      <UnsavedChanges dirty={dirty} saving={busy} />
-      <section className="builder-card builder-days-card">
-        <h2>Select training days</h2>
-        <p>
-          Choose which days you want to train.
-          <br />
-          Unselected days are rest days.
-        </p>
-        <div className="builder-week" role="group" aria-label="Training weekdays">
-          {weekdays.map((day, index) => (
-            <button
-              type="button"
-              key={day}
-              aria-label={day}
-              aria-pressed={selected.includes(index)}
-              className={selected.includes(index) ? 'is-selected' : ''}
-              onClick={() => {
-                setSelected((current) =>
-                  current.includes(index)
-                    ? current.filter((value) => value !== index)
-                    : [...current, index],
-                );
-                setManualDays(true);
-                setDirty(true);
-              }}
-            >
-              <span>{day.slice(0, 3)}</span>
-              {selected.includes(index) ? (
-                <Check size={15} aria-hidden="true" />
-              ) : (
-                <Circle size={15} aria-hidden="true" />
-              )}
-            </button>
-          ))}
-        </div>
-      </section>
-      <fieldset className="builder-card builder-splits">
-        <legend className="sr-only">Split template</legend>
-        <h2 aria-hidden="true">Split template</h2>
-        {splitTemplates.map((split, index) => {
-          const Icon = index === 1 ? ArrowUpDown : index === 3 ? SlidersHorizontal : Dumbbell;
-          return (
-            <label
-              key={split.id}
-              className={`builder-split${template === split.id ? ' is-selected' : ''}`}
-            >
-              <input
-                type="radio"
-                name="Split template"
-                value={split.id}
-                checked={template === split.id}
-                onChange={() => {
-                  setTemplate(split.id);
-                  if (!manualDays && !graph.days.length && split.days.length)
-                    setSelected([...split.days]);
-                  setDirty(true);
-                }}
-              />
-              <span className="builder-icon">
-                <Icon size={23} aria-hidden="true" />
-              </span>
-              <span>
-                <strong>{split.name}</strong>
-                <small>{split.hint}</small>
-              </span>
-              {template === split.id ? (
-                <Check size={19} aria-hidden="true" />
-              ) : (
-                <Circle size={19} aria-hidden="true" />
-              )}
-            </label>
+    <section className="grid gap-4">
+      <BuilderHeader title="Training Days" back={`/plan/${graph.program.id}/edit`} />
+      <TemplateSelector
+        catalog={catalog}
+        busy={busy}
+        apply={(id) => {
+          if (
+            graph.days.length &&
+            !window.confirm('Replace existing training days and targets? Workout history remains.')
+          )
+            return;
+          void save(() =>
+            programBuilder.applyTemplate(graph.program.id, id, graph.days.length > 0),
           );
-        })}
-      </fieldset>
-      <p className="builder-info">
-        <Info size={17} aria-hidden="true" />
-        You can customize exercises for each day next.
-      </p>
+        }}
+      />
+      <Button
+        variant={custom ? 'outline' : 'secondary'}
+        onClick={() => setCustom((value) => !value)}
+        aria-pressed={custom}
+      >
+        Custom · Build your own schedule
+      </Button>
+      {custom ? (
+        <Card className="grid gap-3">
+          <h2 className="text-lg font-bold">Select training days</h2>
+          <p className="text-xs text-secondary">
+            Default workout names are weekdays. Rename them and add exercises in the editor.
+          </p>
+          <div className="grid grid-cols-7 gap-1" role="group" aria-label="Training weekdays">
+            {weekdays.map((weekday, index) => (
+              <Button
+                key={weekday}
+                className="flex-col !px-0 text-xs"
+                variant={selected.includes(index) ? 'primary' : 'secondary'}
+                aria-label={weekday}
+                aria-pressed={selected.includes(index)}
+                disabled={busy}
+                onClick={() =>
+                  setSelected((current) =>
+                    current.includes(index)
+                      ? current.filter((value) => value !== index)
+                      : [...current, index],
+                  )
+                }
+              >
+                {weekday.slice(0, 3)}
+                <span aria-hidden="true">{selected.includes(index) ? '✓' : '○'}</span>
+              </Button>
+            ))}
+          </div>
+          <Button
+            variant="primary"
+            disabled={busy || !selected.length}
+            onClick={() => {
+              if (
+                (graph.days.length > selected.length ||
+                  graph.days.some(
+                    ({ day }) => day.weekday != null && !selected.includes(day.weekday),
+                  )) &&
+                !window.confirm('Remove deselected days and their prescriptions? History remains.')
+              )
+                return;
+              void save(() =>
+                programBuilder.chooseDays(graph.program.id, selected, 'custom', true),
+              );
+            }}
+          >
+            Next: Add Exercises
+          </Button>
+        </Card>
+      ) : null}
       {error ? (
-        <p role="alert" className="form-error">
+        <p role="alert" className="text-sm text-secondary">
           {error}
         </p>
       ) : null}
-      <BuilderFooter>
-        <button
-          className="builder-primary"
-          type="button"
-          disabled={busy}
-          onClick={() => void submit()}
-        >
-          <NextLabel>{busy ? 'Saving…' : 'Next: Add Exercises'}</NextLabel>
-        </button>
-      </BuilderFooter>
     </section>
   );
 }

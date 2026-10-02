@@ -15,8 +15,11 @@ test('focused logger preserves decimal sets, rest, prefill, recovery and canonic
   await page.goto('/plan/new');
   await page.getByLabel('Program name').fill('Logger Strength');
   await saveEmptyProgram(page);
-  await page.getByRole('link', { name: '+ Day' }).click();
+  await page.getByRole('link', { name: 'Add training day' }).click();
   await page.getByLabel('Day name').fill('Push Day');
+  await page
+    .getByLabel('Weekday', { exact: true })
+    .selectOption(String(await page.evaluate(() => (new Date().getDay() + 6) % 7)));
   await page.getByRole('button', { name: 'Add day', exact: true }).click();
   await page.getByRole('link', { name: 'Add exercise', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search exercises' }).fill('Barbell Bench Press');
@@ -37,7 +40,18 @@ test('focused logger preserves decimal sets, rest, prefill, recovery and canonic
   await expect(page.getByRole('heading', { name: 'Push Day', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Logger Row', exact: true })).toBeVisible();
   await page.goto('/workout');
+  await expect(page.getByRole('heading', { name: 'Workout preview' })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toHaveCount(1);
+  await expect(page.locator('input, textarea, select')).toHaveCount(0);
+  for (const width of [375, 390, 393, 402, 430]) {
+    await page.setViewportSize({ width, height: 844 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+  }
+  await page.screenshot({ path: testInfo.outputPath('workout-landing.png'), fullPage: true });
   await page.getByRole('button', { name: /Push Day/ }).click();
+  await page.getByRole('button', { name: 'Start Workout', exact: true }).click();
   const logger = page.getByRole('region', { name: 'Set logger' });
   await expect(page.getByRole('heading', { name: 'Push Day', exact: true })).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toHaveCount(0);
@@ -85,7 +99,10 @@ test('focused logger preserves decimal sets, rest, prefill, recovery and canonic
   await logger.getByRole('button', { name: 'Complete set', exact: true }).click();
   await expect(logger.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(1);
   await finishLogger(page);
+  await expect(page.getByRole('link', { name: 'View Completed Workout' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Start Workout', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: /Push Day/ }).click();
+  await page.getByRole('button', { name: 'Start Workout', exact: true }).click();
   await expect(logger.getByLabel('Set 1 weight', { exact: true })).toHaveValue('65');
   await expect(logger.getByLabel('Set 2 weight', { exact: true })).toHaveValue('62.5');
   await expect(logger.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(0);
@@ -96,6 +113,14 @@ test('focused logger preserves decimal sets, rest, prefill, recovery and canonic
   await page.screenshot({ path: testInfo.outputPath('active-logger.png'), fullPage: true });
   const sessionUrl = page.url();
   await page.getByRole('link', { name: 'Leave workout, keep session saved' }).click();
+  await page.getByRole('link', { name: 'Workout', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Start training' })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toHaveCount(1);
+  await expect(page.getByRole('button', { name: /Start/ })).toHaveCount(0);
+  await page.screenshot({
+    path: testInfo.outputPath('workout-landing-active.png'),
+    fullPage: true,
+  });
   await page.getByRole('link', { name: 'Continue Workout', exact: true }).click();
   await expect(page).toHaveURL(sessionUrl);
   await expect(logger.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(1);

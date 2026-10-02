@@ -238,6 +238,8 @@ export class ProgramRepository {
         createdAt: timestamp,
         updatedAt: timestamp,
       });
+      if (existing.length >= 7)
+        throw new Error('A program can contain at most seven training days.');
       if (day.weekday != null && existing.some((item) => item.weekday === day.weekday))
         throw new Error('This weekday already has a training day.');
       await this.db.programDays.add(day);
@@ -272,7 +274,7 @@ export class ProgramRepository {
     });
   }
 
-  async duplicateDay(id: string): Promise<ProgramDayWithExercises> {
+  async duplicateDay(id: string, weekday?: number): Promise<ProgramDayWithExercises> {
     return this.db.transaction(
       'rw',
       [this.db.programs, this.db.programDays, this.db.programExercises],
@@ -283,12 +285,16 @@ export class ProgramRepository {
           .equals(source.programId)
           .toArray();
         const timestamp = createTimestamp();
+        if (siblings.length >= 7)
+          throw new Error('A program can contain at most seven training days.');
+        if (weekday != null && siblings.some((item) => item.weekday === weekday))
+          throw new Error('This weekday already has a training day.');
         const day = programDaySchema.parse({
           ...source,
           id: createEntityId(),
           name: `${source.name} Copy`,
           order: siblings.length + 1,
-          weekday: null,
+          weekday: weekday ?? null,
           createdAt: timestamp,
           updatedAt: timestamp,
         });
@@ -408,6 +414,58 @@ export class ProgramRepository {
         await this.db.programExercises.put(updated);
         await this.touchProgram(day.programId, timestamp);
         return updated;
+      },
+    );
+  }
+
+  async transferExercise(id: string, destinationDayId: string, duplicate = false): Promise<void> {
+    await this.db.transaction(
+      'rw',
+      [this.db.programs, this.db.programDays, this.db.programExercises],
+      async () => {
+        const source = requireRecord(await this.db.programExercises.get(id), 'ProgramExercise', id);
+        const from = requireRecord(
+          await this.db.programDays.get(source.programDayId),
+          'ProgramDay',
+          source.programDayId,
+        );
+        const to = requireRecord(
+          await this.db.programDays.get(destinationDayId),
+          'ProgramDay',
+          destinationDayId,
+        );
+        if (from.programId !== to.programId) throw new Error('Choose a day in the same program.');
+        if (from.id === to.id) throw new Error('Choose another day.');
+        const destination = await this.db.programExercises
+          .where('programDayId')
+          .equals(to.id)
+          .sortBy('order');
+        if (destination.some((entry) => entry.exerciseId === source.exerciseId))
+          throw new Error('This exercise already exists on the destination day.');
+        const timestamp = createTimestamp();
+        const moved = programExerciseSchema.parse({
+          ...source,
+          id: duplicate ? createEntityId() : source.id,
+          programDayId: to.id,
+          order: destination.length + 1,
+          createdAt: duplicate ? timestamp : source.createdAt,
+          updatedAt: timestamp,
+        });
+        if (!duplicate) await this.db.programExercises.delete(source.id);
+        await this.db.programExercises.add(moved);
+        if (!duplicate) {
+          const remaining = await this.db.programExercises
+            .where('programDayId')
+            .equals(from.id)
+            .sortBy('order');
+          await this.db.programExercises.bulkDelete(remaining.map((entry) => entry.id));
+          await this.db.programExercises.bulkAdd(
+            remaining.map((entry, index) =>
+              programExerciseSchema.parse({ ...entry, order: index + 1, updatedAt: timestamp }),
+            ),
+          );
+        }
+        await this.touchProgram(from.programId, timestamp);
       },
     );
   }

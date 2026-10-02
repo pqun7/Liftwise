@@ -17,6 +17,8 @@ const exercises = new ExerciseRepository(database);
 export interface ProgramListData {
   programs: Program[];
   activeProgramId: string | null;
+  graphs: ProgramGraph[];
+  completed: import('../../domain/entities').WorkoutSession[];
 }
 
 export interface HydratedProgramExercise {
@@ -32,7 +34,14 @@ export interface HydratedProgramDay {
 
 export async function listPrograms(): Promise<ProgramListData> {
   const [items, activeProgramId] = await Promise.all([programs.list(), programs.getActiveId()]);
-  return { programs: items, activeProgramId };
+  const graphs = await Promise.all(items.map((item) => programs.get(item.id)));
+  const completed = await database.workoutSessions.where('status').equals('completed').toArray();
+  return {
+    programs: items,
+    activeProgramId,
+    completed,
+    graphs: graphs.filter((graph): graph is ProgramGraph => graph !== undefined),
+  };
 }
 
 export async function getProgram(id: string): Promise<ProgramGraph | undefined> {
@@ -79,10 +88,12 @@ export const createProgramDay = (programId: string, input: UpdateProgramDayInput
     name: input.name ?? '',
     notes: input.notes ?? null,
     defaultRestSeconds: input.defaultRestSeconds ?? null,
+    weekday: input.weekday ?? null,
   });
 export const updateProgramDay = (id: string, input: UpdateProgramDayInput) =>
   programs.updateDay(id, input);
-export const duplicateProgramDay = (id: string) => programs.duplicateDay(id);
+export const duplicateProgramDay = (id: string, weekday?: number) =>
+  programs.duplicateDay(id, weekday);
 export const deleteProgramDay = (id: string) => programs.deleteDay(id);
 
 export async function moveProgramDay(
@@ -104,7 +115,23 @@ export const createPrescription = (
   programDayId: string,
   exerciseId: string,
   input: ProgramExercisePrescriptionInput,
-) => programs.addExercise({ programDayId, exerciseId, ...input });
+) =>
+  database.transaction(
+    'rw',
+    [database.programs, database.programDays, database.programExercises, database.exercises],
+    async () => {
+      const duplicate = await database.programExercises
+        .where('programDayId')
+        .equals(programDayId)
+        .filter((entry) => entry.exerciseId === exerciseId)
+        .first();
+      if (duplicate)
+        throw new Error('This exercise already exists on this day. Edit its target instead.');
+      return programs.addExercise({ programDayId, exerciseId, ...input });
+    },
+  );
+export const transferPrescription = (id: string, destinationDayId: string, duplicate = false) =>
+  programs.transferExercise(id, destinationDayId, duplicate);
 export const updatePrescription = (id: string, input: ProgramExercisePrescriptionInput) =>
   programs.updateExercise(id, input);
 export const deletePrescription = (id: string) => programs.deleteExercise(id);
