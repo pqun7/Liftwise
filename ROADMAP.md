@@ -76,6 +76,14 @@ The roadmap is directional. Reliability, privacy, and data safety take priority 
 
 No machine learning or progression engine is included.
 
+## v0.9.0 — Release-candidate hardening
+
+- [x] Compact-width, large-text, keyboard focus and offline regression audits
+- [x] Non-blocking optional Wake Lock and workout-safe update/recovery handling
+- [x] Storage/quota feedback and independently clearable exercise media
+- [x] Measured feature splitting and historical migration/backup regression checks
+- [ ] Physical-iPhone acceptance and multiple gym-session soak tests before v1.0
+
 ## Later
 
 - Optional device-level capabilities where they improve the offline experience

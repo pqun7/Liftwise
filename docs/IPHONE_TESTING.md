@@ -2,10 +2,22 @@
 
 Run this plan on a physical, supported iPhone before releasing an installable build.
 
+## v0.9 release-candidate QA matrix
+
+- Automated: domain/repository/migration/backup tests and production-browser offline flows.
+- WebKit emulation: 320/375/390/393/414/430px portrait, large text, focus and landscape. This is not an iPhone keyboard, Dynamic Island or storage-eviction test.
+- Physical iPhone: **pending**. Record device/iOS/build and results; follow `SOAK_TESTING.md` across multiple gym sessions before v1.0.
+
+On the installed PWA, check notch/Dynamic Island and home-indicator spacing; bottom navigation, update messages, Current/Undo and focused controls must not obscure actions. Repeat with larger system text, VoiceOver and Reduce Motion. Editable mobile controls must compute to at least 16px; manual pinch zoom remains enabled.
+
+Enable **Keep screen awake while training**. Verify visibility return, pause/resume, leaving/finishing the workout release and reacquire appropriately. Denial/unsupported/Low Power Mode must never block training. Repeat offline after caching/installing. During an active and a paused workout, activate an update from another tab: this screen must not reload; finish and explicitly apply afterward.
+
+Use a separate test profile for quota/failure tests. Unknown storage estimates or persistence API failures must be reported honestly; downloaded media can be cleared without touching user data. Keep external backups: no browser persistence guarantee is made.
+
 ## Prepare
 
 1. Build and deploy the exact release commit to an HTTPS URL. Do not use Vite's development server for PWA verification.
-2. On the iPhone, open **Settings → Safari → Advanced → Website Data**, find the test host, and remove its old data for a clean-install pass.
+2. Use a dedicated test host/profile for the clean-install pass. Only after exporting and verifying an external backup of any existing test data, open **Settings → Safari → Advanced → Website Data** and remove that test host's data. Never clear the only copy of real training data.
 3. In Safari, open the HTTPS URL while online.
 
 ## Install and launch
@@ -125,6 +137,6 @@ Record any loss, duplicate set, stale prescription, timer restart, or forced upd
 
 ## Data boundary
 
-v0.6.1 contains the Exercise Library, Program Builder, Data Safety tools, and durable Workout Session Core. In Safari Web Inspector, confirm there are no requests to RepDB, GitHub, or exercise-dataset.com during normal use and no application data in `localStorage`. IndexedDB should report schema version 5 with programs, session snapshots, recovery/timer fields, sets, exercises, and catalog metadata. Exercise art belongs in versioned Cache Storage; clearing it from the app must leave IndexedDB records unchanged.
+v0.9.0 includes the Exercise Library, Program Builder, Data Safety, durable workouts, history and local charts. In Safari Web Inspector, confirm no requests to RepDB, GitHub or exercise-dataset.com during normal use and no critical data in `localStorage`. IndexedDB remains schema version 6; backup format remains v2. Exercise art belongs in independently clearable Cache Storage; clearing it must leave user records unchanged.
 
 Record the iPhone model, iOS version, deployed commit, date, and any deviations in the release issue.

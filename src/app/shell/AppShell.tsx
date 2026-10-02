@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { NavLink, Outlet, ScrollRestoration } from 'react-router-dom';
 
 import { navigationItems } from '../navigation';
@@ -25,8 +26,11 @@ export function AppShell() {
       </header>
 
       <main id="main-content" className="main-content" tabIndex={-1}>
+        <UpdatePrompt />
         <ActiveWorkoutBanner />
-        <Outlet />
+        <Suspense fallback={<p role="status">Opening local screen…</p>}>
+          <Outlet />
+        </Suspense>
       </main>
 
       <nav className="bottom-nav" aria-label="Primary navigation">
@@ -43,7 +47,6 @@ export function AppShell() {
         ))}
       </nav>
 
-      <UpdatePrompt />
       <ScrollRestoration />
     </div>
   );

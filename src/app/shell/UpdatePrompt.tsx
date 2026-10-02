@@ -5,27 +5,58 @@ import { getRecoverySummary } from '../../features/workout/workoutService';
 
 export function UpdatePrompt() {
   const [deferred, setDeferred] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [controllerUpdated, setControllerUpdated] = useState(false);
+  const reloadWhenSafe = async () => {
+    setControllerUpdated(true);
+    try {
+      if (await getRecoverySummary()) {
+        setDeferred(true);
+        return;
+      }
+      window.location.reload();
+    } catch {
+      setError('Update reload postponed: workout safety could not be verified.');
+    }
+  };
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     offlineReady: [offlineReady, setOfflineReady],
     updateServiceWorker,
-  } = useRegisterSW();
+  } = useRegisterSW({
+    onNeedReload: () => {
+      void reloadWhenSafe();
+    },
+  });
 
-  if (!needRefresh && !offlineReady) {
+  if (!needRefresh && !offlineReady && !controllerUpdated) {
     return null;
   }
 
   const dismiss = () => {
     setNeedRefresh(false);
     setOfflineReady(false);
+    setControllerUpdated(false);
   };
 
   const safelyUpdate = async () => {
-    if (await getRecoverySummary()) {
-      setDeferred(true);
-      return;
+    setBusy(true);
+    setError(null);
+    try {
+      if (await getRecoverySummary()) {
+        setDeferred(true);
+        return;
+      }
+      if (controllerUpdated) await reloadWhenSafe();
+      else await updateServiceWorker(true);
+    } catch {
+      setError(
+        'Update postponed: workout safety could not be verified. Your current app remains open.',
+      );
+    } finally {
+      setBusy(false);
     }
-    await updateServiceWorker(true);
   };
 
   return (
@@ -33,13 +64,13 @@ export function UpdatePrompt() {
       <p>
         {deferred
           ? 'Update deferred until the active workout is finished or discarded.'
-          : needRefresh
+          : needRefresh || controllerUpdated
             ? 'A new Liftwise version is ready.'
             : 'Liftwise is ready offline.'}
       </p>
       <div>
-        {needRefresh && !deferred ? (
-          <button type="button" onClick={() => void safelyUpdate()}>
+        {needRefresh || controllerUpdated ? (
+          <button type="button" disabled={busy} onClick={() => void safelyUpdate()}>
             Update
           </button>
         ) : null}
@@ -47,6 +78,7 @@ export function UpdatePrompt() {
           Dismiss
         </button>
       </div>
+      {error ? <p role="alert">{error}</p> : null}
     </aside>
   );
 }

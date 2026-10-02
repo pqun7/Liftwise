@@ -171,7 +171,9 @@ export function DataSafetyPage() {
     setMessage(
       persistence === 'granted'
         ? 'Persistent storage was granted by this browser.'
-        : 'Persistent storage was not granted. Backups remain important.',
+        : persistence === 'unavailable'
+          ? 'Storage persistence could not be checked. Backups remain important.'
+          : 'Persistent storage was not granted. Backups remain important.',
     );
     setBusy(false);
   };
@@ -246,9 +248,11 @@ export function DataSafetyPage() {
               <dd>
                 {summary.storage.persistence === 'granted'
                   ? 'Granted'
-                  : summary.storage.persistence === 'not-granted'
-                    ? 'Not granted'
-                    : 'Unsupported'}
+                  : summary.storage.persistence === 'unavailable'
+                    ? 'Unavailable'
+                    : summary.storage.persistence === 'not-granted'
+                      ? 'Not granted'
+                      : 'Unsupported'}
               </dd>
             </div>
           </dl>

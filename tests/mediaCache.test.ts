@@ -65,4 +65,24 @@ describe('offline exercise media', () => {
     ).rejects.toThrow('1 of 1 exercise image could not be downloaded');
     expect(entries.size).toBe(0);
   });
+  it('stops media downloads on quota failure without deleting user storage', async () => {
+    const { storage } = createCacheStorage();
+    storage.open.mockResolvedValue({
+      ...(await storage.open()),
+      put: vi.fn().mockRejectedValue(new DOMException('Full', 'QuotaExceededError')),
+    });
+    vi.stubGlobal('caches', storage);
+    const fetchImage = vi
+      .fn()
+      .mockResolvedValue(new Response('image', { headers: { 'content-type': 'image/webp' } }));
+    vi.stubGlobal('fetch', fetchImage);
+    await expect(
+      downloadExerciseMedia(
+        Array.from({ length: 8 }, (_, i) => `/repdb-media/flat/${i}.webp`),
+        () => undefined,
+      ),
+    ).rejects.toThrow('storage is full');
+    expect(fetchImage).toHaveBeenCalledTimes(4);
+    expect(storage.delete).not.toHaveBeenCalled();
+  });
 });

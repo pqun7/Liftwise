@@ -57,9 +57,11 @@ IndexedDB holds structured catalog and user data. Versioned Cache Storage holds 
 
 `navigator.storage.estimate()`, `persisted()`, and `persist()` are progressive enhancement. Unsupported results are shown as unavailable/unsupported. A granted persistence request reduces eviction risk but does not guarantee permanent storage on iPhone; external backup files remain necessary.
 
+v0.9 distinguishes API failure (Unavailable) from an explicit denial (Not granted), rejects invalid size estimates, and preserves the optional screen-awake preference in backups. Quota failures stop exercise-media downloading; they do not clear IndexedDB or user records.
+
 ## CSV foundation
 
-The shared CSV encoder handles quoting, commas, line breaks, UTF-8 BOM output, and reusable typed columns. CSV currently exports custom exercises only; workout CSV semantics remain deliberately deferred.
+The shared CSV encoder handles quoting, commas, line breaks, UTF-8 BOM output, and reusable typed columns. Custom-exercise CSV and Progress exports for workouts, sets and body metrics are available; see `ANALYTICS.md` for column semantics. JSON backups, not CSV, are the restore format.
 
 ## User workflow
 

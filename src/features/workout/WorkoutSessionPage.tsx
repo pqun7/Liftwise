@@ -3,6 +3,7 @@ import { Link, useLoaderData, useNavigate, useRevalidator } from 'react-router-d
 
 import type { SetCompletionUndo } from '../../lib/storage/repositories/workoutRepository';
 import { WorkoutSetRow } from './WorkoutSetRow';
+import { KeepAwake } from './KeepAwake';
 import {
   formatDuration,
   restRemainingSeconds,
@@ -73,40 +74,45 @@ export function WorkoutSessionPage() {
           {formatDuration(workoutElapsedSeconds(session, now))}
         </strong>
       </header>
+      {mutable ? <KeepAwake active={session.status === 'active'} /> : null}
 
-      {mutable && workout.exercises.length > 0 ? (
-        <aside className="workout-current-control">
-          <a href={'#exercise-' + (session.currentExerciseId ?? workout.exercises[0]!.exercise.id)}>
-            Current:{' '}
-            {workout.exercises.find(({ exercise }) => exercise.id === session.currentExerciseId)
-              ?.exercise.exerciseName ?? workout.exercises[0]!.exercise.exerciseName}
-          </a>
-          <span>{rest > 0 ? 'Rest ' + formatDuration(rest) : 'Ready for next set'}</span>
-        </aside>
-      ) : null}
-      {pageError ? (
-        <p className="form-error" role="alert">
-          {pageError}
-        </p>
-      ) : null}
+      <div className="workout-sticky-controls">
+        {mutable && workout.exercises.length > 0 ? (
+          <aside className="workout-current-control">
+            <a
+              href={'#exercise-' + (session.currentExerciseId ?? workout.exercises[0]!.exercise.id)}
+            >
+              Current:{' '}
+              {workout.exercises.find(({ exercise }) => exercise.id === session.currentExerciseId)
+                ?.exercise.exerciseName ?? workout.exercises[0]!.exercise.exerciseName}
+            </a>
+            <span>{rest > 0 ? 'Rest ' + formatDuration(rest) : 'Ready for next set'}</span>
+          </aside>
+        ) : null}
+        {pageError ? (
+          <p className="form-error" role="alert">
+            {pageError}
+          </p>
+        ) : null}
 
-      {undo && now <= undo.expiresAt ? (
-        <aside className="workout-undo" role="status">
-          Set saved{' '}
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() =>
-              void run(async () => {
-                await undoWorkoutCompletion(undo);
-                setUndo(null);
-              })
-            }
-          >
-            Undo completion
-          </button>
-        </aside>
-      ) : null}
+        {undo && now <= undo.expiresAt ? (
+          <aside className="workout-undo" role="status">
+            Set saved{' '}
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() =>
+                void run(async () => {
+                  await undoWorkoutCompletion(undo);
+                  setUndo(null);
+                })
+              }
+            >
+              Undo completion
+            </button>
+          </aside>
+        ) : null}
+      </div>
       {mutable ? (
         <div className="workout-session-actions">
           <button

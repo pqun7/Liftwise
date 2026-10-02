@@ -4,6 +4,28 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-02
+
+### Added
+
+- Optional screen-awake preference during visible active workouts, with non-blocking unsupported/denied handling and lifecycle cleanup.
+- Root screen-error recovery, compact-width/large-text audits, and complete offline training/backup/CSV/chart regression coverage.
+- Explicit physical-iPhone QA matrix and multi-session soak plan before v1.0.
+
+### Fixed
+
+- PWA reload safety now also guards controlling events from updates activated in another tab; failed workout checks postpone updates.
+- Recovery/read/discard errors are visible instead of silently hidden; media download stops on quota exhaustion without touching user data.
+- Storage API failures report Unavailable, and invalid estimates are discarded.
+- Current-exercise and Undo controls share one sticky stack instead of overlapping.
+- PWA status messages stay in document flow instead of covering form buttons; scrolling reserves bottom-navigation space.
+- Touch-device typography also stays zoom-safe in landscape without restricting manual zoom.
+- Existing pinned catalogs are read from IndexedDB after restart; failed local artifact initialization can retry.
+
+### Changed
+
+- Feature screens load in separate locally precached chunks. Database remains v6 and backup format remains v2; no historical migrations changed.
+
 ## [0.8.0] - 2026-10-02
 
 ### Added

@@ -9,22 +9,35 @@ function minutesSince(timestamp: string): number {
 
 export function ActiveWorkoutBanner() {
   const [summary, setSummary] = useState<WorkoutRecoverySummary | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const location = useLocation();
 
   useEffect(() => {
     let active = true;
+    setError(null);
     void getRecoverySummary()
       .then((nextSummary) => {
         if (active) setSummary(nextSummary);
       })
       .catch(() => {
-        if (active) setSummary(null);
+        if (active) {
+          setSummary(null);
+          setError(
+            'Workout recovery could not be checked. Open Data Safety before clearing browser storage.',
+          );
+        }
       });
     return () => {
       active = false;
     };
   }, [location.pathname]);
 
+  if (error)
+    return (
+      <p role="alert">
+        {error} <Link to="/settings/data-safety">Data Safety</Link>
+      </p>
+    );
   if (!summary || location.pathname === `/workout/${summary.id}`) return null;
   return (
     <aside className="recovery-banner" aria-labelledby="unfinished-workout-title">
@@ -51,7 +64,11 @@ export function ActiveWorkoutBanner() {
               )
             )
               return;
-            void discardWorkout(summary.id).then(() => setSummary(null));
+            void discardWorkout(summary.id)
+              .then(() => setSummary(null))
+              .catch(() =>
+                setError('Workout could not be discarded. Saved data has not been reset.'),
+              );
           }}
         >
           Discard

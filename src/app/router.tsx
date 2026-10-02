@@ -1,18 +1,55 @@
+import { lazy } from 'react';
 import { createBrowserRouter, type RouteObject } from 'react-router-dom';
 
 import { HomePage } from '../features/home/HomePage';
-import { CustomExercisePage } from '../features/exercises/CustomExercisePage';
-import { ExerciseDetailPage } from '../features/exercises/ExerciseDetailPage';
-import { ExerciseLibraryPage } from '../features/exercises/ExerciseLibraryPage';
+const CustomExercisePage = lazy(() =>
+  import('../features/exercises/CustomExercisePage').then((module) => ({
+    default: module.CustomExercisePage,
+  })),
+);
+const ExerciseDetailPage = lazy(() =>
+  import('../features/exercises/ExerciseDetailPage').then((module) => ({
+    default: module.ExerciseDetailPage,
+  })),
+);
+const ExerciseLibraryPage = lazy(() =>
+  import('../features/exercises/ExerciseLibraryPage').then((module) => ({
+    default: module.ExerciseLibraryPage,
+  })),
+);
 import { ExerciseRouteError } from '../features/exercises/ExerciseRouteError';
 import { exerciseDetailLoader, exerciseLibraryLoader } from '../features/exercises/loaders';
-import { PlanPage } from '../features/plan/PlanPage';
-import { ExercisePickerPage } from '../features/plan/ExercisePickerPage';
-import { PrescriptionFormPage } from '../features/plan/PrescriptionFormPage';
-import { ProgramDayFormPage } from '../features/plan/ProgramDayFormPage';
-import { ProgramDayPage } from '../features/plan/ProgramDayPage';
-import { ProgramDetailPage } from '../features/plan/ProgramDetailPage';
-import { ProgramFormPage } from '../features/plan/ProgramFormPage';
+const PlanPage = lazy(() =>
+  import('../features/plan/PlanPage').then((module) => ({ default: module.PlanPage })),
+);
+const ExercisePickerPage = lazy(() =>
+  import('../features/plan/ExercisePickerPage').then((module) => ({
+    default: module.ExercisePickerPage,
+  })),
+);
+const PrescriptionFormPage = lazy(() =>
+  import('../features/plan/PrescriptionFormPage').then((module) => ({
+    default: module.PrescriptionFormPage,
+  })),
+);
+const ProgramDayFormPage = lazy(() =>
+  import('../features/plan/ProgramDayFormPage').then((module) => ({
+    default: module.ProgramDayFormPage,
+  })),
+);
+const ProgramDayPage = lazy(() =>
+  import('../features/plan/ProgramDayPage').then((module) => ({ default: module.ProgramDayPage })),
+);
+const ProgramDetailPage = lazy(() =>
+  import('../features/plan/ProgramDetailPage').then((module) => ({
+    default: module.ProgramDetailPage,
+  })),
+);
+const ProgramFormPage = lazy(() =>
+  import('../features/plan/ProgramFormPage').then((module) => ({
+    default: module.ProgramFormPage,
+  })),
+);
 import { ProgramRouteError } from '../features/plan/ProgramRouteError';
 import {
   exercisePickerLoader,
@@ -22,27 +59,51 @@ import {
   programListLoader,
   programLoader,
 } from '../features/plan/loaders';
-import { ProgressPage } from '../features/progress/ProgressPage';
-import { ExerciseHistoryPage } from '../features/progress/ExerciseHistoryPage';
+const ProgressPage = lazy(() =>
+  import('../features/progress/ProgressPage').then((module) => ({ default: module.ProgressPage })),
+);
+const ExerciseHistoryPage = lazy(() =>
+  import('../features/progress/ExerciseHistoryPage').then((module) => ({
+    default: module.ExerciseHistoryPage,
+  })),
+);
 import { progressLoader, exerciseHistoryLoader } from '../features/progress/loaders';
-import { DataSafetyPage } from '../features/dataSafety/DataSafetyPage';
-import { SettingsPage } from '../features/settings/SettingsPage';
-import { WorkoutPage } from '../features/workout/WorkoutPage';
+const DataSafetyPage = lazy(() =>
+  import('../features/dataSafety/DataSafetyPage').then((module) => ({
+    default: module.DataSafetyPage,
+  })),
+);
+const SettingsPage = lazy(() =>
+  import('../features/settings/SettingsPage').then((module) => ({ default: module.SettingsPage })),
+);
+const WorkoutPage = lazy(() =>
+  import('../features/workout/WorkoutPage').then((module) => ({ default: module.WorkoutPage })),
+);
 import { WorkoutRouteError } from '../features/workout/WorkoutRouteError';
-import { WorkoutExercisePickerPage } from '../features/workout/WorkoutExercisePickerPage';
-import { WorkoutSessionPage } from '../features/workout/WorkoutSessionPage';
+const WorkoutExercisePickerPage = lazy(() =>
+  import('../features/workout/WorkoutExercisePickerPage').then((module) => ({
+    default: module.WorkoutExercisePickerPage,
+  })),
+);
+const WorkoutSessionPage = lazy(() =>
+  import('../features/workout/WorkoutSessionPage').then((module) => ({
+    default: module.WorkoutSessionPage,
+  })),
+);
 import {
   workoutExercisePickerLoader,
   workoutLandingLoader,
   workoutSessionLoader,
 } from '../features/workout/loaders';
 import { AppShell } from './shell/AppShell';
+import { AppRouteError } from './shell/AppRouteError';
 import { NotFoundPage } from './shell/NotFoundPage';
 
 export const routeObjects: RouteObject[] = [
   {
     path: '/',
     element: <AppShell />,
+    errorElement: <AppRouteError />,
     children: [
       { index: true, element: <HomePage /> },
       {

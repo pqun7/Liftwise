@@ -62,9 +62,7 @@
   font-size: 0.9rem;
 }
 .workout-undo {
-  position: sticky;
-  top: max(0.5rem, var(--safe-top));
-  z-index: 10;
+  margin-top: 0.35rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -74,6 +72,22 @@
   background: #77efb5;
   border-radius: 0.8rem;
 }
+
+.keep-awake label {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  min-height: 44px;
+}
+.keep-awake input {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.keep-awake small {
+  display: block;
+  color: #b9ccc2;
+}
 .workout-undo button {
   min-height: 44px;
   padding: 0.5rem;
@@ -81,9 +95,6 @@
   border-radius: 0.6rem;
 }
 .workout-current-control {
-  position: sticky;
-  top: max(0.5rem, var(--safe-top));
-  z-index: 9;
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
@@ -91,6 +102,11 @@
   background: #102019;
   border: 1px solid #385247;
   border-radius: 0.7rem;
+}
+.workout-sticky-controls {
+  position: sticky;
+  top: max(0.5rem, var(--safe-top));
+  z-index: 10;
 }
 .workout-current-control a {
   color: #77efb5;
@@ -128,6 +144,7 @@
 html {
   min-height: 100%;
   background: #07100d;
+  scroll-padding-bottom: calc(7.5rem + var(--safe-bottom));
 }
 
 body {
@@ -428,18 +445,11 @@ button {
 }
 
 .update-prompt {
-  position: fixed;
-  z-index: 40;
-  right: max(1rem, var(--safe-right));
-  bottom: calc(5.5rem + var(--safe-bottom));
-  left: max(1rem, var(--safe-left));
-  max-width: 30rem;
-  margin-inline: auto;
+  margin-bottom: 1rem;
   padding: 1rem;
   background: #183126;
   border: 1px solid rgb(119 239 181 / 28%);
   border-radius: 1rem;
-  box-shadow: 0 1rem 3rem rgb(0 0 0 / 45%);
 }
 
 .update-prompt p {
@@ -1560,7 +1570,7 @@ button {
 }
 
 /* WebKit may zoom the viewport when a focused editable control is below 16 CSS px. */
-@media (max-width: 48rem) {
+@media (max-width: 48rem), ((hover: none) and (pointer: coarse)) {
   :is(input:not([type='checkbox']):not([type='radio']):not([type='file']), textarea, select) {
     font-size: max(1rem, 16px);
   }

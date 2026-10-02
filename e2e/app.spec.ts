@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { setOffline } from './offline';
 
 async function dismissPwaStatus(page: import('@playwright/test').Page) {
   const dismiss = page.getByRole('button', { name: 'Dismiss' });
@@ -57,7 +58,7 @@ test('installs its app shell and serves routes offline', async ({
   expect(registration).toBe(true);
 
   await page.reload();
-  await context.setOffline(true);
+  await setOffline(context, browserName, true);
 
   try {
     if (browserName === 'webkit') {
@@ -71,7 +72,7 @@ test('installs its app shell and serves routes offline', async ({
       timeout: 15_000,
     });
   } finally {
-    await context.setOffline(false);
+    await setOffline(context, browserName, false);
   }
 });
 
@@ -133,7 +134,7 @@ test('searches, filters, opens details, and preserves a custom exercise offline'
 
   await page.goto('/exercises');
   await expect(page.getByText('602 exercises')).toBeVisible();
-  await context.setOffline(true);
+  await setOffline(context, browserName, true);
   try {
     if (browserName === 'webkit') {
       await page.getByRole('searchbox', { name: 'Search exercises' }).fill('My Offline Press');
@@ -143,7 +144,7 @@ test('searches, filters, opens details, and preserves a custom exercise offline'
     }
     await expect(page.getByRole('heading', { name: 'My Offline Press' })).toBeVisible();
   } finally {
-    await context.setOffline(false);
+    await setOffline(context, browserName, false);
   }
 });
 
@@ -208,7 +209,7 @@ test('builds and reloads an exact program prescription offline', async ({
   await expect(page.getByText('3 sets · 6–8 reps · 1–2 RIR')).toBeVisible();
 
   await dismissPwaStatus(page);
-  await context.setOffline(true);
+  await setOffline(context, browserName, true);
   try {
     if (browserName === 'webkit') {
       await page.getByRole('link', { name: /Push Pull Legs/ }).click();
@@ -219,13 +220,14 @@ test('builds and reloads an exact program prescription offline', async ({
     await expect(page.getByText('3 min rest')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Custom Cable Press' })).toBeVisible();
   } finally {
-    await context.setOffline(false);
+    await setOffline(context, browserName, false);
   }
 });
 
 test('backs up, deletes, restores, and verifies an exact program offline', async ({
   page,
   context,
+  browserName,
 }) => {
   test.setTimeout(120_000);
 
@@ -288,7 +290,7 @@ test('backs up, deletes, restores, and verifies an exact program offline', async
   await page.getByRole('button', { name: 'Restore and Replace Current User Data' }).click();
   await expect(page.getByText('Backup restored and verified.')).toBeVisible();
 
-  await context.setOffline(true);
+  await setOffline(context, browserName, true);
   try {
     await page.getByRole('link', { name: 'Plan' }).click();
     await page.getByRole('link', { name: 'Open Backup Push Plan' }).click();
@@ -298,6 +300,6 @@ test('backs up, deletes, restores, and verifies an exact program offline', async
     await expect(page.getByText('3 sets · 6–8 reps')).toBeVisible();
     await expect(page.getByText('2 sets · 10–12 reps')).toBeVisible();
   } finally {
-    await context.setOffline(false);
+    await setOffline(context, browserName, false);
   }
 });

@@ -12,7 +12,7 @@ export function ExerciseRouteError() {
     <section className="page-stack">
       <p className="section-kicker">Exercise library</p>
       <h1>{message}</h1>
-      <p className="muted">Your workout data is safe. Retry, or return home.</p>
+      <p className="muted">No data was reset or deleted. Retry, or return home.</p>
       <Link className="primary-link" to="/exercises">
         Retry library
       </Link>

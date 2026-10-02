@@ -1,4 +1,4 @@
-export type StoragePersistence = 'granted' | 'not-granted' | 'unsupported';
+export type StoragePersistence = 'granted' | 'not-granted' | 'unsupported' | 'unavailable';
 
 export interface StorageStatus {
   usage: number | null;
@@ -22,16 +22,21 @@ export async function getStorageStatus(
   }
   if (!storage.persisted) {
     return {
-      usage: estimate.usage ?? null,
-      quota: estimate.quota ?? null,
+      usage: validEstimate(estimate.usage),
+      quota: validEstimate(estimate.quota),
       persistence: 'unsupported',
     };
   }
-  const persisted = await storage.persisted().catch(() => false);
+  let persisted: boolean | null = null;
+  try {
+    persisted = await storage.persisted();
+  } catch {
+    // Unavailable is not equivalent to an explicit denial.
+  }
   return {
-    usage: estimate.usage ?? null,
-    quota: estimate.quota ?? null,
-    persistence: persisted ? 'granted' : 'not-granted',
+    usage: validEstimate(estimate.usage),
+    quota: validEstimate(estimate.quota),
+    persistence: persisted === null ? 'unavailable' : persisted ? 'granted' : 'not-granted',
   };
 }
 
@@ -39,5 +44,12 @@ export async function requestStoragePersistence(
   storage: ProgressiveStorageManager | undefined = globalThis.navigator?.storage,
 ): Promise<StoragePersistence> {
   if (!storage?.persist) return 'unsupported';
-  return (await storage.persist().catch(() => false)) ? 'granted' : 'not-granted';
+  try {
+    return (await storage.persist()) ? 'granted' : 'not-granted';
+  } catch {
+    return 'unavailable';
+  }
+}
+function validEstimate(value: number | undefined): number | null {
+  return value !== undefined && Number.isFinite(value) && value >= 0 ? value : null;
 }

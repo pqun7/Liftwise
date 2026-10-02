@@ -15,7 +15,7 @@ import { validateBackupRelationships } from '../../backup/backupValidation';
 import { BackupError } from '../../backup/errors';
 import { database, type LiftwiseDatabase } from '../database';
 
-const PORTABLE_SETTING_KEYS = new Set(['activeProgramId']);
+const PORTABLE_SETTING_KEYS = new Set(['activeProgramId', 'keepScreenAwake']);
 
 function sortById<T extends { id: string }>(records: T[]): T[] {
   return records.sort((left, right) => left.id.localeCompare(right.id));

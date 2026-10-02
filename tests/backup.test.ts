@@ -90,7 +90,7 @@ describe('Liftwise backup and restore', () => {
       application: 'liftwise',
       backupVersion: 2,
       schemaVersion: 6,
-      appVersion: '0.8.0',
+      appVersion: '0.9.0',
       createdAt: '2026-10-01T12:00:00.000Z',
     });
     expect(backup.checksum).toMatch(/^[0-9a-f]{64}$/);

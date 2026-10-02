@@ -4,6 +4,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
 import { routeObjects } from '../src/app/router';
+import { AppRouteError } from '../src/app/shell/AppRouteError';
 
 vi.mock('virtual:pwa-register/react', () => ({
   useRegisterSW: () => ({
@@ -22,6 +23,32 @@ function renderRoute(initialEntry = '/') {
 }
 
 describe('Liftwise app shell', () => {
+  it('explains an unexpected screen error without resetting user data', async () => {
+    render(
+      <RouterProvider
+        router={createMemoryRouter([
+          {
+            path: '/',
+            element: <div>Opening</div>,
+            hydrateFallbackElement: <div>Opening</div>,
+            loader: () => {
+              throw new Error('Storage temporarily unavailable');
+            },
+            errorElement: <AppRouteError />,
+          },
+        ])}
+      />,
+    );
+    expect(
+      await screen.findByRole('heading', { name: 'Liftwise could not open this screen' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Storage temporarily unavailable')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Open Data Safety' })).toHaveAttribute(
+      'href',
+      '/settings/data-safety',
+    );
+    expect(screen.getByRole('button', { name: 'Retry this screen' })).toBeInTheDocument();
+  });
   it('renders the home screen and primary navigation', () => {
     renderRoute();
 
@@ -38,8 +65,10 @@ describe('Liftwise app shell', () => {
 
     await user.click(screen.getByRole('link', { name: /settings/i }));
 
-    expect(screen.getByRole('heading', { name: /make liftwise yours/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Liftwise v0.8.0' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: /make liftwise yours/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Liftwise v0.9.0' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Open Data Safety' })).toHaveAttribute(
       'href',
       '/settings/data-safety',

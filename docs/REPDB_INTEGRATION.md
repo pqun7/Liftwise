@@ -46,6 +46,8 @@ Initialization runs in one Dexie transaction. Repeating the same commit/count is
 
 The 2,450,194-byte transformed catalog is precached with the app shell and then seeded into IndexedDB. The 1,056 referenced flat WebP files total 17,460,738 bytes. They are not blindly precached. Settings → Offline Data lets a user download them into versioned Cache Storage with progress, partial-failure reporting, retry, and isolated clearing. Metadata and user data remain intact if image caching fails.
 
+v0.9 reuses the pinned, complete active catalog in IndexedDB after restart rather than requiring another artifact fetch. Failed initialization can retry. Media quota exhaustion stops further download batches and never clears user data; only the independent media-clear action deletes illustrations.
+
 Image requests are Cache First. Cards reserve image aspect ratio and use an accessible placeholder if a file is absent. Start/Peak uses a simple two-state control; single-image records use Main.
 
 ## Search and rendering

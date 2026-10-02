@@ -50,7 +50,7 @@ export function OfflineExerciseData() {
         kind: 'error',
         message:
           error instanceof Error ? error.message : 'Exercise images could not be downloaded.',
-        cached: await getCachedExerciseMediaCount(),
+        cached: await getCachedExerciseMediaCount().catch(() => 0),
         total: paths.length,
       });
     }

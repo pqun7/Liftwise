@@ -1,15 +1,56 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { seedRepdbCatalog } from '../src/data/providers/repdb/seeder';
+import {
+  initializeRepdbCatalog,
+  resetRepdbInitializationForTests,
+} from '../src/data/providers/repdb/initialize';
+import { resetRepdbCatalogLoaderForTests } from '../src/data/providers/repdb/catalog';
+import {
+  REPDB_SOURCE_COMMIT,
+  REPDB_EXPECTED_SCHEMA_VERSION,
+} from '../src/data/providers/repdb/config';
 import { LiftwiseDatabase } from '../src/lib/storage/database';
 import { ExerciseRepository } from '../src/lib/storage/repositories/exerciseRepository';
 import { ProgramRepository } from '../src/lib/storage/repositories/programRepository';
 import { cleanupTestDatabases, createTestDatabase, trackDatabaseName } from './helpers/database';
 import { createRawRepdbExercise, createRepdbArtifact, createRepdbMetadata } from './fixtures/repdb';
 
-afterEach(cleanupTestDatabases);
+afterEach(async () => {
+  vi.unstubAllGlobals();
+  resetRepdbInitializationForTests();
+  resetRepdbCatalogLoaderForTests();
+  await cleanupTestDatabases();
+});
 
 describe('RepDB catalog persistence', () => {
+  it('reuses the pinned IndexedDB catalog after restart without a network request', async () => {
+    const db = createTestDatabase('offline-initialization');
+    const artifact = createRepdbArtifact();
+    artifact.metadata.sourceCommit = REPDB_SOURCE_COMMIT;
+    artifact.metadata.schemaVersion = REPDB_EXPECTED_SCHEMA_VERSION;
+    await seedRepdbCatalog(artifact, db);
+    const name = db.name;
+    db.close();
+    const reopened = new LiftwiseDatabase(name);
+    const fetch = vi.fn().mockRejectedValue(new Error('offline'));
+    vi.stubGlobal('fetch', fetch);
+    await expect(initializeRepdbCatalog(reopened)).resolves.toMatchObject({ unchanged: 1 });
+    expect(fetch).not.toHaveBeenCalled();
+    reopened.close();
+  });
+  it('allows retry after a failed local artifact fetch instead of caching rejection', async () => {
+    const db = createTestDatabase('catalog-retry');
+    const artifact = createRepdbArtifact();
+    const fetch = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('temporarily offline'))
+      .mockResolvedValue({ ok: true, json: () => Promise.resolve(artifact) });
+    vi.stubGlobal('fetch', fetch);
+    await expect(initializeRepdbCatalog(db)).rejects.toThrow('temporarily offline');
+    await expect(initializeRepdbCatalog(db)).resolves.toMatchObject({ inserted: 1 });
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
   it('initializes idempotently and does not duplicate catalog records', async () => {
     const database = createTestDatabase('repdb-idempotent');
     const artifact = createRepdbArtifact();

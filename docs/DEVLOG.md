@@ -1,5 +1,19 @@
 # Development log
 
+## 2026-10-02 — v0.9.0 release-candidate hardening
+
+- Goal: daily-use reliability under feature freeze.
+- Work: optional Wake Lock with visibility/pause/exit cleanup; guarded PWA controlling reloads; visible root/recovery errors; honest storage status; quota-bounded media downloads; shared sticky workout stack; local feature splitting.
+- Decisions: preserve Dexie v6, backup v2, existing canonical workout operations, provider IDs and attribution. Screen-awake is a portable optional preference, not guaranteed device behavior.
+- Problems/bugs: a completed IndexedDB catalog was still re-fetching its bundled artifact after restart; reuse pinned metadata/count instead, and release rejected initialization promises for retry. Storage exceptions previously looked like denied persistence. Independent sticky controls overlapped.
+- Tests: Wake Lock lifecycle/denial/pending acquisition, update safety including another tab, unknown storage status, quota handling, error boundary, offline catalog reopen/retry, compact-width/large-text layouts and offline full training/backup/CSV/chart workflow.
+- Measurements/results: see `RELEASE_QA.md`. Physical iPhone and real gym soak testing have not occurred.
+- Final verification: format/lint/types/RepDB/build passed; 93 unit/integration tests passed; final full browser suite passed 19 scenarios with 3 intentional project-specific skips. Initial WebKit failures were fixed in implementation and reverified, not hidden with retries or relaxed assertions.
+- Performance follow-up: the first WebKit audit showed a redundant full-record catalog scan; replaced it with an existing indexed count before remeasuring. Landscape touch controls now inherit the same 16px minimum as portrait.
+- Final-gate findings: WebKit reproduced a status-toast overlay covering a custom-form submit button, and the redundant catalog scan delayed two existing assertions. Fixed layout/scan behavior rather than relaxing assertions.
+- Limitations: browser storage can be evicted; Wake Lock may be denied/revoked. Windows WebKit offline document navigation differs from iOS. Existing bundle/dependency annotation warnings remain visible.
+- Next: stop at v0.9.0; v1.0 requires physical acceptance and no unresolved Critical/High defects.
+
 ## 2026-10-02 — v0.8.0 progress, history and analytics
 
 - Goal: explain useful training history without ML, duplicated summaries or mutable-program dependencies.

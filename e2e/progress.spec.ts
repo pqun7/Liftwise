@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { setOffline } from './offline';
 
 test('completed history, PRs, charts, measurements and CSV stay usable offline', async ({
   page,
@@ -72,7 +73,7 @@ test('completed history, PRs, charts, measurements and CSV stay usable offline',
   });
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Progress Bench', exact: true })).toBeVisible();
-  await context.setOffline(true);
+  await setOffline(context, browserName, true);
   if (browserName === 'webkit') {
     // Existing Windows WebKit limitation: offline document navigation is unsupported.
     await page.getByRole('link', { name: '← Progress' }).click();

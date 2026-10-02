@@ -37,6 +37,7 @@ export async function downloadExerciseMedia(
   const cache = await caches.open(getRepdbMediaCacheName(sourceCommit));
   let completed = 0;
   let failed = 0;
+  let quotaExceeded = false;
   const total = paths.length;
 
   for (let index = 0; index < paths.length; index += 4) {
@@ -57,17 +58,33 @@ export async function downloadExerciseMedia(
             await cache.put(request, response.clone());
           }
           completed += 1;
-        } catch {
+        } catch (error) {
+          if (
+            typeof error === 'object' &&
+            error !== null &&
+            'name' in error &&
+            error.name === 'QuotaExceededError'
+          )
+            quotaExceeded = true;
           failed += 1;
         } finally {
           onProgress({ completed, total, failed });
         }
       }),
     );
+    if (quotaExceeded) {
+      failed += paths.length - Math.min(index + 4, paths.length);
+      onProgress({ completed, total, failed });
+      break;
+    }
   }
 
   const result = { completed, total, failed };
   if (failed > 0) {
+    if (quotaExceeded)
+      throw new Error(
+        'Exercise image storage is full. Your workout data was not changed. Clear only offline exercise images, keep a backup, then retry.',
+      );
     throw new Error(
       `${failed} of ${total} exercise image${failed === 1 ? '' : 's'} could not be downloaded. Check your connection and retry.`,
     );
