@@ -4,6 +4,14 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-02 — Prepared; device sign-off pending
+
+### Changed
+
+- Updated application/package version and release documentation without changing frozen domain behavior, database schemas or backup formats.
+- Strengthened the isolated offline release journey: backup, delete test-only user data, restore, verify workouts and historical prescription, and recover the program.
+- Physical-iPhone acceptance and the documented gym soak remain required before stable sign-off.
+
 ## [0.9.0] - 2026-10-02
 
 ### Added

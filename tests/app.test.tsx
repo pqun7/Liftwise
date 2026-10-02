@@ -68,7 +68,7 @@ describe('Liftwise app shell', () => {
     expect(
       await screen.findByRole('heading', { name: /make liftwise yours/i }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Liftwise v0.9.0' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Liftwise v1.0.0' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Open Data Safety' })).toHaveAttribute(
       'href',
       '/settings/data-safety',

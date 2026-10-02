@@ -84,6 +84,12 @@ No machine learning or progression engine is included.
 - [x] Measured feature splitting and historical migration/backup regression checks
 - [ ] Physical-iPhone acceptance and multiple gym-session soak tests before v1.0
 
+## v1.0.0 — Stable personal release preparation
+
+- [x] Frozen domain behavior; release version and concise notes prepared
+- [x] Isolated backup/delete/restore journey verifies completed snapshots and program recovery
+- [ ] Physical-iPhone acceptance, five-session soak and reviewed issue log; stable sign-off withheld until complete
+
 ## Later
 
 - Optional device-level capabilities where they improve the offline experience

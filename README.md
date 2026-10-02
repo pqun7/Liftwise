@@ -12,7 +12,9 @@ It helps you organize exercises and training programs while keeping your persona
 - Works offline after the required files are loaded
 - Installable on the iPhone Home Screen
 
-> **Current release:** v0.9.0 (release candidate; physical-iPhone soak testing pending)
+> **Release preparation:** v1.0.0 (physical-iPhone acceptance and gym-soak sign-off pending; not yet signed off as stable)
+
+See [v1.0 release notes](docs/RELEASE_NOTES_v1.0.0.md) for verification scope and outstanding device acceptance.
 
 ---
 

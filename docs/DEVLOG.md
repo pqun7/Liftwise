@@ -1,5 +1,16 @@
 # Development log
 
+## 2026-10-02 — v1.0.0 stable personal release preparation
+
+- Goal: verify the frozen product, not introduce features.
+- Work: updated release version/notes; extended the existing offline E2E journey to delete only isolated test-context user data before restore and verify recovered history, prescription and program.
+- Decisions: preserve Dexie v6, backup v2, released migrations, canonical workout persistence and RepDB integration. No architectural change or new ADR.
+- Problems/bugs: no product release-blocking defect reproduced in targeted recovery, snapshot, backup and migration checks; final results are recorded in `RELEASE_NOTES_v1.0.0.md`.
+- Tests: existing close/reopen two-set recovery, timestamp timers, mutable/deleted-program snapshot independence, transactional backup rollback and historical migration fixtures retained; release journey strengthened rather than duplicated.
+- Final verification: format/lint/types/RepDB/build passed; 93 unit/integration tests across 18 files passed, including v1–v5 database and supported backup migrations. Browser suite: 19 passed, 3 intentional project-specific skips; WebKit 9 passed, Chromium 10 passed. PWA/offline and isolated destructive restore checks passed. See release notes for limitations.
+- Limitations: physical-iPhone installation/background/keyboard/VoiceOver and five-session gym soak are unperformed. Stable sign-off remains pending under `SOAK_TESTING.md`.
+- Next: stop at v1.0 preparation; do not begin v1.1.
+
 ## 2026-10-02 — v0.9.0 release-candidate hardening
 
 - Goal: daily-use reliability under feature freeze.

@@ -212,6 +212,14 @@ test('all core training, charts, backup and CSV flows work with network disabled
     await page.getByRole('button', { name: 'Create Backup' }).click();
     const backupPath = await (await event).path();
     if (!backupPath) throw new Error('Backup file missing');
+    // Playwright owns this isolated context: never run deletion against a user's profile.
+    await page.getByLabel('Type DELETE to confirm').fill('DELETE');
+    await page.getByRole('button', { name: 'Delete My Liftwise Data' }).click();
+    await expect(page.getByText(/user data was deleted/i)).toBeVisible();
+    await page.getByRole('link', { name: 'Progress', exact: true }).click();
+    await expect(page.getByText('0 completed workouts · 0 working sets')).toBeVisible();
+    await page.getByRole('link', { name: 'Settings', exact: true }).click();
+    await page.getByRole('link', { name: 'Open Data Safety' }).click();
     await page.getByLabel('Restore Backup').setInputFiles(backupPath);
     await expect(page.getByRole('heading', { name: 'Liftwise Backup' })).toBeVisible();
     await auditLayout(page);
@@ -222,6 +230,14 @@ test('all core training, charts, backup and CSV flows work with network disabled
     await expect(page.getByText('Backup restored and verified.')).toBeVisible();
     await page.getByRole('link', { name: 'Progress', exact: true }).click();
     await expect(page.getByText('2 completed workouts · 3 working sets')).toBeVisible();
+    await page
+      .getByRole('region', { name: 'Workout history' })
+      .getByRole('link', { name: /Offline Push/ })
+      .click();
+    await expect(page.getByText('3 sets · 6–8 reps · 1–2 RIR')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(2);
+    await page.getByRole('link', { name: 'Plan', exact: true }).click();
+    await expect(page.getByRole('link', { name: /Offline QA/ })).toBeVisible();
     expect(external).toEqual([]);
     await page.getByRole('link', { name: 'Workout', exact: true }).click();
     await page.getByRole('button', { name: /Start Quick Workout/ }).click();
