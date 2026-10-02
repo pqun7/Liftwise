@@ -1,5 +1,19 @@
 # Development log
 
+## 2026-10-02 — Home experience (unreleased)
+
+- Goal: implement the supplied premium mobile references within the existing application.
+- Work: composable Home cards and local-data loader, three dynamic states, calendar selection, existing workout Start/Continue routes, real weekly comparisons, contextual library filters, Lucide navigation and 430px Home shell.
+- Decisions: keep feature-based TypeScript architecture, Dexie v6 and backup v2. The current model has no date schedule, profile name, weekly goal or program duration: show next-in-program suggestions and real counts, not fabricated example figures. Today becomes a rest day after a completed workout; unfinished sessions always take priority.
+- Assets: reused the three supplied original photos (220,448 bytes combined), copied to bundled source assets without altering the originals. Only these three photos join the shell precache; RepDB media remains optional and independently clearable.
+- Baseline: format/lint/types, 93 tests, RepDB and build passed; E2E 18 passed, 3 skipped, 1 pre-existing Chromium computed-font timing failure. The failing scenario passed unchanged in isolation. Its assertion now polls for settled computed layout without relaxing the 16px requirement.
+- Bugs fixed during development: global stylesheet order overrode desktop Home width; specific Home selectors now enforce 430px. Program rotation remains correct after intervening Quick Workouts; skipped completed records retain historical counts.
+- Tests: Home derivation, empty state, local calendar boundaries, ordered prescriptions, snapshot independence, Quick Workout recovery/reopen, skipped sets, explicit start/error handling; one Chromium/WebKit journey covers all states, mobile widths, desktop centering, offline photos and library links.
+- Final verification: format/lint/types/RepDB/build passed; 103 unit/integration tests across 19 files passed. E2E: 21 passed, 3 intentional project-specific skips (WebKit 10 passed, Chromium 11 passed), including offline backup/restore, recovery, snapshots and all three Home states. Home checked at 320/375/390/393/402/414/430px and centered at desktop width. Production precache: 40 entries, 3709.88 KiB, including the three Home photos.
+- Regression harness fixes: scoped ambiguous navigation queries and awaited Home navigation before reload; existing assertions and offline requirements remain intact.
+- Limitations: no real-iPhone test has occurred; no dated scheduling or profile settings are introduced. Existing initial-bundle size and upstream Zod annotation build warnings remain.
+- Next: stop at the requested Home work; no next-version training features.
+
 ## 2026-10-02 — v1.0.0 stable personal release preparation
 
 - Goal: verify the frozen product, not introduce features.

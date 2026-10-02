@@ -92,6 +92,9 @@ No machine learning or progression engine is included.
 
 ## Later
 
+- [x] Reference-led Home experience backed by local programs and session snapshots (unreleased)
+- [ ] Physical-iPhone acceptance of Home date selection, photographs, safe areas and recovery navigation
+
 - Optional device-level capabilities where they improve the offline experience
 - Accessibility, performance, and internationalization refinements
 

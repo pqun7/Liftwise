@@ -50,7 +50,8 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         navigateFallback: '/index.html',
-        globPatterns: ['**/*.{js,css,html,json,svg,woff2}'],
+        // Only three bundled Home photographs; the full RepDB pack stays opt-in.
+        globPatterns: ['**/*.{js,css,html,json,svg,woff2}', 'assets/*.webp'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         runtimeCaching: [
           {

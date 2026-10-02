@@ -18,7 +18,10 @@ test('loads the application shell and navigates across features', async ({ page,
   }
 
   await expect(page.getByRole('heading', { name: 'Welcome to Liftwise' })).toBeVisible();
-  await page.getByRole('link', { name: 'Workout' }).click();
+  await page
+    .getByRole('navigation', { name: 'Primary navigation' })
+    .getByRole('link', { name: 'Workout', exact: true })
+    .click();
   await expect(page.getByRole('heading', { name: 'Start training' })).toBeVisible({
     timeout: 15_000,
   });
@@ -64,7 +67,10 @@ test('installs its app shell and serves routes offline', async ({
     if (browserName === 'webkit') {
       // Playwright WebKit cannot start an offline document navigation on Windows.
       // An offline in-app navigation still verifies that the cached shell remains usable.
-      await page.getByRole('link', { name: 'Progress' }).click();
+      await page
+        .getByRole('navigation', { name: 'Primary navigation' })
+        .getByRole('link', { name: 'Progress', exact: true })
+        .click();
     } else {
       await page.goto('/progress');
     }

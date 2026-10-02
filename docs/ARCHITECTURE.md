@@ -94,6 +94,14 @@ Semantic landmarks, visible focus styles, a skip link, text labels, 44-pixel-or-
 - Playwright tests cover the production bundle, key routes, manifest, and service-worker registration on mobile Safari and desktop Chromium profiles.
 - Manual physical-iPhone checks remain required for installation, safe areas, lifecycle interruption, and true offline behavior.
 
+## Home presentation boundary
+
+`features/home/homeService.ts` reads a consistent local snapshot through existing validated repositories; `homeData.ts` derives presentation state. `components/home` and scoped `styles/home.css` render it. Start uses the existing workout service, not a second session model.
+
+History summaries query only the current/previous week plus three recent sessions; an indexed cursor finds the active program's latest completed day for rotation. Programs are ordered prescriptions, not dated schedules: future dates are unscheduled and next-in-program cards do not promise a calendar assignment. No schema, backup format or provider-ID changes.
+
+Three supplied decorative Home photos are locally bundled and precached (220,448 bytes combined). The full RepDB exercise media pack remains opt-in. More links to the existing `/settings` route; other feature layouts are retained.
+
 ## Security and privacy
 
 No data leaves the browser. The static deployment should use HTTPS, restrictive security headers, immutable hashed assets, and `index.html` with revalidation. Dependency updates are reviewed rather than automatically trusted.

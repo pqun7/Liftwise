@@ -2,6 +2,7 @@ import { lazy } from 'react';
 import { createBrowserRouter, type RouteObject } from 'react-router-dom';
 
 import { HomePage } from '../features/home/HomePage';
+import { homeLoader } from '../features/home/homeService';
 const CustomExercisePage = lazy(() =>
   import('../features/exercises/CustomExercisePage').then((module) => ({
     default: module.CustomExercisePage,
@@ -103,9 +104,14 @@ export const routeObjects: RouteObject[] = [
   {
     path: '/',
     element: <AppShell />,
+    hydrateFallbackElement: (
+      <div className="app-frame">
+        <p role="status">Opening your local training space…</p>
+      </div>
+    ),
     errorElement: <AppRouteError />,
     children: [
-      { index: true, element: <HomePage /> },
+      { index: true, element: <HomePage />, loader: homeLoader },
       {
         path: 'exercises',
         element: <ExerciseLibraryPage />,

@@ -14,9 +14,9 @@ async function auditLayout(page: Page, mobile = true) {
   for (const control of await controls.all()) {
     if (!(await control.isVisible())) continue;
     if (mobile)
-      expect(
-        await control.evaluate((element) => parseFloat(getComputedStyle(element).fontSize)),
-      ).toBeGreaterThanOrEqual(16);
+      await expect
+        .poll(() => control.evaluate((element) => parseFloat(getComputedStyle(element).fontSize)))
+        .toBeGreaterThanOrEqual(16);
     const box = await control.boundingBox();
     expect(box).not.toBeNull();
     expect(box!.x).toBeGreaterThanOrEqual(0);
@@ -102,6 +102,8 @@ test('all core training, charts, backup and CSV flows work with network disabled
     .click();
   await expect(page.getByText('601 exercises')).toBeVisible({ timeout: 20_000 });
   await page.getByRole('link', { name: 'Home', exact: true }).click();
+  // Home now has a local-data loader: wait for navigation before reloading the document.
+  await expect(page.getByRole('heading', { name: /Welcome to Liftwise/i })).toBeVisible();
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
   await page.reload();
   await expect(page.getByRole('heading', { name: /Welcome to Liftwise/i })).toBeVisible();
@@ -173,7 +175,7 @@ test('all core training, charts, backup and CSV flows work with network disabled
     else {
       await page.getByRole('link', { name: 'Home', exact: true }).click();
       await expect(page.getByText('Unfinished workout found')).toBeVisible();
-      await page.getByRole('link', { name: 'Resume', exact: true }).click();
+      await page.getByRole('link', { name: 'Continue Workout', exact: true }).click();
     }
     await expect(page.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(2);
     await expect(page.getByRole('button', { name: 'End rest' })).toBeVisible();
@@ -204,7 +206,7 @@ test('all core training, charts, backup and CSV flows work with network disabled
     await page.getByRole('link', { name: 'Barbell Bench Press', exact: true }).click();
     await expect(page.locator('.recharts-surface')).toBeVisible();
     timings.chart = Date.now() - started;
-    await page.getByRole('link', { name: 'Settings', exact: true }).click();
+    await page.getByRole('link', { name: 'More', exact: true }).click();
     await page.getByRole('link', { name: 'Open Data Safety' }).click();
     await expect(page.getByText('Healthy', { exact: true })).toBeVisible();
     await auditLayout(page);
@@ -218,7 +220,7 @@ test('all core training, charts, backup and CSV flows work with network disabled
     await expect(page.getByText(/user data was deleted/i)).toBeVisible();
     await page.getByRole('link', { name: 'Progress', exact: true }).click();
     await expect(page.getByText('0 completed workouts · 0 working sets')).toBeVisible();
-    await page.getByRole('link', { name: 'Settings', exact: true }).click();
+    await page.getByRole('link', { name: 'More', exact: true }).click();
     await page.getByRole('link', { name: 'Open Data Safety' }).click();
     await page.getByLabel('Restore Backup').setInputFiles(backupPath);
     await expect(page.getByRole('heading', { name: 'Liftwise Backup' })).toBeVisible();

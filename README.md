@@ -20,6 +20,14 @@ See [v1.0 release notes](docs/RELEASE_NOTES_v1.0.0.md) for verification scope an
 
 ## What you can do
 
+### Home
+
+- See a suggested day from your active program, continue an unfinished workout, or browse from the rest-day view.
+- Select dates to inspect this week's real completed sessions; view weekly progress, recent workouts and your programs.
+- Use the compact, photo-backed mobile layout offline. More in the bottom navigation opens Settings.
+
+Program days currently have an order, not a date schedule. Home shows next-in-program suggestions, not fabricated scheduled dates, workout goals or duration estimates.
+
 ### Exercise Library
 
 - Browse and search exercises

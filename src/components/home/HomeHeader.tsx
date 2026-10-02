@@ -1,0 +1,25 @@
+import { LocalStatus } from './LocalStatus';
+
+export function HomeHeader({ greeting, active }: { greeting: string; active: boolean }) {
+  return (
+    <header className={`home-header${active ? ' home-header-active' : ''}`}>
+      <div className="home-brand-row">
+        <p className="home-brand" aria-label="Liftwise">
+          Lift<span>wise</span>
+        </p>
+        <LocalStatus />
+      </div>
+      {active ? (
+        <p className="home-subtitle">Your private training space</p>
+      ) : (
+        <div className="home-greeting">
+          <p>{greeting}</p>
+          <h1>
+            Welcome to Liftwise <span aria-hidden="true">👋</span>
+          </h1>
+        </div>
+      )}
+      {active ? <h1 className="sr-only">Welcome to Liftwise</h1> : null}
+    </header>
+  );
+}

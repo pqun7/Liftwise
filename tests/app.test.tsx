@@ -49,10 +49,12 @@ describe('Liftwise app shell', () => {
     );
     expect(screen.getByRole('button', { name: 'Retry this screen' })).toBeInTheDocument();
   });
-  it('renders the home screen and primary navigation', () => {
+  it('renders the home screen and primary navigation', async () => {
     renderRoute();
 
-    expect(screen.getByRole('heading', { name: /welcome to liftwise/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: /welcome to liftwise/i }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: /primary/i })).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: /primary/i }).querySelectorAll('a')).toHaveLength(
       5,
@@ -63,7 +65,7 @@ describe('Liftwise app shell', () => {
     const user = userEvent.setup();
     renderRoute();
 
-    await user.click(screen.getByRole('link', { name: /settings/i }));
+    await user.click(await screen.findByRole('link', { name: 'More' }));
 
     expect(
       await screen.findByRole('heading', { name: /make liftwise yours/i }),

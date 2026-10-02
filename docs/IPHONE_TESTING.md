@@ -140,3 +140,11 @@ Record any loss, duplicate set, stale prescription, timer restart, or forced upd
 v0.9.0 includes the Exercise Library, Program Builder, Data Safety, durable workouts, history and local charts. In Safari Web Inspector, confirm no requests to RepDB, GitHub or exercise-dataset.com during normal use and no critical data in `localStorage`. IndexedDB remains schema version 6; backup format remains v2. Exercise art belongs in independently clearable Cache Storage; clearing it must leave user records unchanged.
 
 Record the iPhone model, iOS version, deployed commit, date, and any deviations in the release issue.
+
+## Home visual and recovery acceptance (pending physical device)
+
+1. Open the installed PWA: verify the compact green-black Home, Local pill and safe-area-aware bottom navigation, with no hardware frame/status bar imitation.
+2. With an active program containing exercises, verify today's suggested day and real prescription counts. Select another weekday and return to today; this must not alter the program or create a workout.
+3. Tap Start Workout, complete a set, then return Home. Confirm the in-progress hero reports the exact saved state; Continue returns to that session. Finish and confirm rest-day/recent-history content.
+4. After installation/cache readiness, enable Airplane Mode and repeat navigation/recovery. Confirm all three Home photographs load; this does not require the optional RepDB image pack.
+5. Verify narrow-screen calendar scrolling, 44px touch targets, VoiceOver day/status names, keyboard focus, pinch zoom, Reduce Motion and navigation clear of the home indicator. Desktop browser checks do not substitute for these physical-device steps.

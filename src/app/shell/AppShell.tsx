@@ -1,51 +1,42 @@
 import { Suspense } from 'react';
-import { NavLink, Outlet, ScrollRestoration } from 'react-router-dom';
+import { Outlet, ScrollRestoration, useLocation } from 'react-router-dom';
 
-import { navigationItems } from '../navigation';
+import { BottomNavigation } from '../../components/home/BottomNavigation';
 import { ActiveWorkoutBanner } from '../../features/workout/ActiveWorkoutBanner';
 import { UpdatePrompt } from './UpdatePrompt';
 
 export function AppShell() {
+  const home = useLocation().pathname === '/';
   return (
-    <div className="app-frame">
+    <div className={`app-frame${home ? ' home-frame' : ''}`}>
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
 
-      <header className="top-bar">
-        <div>
-          <p className="eyebrow">Your private training space</p>
-          <p className="brand" aria-label="Liftwise">
-            Lift<span>wise</span>
-          </p>
-        </div>
-        <div className="offline-badge" aria-label="Works offline">
-          <span aria-hidden="true" />
-          Local
-        </div>
-      </header>
+      {!home ? (
+        <header className="top-bar">
+          <div>
+            <p className="eyebrow">Your private training space</p>
+            <p className="brand" aria-label="Liftwise">
+              Lift<span>wise</span>
+            </p>
+          </div>
+          <div className="offline-badge" aria-label="Works offline">
+            <span aria-hidden="true" />
+            Local
+          </div>
+        </header>
+      ) : null}
 
       <main id="main-content" className="main-content" tabIndex={-1}>
         <UpdatePrompt />
-        <ActiveWorkoutBanner />
+        {!home ? <ActiveWorkoutBanner /> : null}
         <Suspense fallback={<p role="status">Opening local screen…</p>}>
           <Outlet />
         </Suspense>
       </main>
 
-      <nav className="bottom-nav" aria-label="Primary navigation">
-        {navigationItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === '/'}
-            className={({ isActive }) => `nav-item${isActive ? ' nav-item-active' : ''}`}
-          >
-            {item.icon}
-            <span>{item.label}</span>
-          </NavLink>
-        ))}
-      </nav>
+      <BottomNavigation home={home} />
 
       <ScrollRestoration />
     </div>

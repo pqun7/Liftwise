@@ -1,5 +1,5 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link, useLoaderData, useSearchParams } from 'react-router-dom';
 
 import type { Exercise } from '../../domain/entities';
 import {
@@ -42,9 +42,13 @@ function FilterSelect({ label, value, values, onChange }: FilterSelectProps) {
 
 export function ExerciseLibraryPage() {
   const { exercises } = useLoaderData<LibraryLoaderData>();
-  const [query, setQuery] = useState('');
+  const [searchParams] = useSearchParams();
+  const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
   const deferredQuery = useDeferredValue(query);
-  const [filters, setFilters] = useState<ExerciseFilters>({});
+  const [filters, setFilters] = useState<ExerciseFilters>(() => {
+    const bodyPart = searchParams.get('bodyPart');
+    return bodyPart ? { bodyPart } : {};
+  });
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const options = useMemo(
