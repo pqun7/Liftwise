@@ -96,6 +96,7 @@ test('mobile editable controls have zoom-safe computed typography and an unrestr
   await page.goto('/workout');
   await page.getByRole('button', { name: /Start Quick Workout/ }).focus();
   await page.keyboard.press('Enter');
+  await page.getByRole('button', { name: 'Workout Overview', exact: true }).click();
   await assertMobileInputIsZoomSafe(page.getByLabel('Workout notes'));
   await page.getByRole('link', { name: 'Add Exercise' }).click();
   await assertMobileInputIsZoomSafe(page.getByRole('searchbox', { name: 'Search exercises' }));
@@ -105,7 +106,9 @@ test('mobile editable controls have zoom-safe computed typography and an unrestr
     .getByRole('button', { name: /Barbell Bench Press/ })
     .first()
     .click();
-  for (const label of ['Set 1 weight', 'Set 1 reps', 'Set 1 RIR', 'Set 1 type']) {
+  for (const label of ['Set 1 weight', 'Set 1 reps', 'Set 1 RIR']) {
     await assertMobileInputIsZoomSafe(page.getByLabel(label, { exact: true }));
   }
+  await page.getByRole('button', { name: 'Workout Overview', exact: true }).click();
+  await assertMobileInputIsZoomSafe(page.getByLabel('Set 1 type', { exact: true }));
 });

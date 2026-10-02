@@ -1,3 +1,4 @@
+import { finishLogger } from './workoutUi';
 import { expect, test, type Page } from '@playwright/test';
 import { setOffline } from './offline';
 import { saveEmptyProgram } from './programHelpers';
@@ -90,7 +91,7 @@ test('Home adapts to local program, active workout and rest states with cached p
   await page.getByLabel('Set 1 reps', { exact: true }).fill('8');
   await page.getByRole('button', { name: 'Complete set', exact: true }).first().click();
   await expect(page.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(1);
-  await page.getByRole('link', { name: 'Home', exact: true }).click();
+  await page.getByRole('link', { name: 'Leave workout, keep session saved' }).click();
   await expect(page.locator('[data-home-state=in-progress]')).toBeVisible();
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '33');
   await expect(page.getByText('0 of 1 exercise · 2 sets left')).toBeVisible();
@@ -118,7 +119,7 @@ test('Home adapts to local program, active workout and rest states with cached p
     if (browserName !== 'webkit') await page.reload();
     await page.getByRole('link', { name: 'Continue Workout', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(1);
-    await page.getByRole('button', { name: 'Finish Workout' }).click();
+    await finishLogger(page);
     await page.getByRole('link', { name: 'Home', exact: true }).click();
     await expect(page.locator('[data-home-state=rest-day]')).toBeVisible();
     await expect(page.getByRole('link', { name: /Push Day.*1 completed set/ })).toBeVisible();

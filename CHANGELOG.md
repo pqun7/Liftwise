@@ -4,6 +4,12 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Workout logger
+
+- Focused, Tailwind-first active workout view with exercise progress, catalog imagery/fallback, compact set grid, current-set adjustments, rest ring and explicit Complete/Next/Finish actions. Current fonts are unchanged.
+- Newly created planned/quick sets prefill only from matching completed historical sets and remain incomplete. Decimal edits persist through the existing repository; rest extensions are atomic timestamp updates.
+- Active `/workout` resumes the same session; global navigation is hidden only in the focused logger. Overview retains existing session-only management, undo and notes. No schema/backup version changes.
+
 ### Refactored
 
 - Tailwind-first shared buttons, cards, named icon actions, form controls, segmented selectors and section headers. Home, Plan, Workout and Progress share semantic emerald tokens and one 430px safe-area-aware shell/navigation.

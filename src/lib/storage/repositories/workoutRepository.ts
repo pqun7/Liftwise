@@ -14,6 +14,7 @@ import {
 import { database, type LiftwiseDatabase } from '../database';
 import { RelationshipError } from '../errors';
 import { createEntityId, createTimestamp, requireRecord } from './shared';
+import { previousSetFor } from '../../../domain/workoutPrefill';
 
 export interface CreateWorkoutSessionInput {
   programId?: string | null;
@@ -383,6 +384,17 @@ export class WorkoutRepository {
           id: sessionId,
           currentExerciseId: sessionExercises[0]?.id ?? null,
         });
+        for (const exercise of sessionExercises) {
+          const previous = await this.getPreviousCompletedExercise(
+            exercise.exerciseId,
+            session.startedAt,
+          );
+          for (const set of sets.filter((item) => item.workoutExerciseId === exercise.id)) {
+            const source = previousSetFor(set, previous?.sets ?? []);
+            if (source)
+              Object.assign(set, { weight: source.weight, reps: source.reps, rir: source.rir });
+          }
+        }
         await this.db.workoutSessions.add(session);
         if (sessionExercises.length) await this.db.workoutExercises.bulkAdd(sessionExercises);
         if (sets.length) await this.db.workoutSets.bulkAdd(sets);
@@ -503,6 +515,16 @@ export class WorkoutRepository {
           createdAt: timestamp,
           updatedAt: timestamp,
         });
+        const previous = await this.getPreviousCompletedExercise(
+          exercise.exerciseId,
+          session.startedAt,
+        );
+        const source = previousSetFor(workoutSet, previous?.sets ?? []);
+        if (source) {
+          for (const field of ['weight', 'reps', 'rir'] as const) {
+            if (input[field] === undefined) workoutSet[field] = source[field];
+          }
+        }
         await this.db.workoutSets.add(workoutSet);
         await this.touchSession(session, timestamp);
         return workoutSet;
@@ -598,6 +620,20 @@ export class WorkoutRepository {
       ...this.requireMutableSession(session),
       restStartedAt: null,
       restEndsAt: null,
+      updatedAt: timestamp,
+    }));
+  }
+
+  async extendRest(id: string, seconds = 30): Promise<WorkoutSession> {
+    if (!Number.isInteger(seconds) || seconds < 1 || seconds > 3600)
+      throw new Error('Invalid rest extension.');
+    return this.updateSession(id, (session, timestamp) => ({
+      ...this.requireMutableSession(session),
+      restStartedAt: session.restStartedAt ?? timestamp,
+      restEndsAt: new Date(
+        Math.max(Date.now(), session.restEndsAt ? Date.parse(session.restEndsAt) : 0) +
+          seconds * 1000,
+      ).toISOString(),
       updatedAt: timestamp,
     }));
   }

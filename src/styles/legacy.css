@@ -59,17 +59,6 @@
   margin: 0 0 0.4rem;
   font-size: 0.9rem;
 }
-.workout-undo {
-  margin-top: 0.35rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.6rem;
-  color: #07100d;
-  background: #77efb5;
-  border-radius: 0.8rem;
-}
 
 .keep-awake label {
   display: flex;
@@ -86,31 +75,7 @@
   display: block;
   color: #b9ccc2;
 }
-.workout-undo button {
-  min-height: 44px;
-  padding: 0.5rem;
-  border: 1px solid #385247;
-  border-radius: 0.6rem;
-}
-.workout-current-control {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  padding: 0.65rem;
-  background: #102019;
-  border: 1px solid #385247;
-  border-radius: 0.7rem;
-}
-.workout-sticky-controls {
-  position: sticky;
-  top: max(0.5rem, var(--safe-top));
-  z-index: 10;
-}
-.workout-current-control a {
-  color: #77efb5;
-  min-height: 44px;
-  align-content: center;
-}
+
 .session-exercise-card {
   scroll-margin-top: calc(5rem + var(--safe-top));
 }
@@ -1250,11 +1215,9 @@ button {
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
 }
-
 .recovery-banner,
 .workout-start-card,
-.session-exercise-card,
-.workout-notes {
+.session-exercise-card {
   display: grid;
   gap: 0.85rem;
   padding: 1rem;
@@ -1276,10 +1239,8 @@ button {
 .session-exercise-card p {
   margin: 0;
 }
-
 .recovery-banner > div:first-child,
-.recovery-actions,
-.workout-session-actions {
+.recovery-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.65rem;
@@ -1289,11 +1250,8 @@ button {
 .recovery-banner > div:first-child {
   display: grid;
 }
-
 .recovery-actions > a,
-.recovery-actions > button,
-.workout-session-actions > button,
-.rest-timer button {
+.recovery-actions > button {
   min-height: 2.75rem;
   padding: 0.65rem 0.9rem;
   color: #dce9e2;
@@ -1304,9 +1262,7 @@ button {
   font-weight: 800;
   text-decoration: none;
 }
-
-.recovery-actions > .primary-action,
-.workout-session-actions > .primary-action {
+.recovery-actions > .primary-action {
   color: #07100d;
   background: #77efb5;
 }
@@ -1380,64 +1336,6 @@ button {
   font-size: 0.7rem;
   font-weight: 800;
   text-transform: uppercase;
-}
-
-.workout-session-header {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.workout-session-header h1,
-.workout-session-header p {
-  margin: 0;
-}
-
-.workout-session-header h1 {
-  font-size: clamp(2rem, 9vw, 3rem);
-  line-height: 1;
-}
-
-.workout-session-header > strong {
-  color: #77efb5;
-  font-variant-numeric: tabular-nums;
-}
-
-.rest-timer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.9rem 1rem;
-  color: #07100d;
-  background: #77efb5;
-  border-radius: 1rem;
-}
-
-.rest-timer div {
-  display: grid;
-}
-
-.rest-timer strong {
-  font-size: 1.8rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.rest-timer button {
-  color: #07100d;
-  border-color: rgb(7 16 13 / 25%);
-}
-
-.workout-notes textarea {
-  min-height: 5rem;
-  padding: 0.75rem;
-  color: #f3f8f5;
-  background: #0b1712;
-  border: 1px solid rgb(255 255 255 / 12%);
-  border-radius: 0.75rem;
-  font: inherit;
-  resize: vertical;
 }
 
 .session-exercise-card.current-exercise {

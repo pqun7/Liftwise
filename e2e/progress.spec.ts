@@ -1,3 +1,4 @@
+import { finishLogger } from './workoutUi';
 import { expect, test } from '@playwright/test';
 import { setOffline } from './offline';
 
@@ -30,7 +31,7 @@ test('completed history, PRs, charts, measurements and CSV stay usable offline',
       'aria-pressed',
       'true',
     );
-    await page.getByRole('button', { name: 'Finish Workout' }).click();
+    await finishLogger(page);
     await expect(page.getByRole('heading', { name: 'Start training' })).toBeVisible();
   }
   await page.goto('/progress');

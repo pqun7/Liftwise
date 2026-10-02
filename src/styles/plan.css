@@ -41,6 +41,15 @@
   text-align: center;
   font-weight: 750;
 }
+.builder-back {
+  display: grid;
+  place-items: center;
+  height: 44px;
+  width: 44px;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid var(--home-border);
+  border-radius: 16px;
+}
 .builder-stepper {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -132,6 +141,9 @@
 .builder-page .exercise-form label > span {
   font-weight: 500;
 }
+.builder-segment label > span {
+  font-weight: 500;
+}
 .builder-page .exercise-form :is(input, textarea, select) {
   font-size: max(16px, 1rem);
   background: rgb(255 255 255 / 3%);
@@ -145,11 +157,43 @@
   min-height: 85px;
   resize: vertical;
 }
+.builder-segment {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.builder-segment legend {
+  color: var(--home-secondary);
+  padding: 0;
+  margin-bottom: 7px;
+}
+.builder-segment > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.builder-segment label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 4px;
+  min-height: 44px;
+  border: 1px solid var(--home-border);
+  border-radius: 12px;
+  color: var(--home-secondary);
+  font-size: 12px;
+  text-transform: capitalize;
+  cursor: pointer;
+}
+.builder-segment label.is-selected,
 .builder-split.is-selected {
   border-color: var(--home-mint);
   color: var(--home-mint);
   background: rgb(72 240 187 / 7%);
 }
+.builder-segment input,
 .builder-split input {
   position: absolute;
   width: 1px;
@@ -157,6 +201,7 @@
   opacity: 0;
   padding: 0;
 }
+.builder-segment label:has(input:focus-visible),
 .builder-split:has(input:focus-visible) {
   outline: 3px solid var(--home-mint);
   outline-offset: 3px;

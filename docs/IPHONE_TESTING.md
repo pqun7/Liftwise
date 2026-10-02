@@ -1,5 +1,9 @@
 # Manual iPhone test plan
 
+## Focused workout logger acceptance
+
+On a real installed iPhone PWA, start a planned workout; enter a decimal load and actual RIR outside the prescription range (within 0–10); complete a set, add 30 seconds, lock/background and reopen. Verify the same session, one completed set and wall-clock rest remaining. Skip rest, finish all sets, advance exercises and finish the workout. Inspect its historical prescription and Progress. Repeat with a Quick Workout and with prior history: prefilled sets must remain incomplete. Verify Back preserves the session, Overview manages it, pinch zoom remains available, and the keyboard does not auto-zoom inputs. Repeat without network after installation. This checklist is not evidence of physical-device testing.
+
 Run this plan on a physical, supported iPhone before releasing an installable build.
 
 ## v0.9 release-candidate QA matrix

@@ -132,6 +132,7 @@ export async function addExerciseToWorkout(workoutId: string, exerciseId: string
     async () => {
       const exercise = await workouts.addExercise({ workoutSessionId: workoutId, exerciseId });
       await workouts.addSet({ workoutExerciseId: exercise.id, setType: 'working' });
+      await workouts.setCurrentExercise(workoutId, exercise.id);
     },
   );
 }
@@ -151,6 +152,7 @@ export const updateWorkoutNotes = (sessionId: string, notes: string | null) =>
 export const startWorkoutRest = (sessionId: string, seconds: number) =>
   workouts.startRest(sessionId, seconds);
 export const clearWorkoutRest = (sessionId: string) => workouts.clearRest(sessionId);
+export const extendWorkoutRest = (sessionId: string) => workouts.extendRest(sessionId);
 export const pauseWorkout = (sessionId: string) => workouts.pause(sessionId);
 export const resumeWorkout = (sessionId: string) => workouts.resume(sessionId);
 export const finishWorkout = (sessionId: string) => workouts.finish(sessionId);

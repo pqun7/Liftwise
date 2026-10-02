@@ -1,3 +1,4 @@
+import { finishLogger } from './workoutUi';
 import { expect, test, type Page } from '@playwright/test';
 import { setOffline } from './offline';
 import { saveEmptyProgram } from './programHelpers';
@@ -150,7 +151,9 @@ test('all core training, charts, backup and CSV flows work with network disabled
     await page.getByRole('button', { name: /Offline Push/ }).click();
     await expect(page.getByLabel('Set 1 weight', { exact: true })).toBeVisible();
     timings.workout = Date.now() - started;
+    await page.getByLabel('Workout menu', { exact: true }).click();
     await page.getByLabel('Keep screen awake while training').check();
+    await page.getByLabel('Workout menu', { exact: true }).click();
     for (const number of [1, 2]) {
       await page.getByLabel(`Set ${number} weight`, { exact: true }).fill('100');
       await page.getByLabel(`Set ${number} reps`, { exact: true }).fill('8');
@@ -160,8 +163,8 @@ test('all core training, charts, backup and CSV flows work with network disabled
       );
     }
     await expect(page.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(2);
-    const current = await page.locator('.workout-current-control').boundingBox();
-    const undo = await page.locator('.workout-undo').boundingBox();
+    const current = await page.getByRole('region', { name: 'Set logger' }).boundingBox();
+    const undo = await page.getByRole('status').filter({ hasText: 'Set saved' }).boundingBox();
     expect(undo!.y).toBeGreaterThanOrEqual(current!.y + current!.height);
     await auditLayout(page);
     if (browserName === 'webkit') {
@@ -170,18 +173,22 @@ test('all core training, charts, backup and CSV flows work with network disabled
         await auditLayout(page);
       }
     }
+    await page.getByLabel('Workout menu', { exact: true }).click();
     await page.getByRole('button', { name: 'Pause', exact: true }).click();
     await page.getByRole('button', { name: 'Resume', exact: true }).click();
+    await page.getByLabel('Workout menu', { exact: true }).click();
     if (browserName !== 'webkit') await page.reload();
     else {
-      await page.getByRole('link', { name: 'Home', exact: true }).click();
-      await expect(page.getByText('Unfinished workout found')).toBeVisible();
+      await page.getByRole('link', { name: 'Leave workout, keep session saved' }).click();
+      await expect(page.locator('[data-home-state=in-progress]')).toBeVisible();
       await page.getByRole('link', { name: 'Continue Workout', exact: true }).click();
     }
     await expect(page.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(2);
-    await expect(page.getByRole('button', { name: 'End rest' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Skip Rest Timer' })).toBeVisible();
+    await page.getByLabel('Workout menu', { exact: true }).click();
     await expect(page.getByLabel('Keep screen awake while training')).toBeChecked();
-    await page.getByRole('button', { name: 'Finish Workout' }).click();
+    await page.getByLabel('Workout menu', { exact: true }).click();
+    await finishLogger(page);
     await page.getByRole('button', { name: /Start Quick Workout/ }).click();
     await page.getByRole('link', { name: 'Add Exercise', exact: true }).click();
     await page.getByRole('searchbox', { name: 'Search exercises' }).fill('Barbell Bench Press');
@@ -193,7 +200,7 @@ test('all core training, charts, backup and CSV flows work with network disabled
     await page.getByLabel('Set 1 weight', { exact: true }).fill('102.5');
     await page.getByLabel('Set 1 reps', { exact: true }).fill('8');
     await page.getByRole('button', { name: 'Complete set', exact: true }).first().click();
-    await page.getByRole('button', { name: 'Finish Workout' }).click();
+    await finishLogger(page);
     started = Date.now();
     await page.getByRole('link', { name: 'Progress', exact: true }).click();
     await expect(page.getByText('2 completed workouts · 3 working sets')).toBeVisible();

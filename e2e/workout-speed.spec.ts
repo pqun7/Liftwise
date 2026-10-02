@@ -1,3 +1,4 @@
+import { finishLogger } from './workoutUi';
 import { expect, test, type Page } from '@playwright/test';
 
 async function addExercise(page: Page, name: string) {
@@ -30,22 +31,22 @@ test('gym-speed Quick Workout survives undo, skip, replacement, and reload on iP
   await addExercise(page, 'Speed Bench');
   await page.getByLabel('Set 1 weight', { exact: true }).fill('100');
   await page.getByLabel('Set 1 reps', { exact: true }).fill('8');
-  await page.getByLabel('Set 1 RIR').fill('2');
-  await page.getByLabel('Set 1 RIR').press('Tab');
+  await page.getByLabel('Set 1 RIR', { exact: true }).fill('2');
+  await page.getByLabel('Set 1 RIR', { exact: true }).press('Tab');
   await page.getByRole('button', { name: 'Complete set', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Completed', exact: true })).toHaveAttribute(
     'aria-pressed',
     'true',
   );
-  await page.getByRole('button', { name: 'Finish Workout' }).click();
+  await finishLogger(page);
   await expect(page.getByRole('heading', { name: 'Start training' })).toBeVisible();
   await page.getByRole('button', { name: /Start Quick Workout/ }).click();
   await addExercise(page, 'Speed Bench');
-  const bench = page.getByRole('article', { name: 'Speed Bench' });
-  await expect(bench.getByRole('region', { name: 'Previous performance' })).toContainText('100');
+  const bench = page.getByRole('region', { name: 'Set logger' });
+  await expect(page.getByRole('link', { name: 'Last workout' })).toContainText('100');
   await bench.getByRole('button', { name: 'Copy Previous Set' }).click();
   await expect(bench.getByLabel('Set 1 weight', { exact: true })).toHaveValue('100');
-  await bench.getByRole('button', { name: 'Set 1 weight plus 2.5 kg' }).click();
+  await bench.getByRole('button', { name: 'Set 1 weight plus 2.5' }).click();
   await expect(bench.getByLabel('Set 1 weight', { exact: true })).toHaveValue('102.5');
   await bench.getByRole('button', { name: 'Complete set', exact: true }).click();
   await page.getByRole('button', { name: 'Undo completion' }).click();
@@ -54,15 +55,22 @@ test('gym-speed Quick Workout survives undo, skip, replacement, and reload on iP
     'false',
   );
   await bench.getByRole('button', { name: 'Complete set', exact: true }).click();
-  await bench.getByRole('button', { name: 'Collapse completed exercise' }).click();
-  await expect(bench.getByLabel('Set 1 weight', { exact: true })).toBeHidden();
-  await bench.getByRole('button', { name: 'Expand exercise' }).click();
+  await page.getByRole('button', { name: 'Workout Overview', exact: true }).click();
+  const overview = page.getByRole('region', { name: 'Workout Overview', exact: true });
+  const overviewBench = overview.getByRole('article', { name: 'Speed Bench' });
+  await overviewBench.getByRole('button', { name: 'Collapse completed exercise' }).click();
+  await expect(overviewBench.getByLabel('Set 1 weight', { exact: true })).toBeHidden();
+  await overviewBench.getByRole('button', { name: 'Expand exercise' }).click();
+  await page.getByRole('button', { name: 'Close overview', exact: true }).click();
   await addExercise(page, 'Speed Row');
-  const row = page.getByRole('article', { name: 'Speed Row' });
+  await page.getByRole('button', { name: 'Workout Overview', exact: true }).click();
+  const row = overview.getByRole('article', { name: 'Speed Row' });
   await row.getByRole('button', { name: 'Skip exercise', exact: true }).click();
   await expect(row).toContainText('Skipped');
+  await page.getByRole('button', { name: 'Close overview', exact: true }).click();
   await addExercise(page, 'Speed Raise');
-  await page
+  await page.getByRole('button', { name: 'Workout Overview', exact: true }).click();
+  await overview
     .getByRole('article', { name: 'Speed Raise' })
     .getByRole('link', { name: 'Replace Exercise for This Workout' })
     .click();
@@ -72,18 +80,18 @@ test('gym-speed Quick Workout survives undo, skip, replacement, and reload on iP
     .first()
     .click();
   await expect(
-    page.getByRole('heading', { name: 'Barbell Bench Press', exact: true }),
+    page.getByRole('heading', { name: 'Barbell Bench Press', exact: true }).first(),
   ).toBeVisible();
   await page.reload();
-  await expect(bench.getByLabel('Set 1 weight', { exact: true })).toHaveValue('102.5');
-  await expect(bench.getByLabel('Set 1 reps', { exact: true })).toHaveValue('8');
-  await expect(bench.getByLabel('Set 1 RIR')).toHaveValue('2');
-  await expect(bench.getByRole('button', { name: 'Completed', exact: true })).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  );
+  await page.getByRole('button', { name: 'Workout Overview', exact: true }).click();
+  await expect(overviewBench.getByLabel('Set 1 weight', { exact: true })).toHaveValue('102.5');
+  await expect(overviewBench.getByLabel('Set 1 reps', { exact: true })).toHaveValue('8');
+  await expect(overviewBench.getByLabel('Set 1 RIR', { exact: true })).toHaveValue('2');
+  await expect(
+    overviewBench.getByRole('button', { name: 'Completed', exact: true }),
+  ).toHaveAttribute('aria-pressed', 'true');
   await expect(row).toContainText('Skipped');
-  await expect(page.getByRole('article')).toHaveCount(3);
+  await expect(overview.getByRole('article')).toHaveCount(3);
   await expect(
     page.getByRole('heading', { name: 'Barbell Bench Press', exact: true }),
   ).toBeVisible();

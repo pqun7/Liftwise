@@ -8,6 +8,12 @@ The roadmap is directional. Reliability, privacy, and data safety take priority 
 - [x] Preserve feature state, canonical analytics, persistence and accessible mobile controls.
 - Remaining legacy feature layouts migrate only when touched; no full-app rewrite is planned.
 
+## Active workout presentation (unreleased)
+
+- [x] Focused reference-led logger with current-set editing, historical prefill and timestamp rest controls.
+- [x] Preserve snapshots, immediate persistence, recovery and canonical Progress history.
+- [ ] Physical-iPhone keyboard, VoiceOver and installed-PWA suspension acceptance.
+
 ## v0.1.0 — Project foundation
 
 - [x] Mobile-first React and TypeScript application shell

@@ -1,5 +1,17 @@
 # Development log
 
+## 2026-10-02 — Focused active workout logger (unreleased)
+
+- Goal: implement the supplied iPhone logger reference without redesigning other features or changing fonts.
+- Work: focused header/menu, dynamic progress, exercise/history card, compact controlled set editor, current-only adjustments and timestamp rest ring with +30/Skip. Existing management remains in Overview; completed history retains snapshot rendering.
+- Decisions: canonical session repositories remain authoritative. Historical prefill happens atomically during set/session creation, never during a read or resume. No schema, migration, backup, dependency or font changes. Existing completion `updatedAt`/undo timestamp is retained rather than adding a redundant field.
+- Safety: inputs queue persistence operations; completion drains queued edits and rejects duplicate clicks; repository completion/rest mutation remains transactional. Timers render wall-clock timestamps without per-second writes.
+- Tests: controlled draft/adjustment/copy/double-click/advance tests; historical prefill, reopen and rest-extension coverage; realistic planned logging/recovery/history browser journey. Existing recovery, snapshots, backups and analytics tests retained.
+- Verification: format/lint/types/RepDB/build passed; full unit/integration run passed 122 tests across 23 files. After fixing failed-edit retry to save without completing, all 5 affected component tests passed (123 distinct tests verified overall). Full browser run: 24 passed, 3 failed harness checks, 3 intentional skips; corrected affected rerun: 8 passed, 2 intentional skips. All 27 applicable scenarios passed overall (14 WebKit, 13 Chromium), including fully offline backup/CSV/history, recovery and snapshot regressions. Logger verified at 320/375/390/393/402/430px with no horizontal overflow and computed 16px inputs. Saved Chrome/WebKit screenshots were compared with the supplied reference; the existing variable font renders lighter in Windows WebKit and was deliberately not changed.
+- Cleanup: removed confirmed-unused old logger CSS only. Retained Overview controls and concurrent, unrelated Plan CSS edits. Existing bundle-size/upstream Zod annotation warnings remain. Tests use isolated browser databases, never real user data.
+- Limitations: physical iPhone keyboard, installed-PWA suspension and VoiceOver acceptance remain unperformed. RepDB media remains optional; missing images never block logging.
+- Next: stop at the active Workout Logger redesign.
+
 ## 2026-10-02 — Shared Tailwind UI (unreleased)
 
 - Goal: incrementally unify Home, Plan, Workout and Progress without replacing working feature state/domain architecture.
