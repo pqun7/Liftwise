@@ -22,7 +22,7 @@ export function AppShell() {
         Skip to content
       </a>
 
-      {!home && !plan && !focused ? (
+      {!home && !plan && !pathname.startsWith('/workout') && !focused ? (
         <header className="top-bar flex items-center justify-between gap-3 pt-[calc(22px+var(--safe-top))] pb-2">
           <div>
             <p className="eyebrow">Your private training space</p>

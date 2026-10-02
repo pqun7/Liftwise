@@ -17,17 +17,17 @@ export function CurrentExerciseCard({ entry }: { entry: HydratedWorkoutExercise 
     );
   const summary = uniform
     ? `${first.weight ?? '—'} kg × ${first.reps ?? '—'} × ${history.length}${first.rir === null ? '' : ` · RIR ${first.rir}`}`
-    : `Last set: ${formatPreviousSets(history.slice(-1))} · ${history.length} sets`;
+    : `${formatPreviousSets(history.slice(-1)).replace(' ×', ' kg ×')} · ${history.length} sets`;
   return (
-    <Card as="article" aria-label={entry.exercise.exerciseName} className="grid gap-3">
+    <Card as="article" aria-label={entry.exercise.exerciseName} className="workout-current-card">
       <Link
         to={`/exercises/${encodeURIComponent(entry.exercise.exerciseId)}`}
-        className="flex min-h-20 items-center gap-3 no-underline"
+        className="workout-current-exercise"
       >
         <ExerciseImage
           key={entry.exercise.exerciseId}
           image={image}
-          className="!h-20 !w-28 shrink-0 rounded-xl bg-surface-3 object-contain"
+          className="workout-current-image"
         />
         <div className="min-w-0 flex-1">
           <h2 className="text-xl font-bold leading-tight">{entry.exercise.exerciseName}</h2>
@@ -41,7 +41,7 @@ export function CurrentExerciseCard({ entry }: { entry: HydratedWorkoutExercise 
         <Link
           to={`/workout/${entry.previous.exercise.workoutSessionId}`}
           aria-label="Last workout"
-          className="flex min-h-11 items-center gap-2 rounded-xl border border-border bg-surface-2 px-3 py-2 text-xs no-underline"
+          className="workout-previous-row"
         >
           <ChartNoAxesColumnIncreasing
             size={18}
@@ -53,9 +53,7 @@ export function CurrentExerciseCard({ entry }: { entry: HydratedWorkoutExercise 
           <ChevronRight size={16} aria-hidden="true" />
         </Link>
       ) : (
-        <p className="rounded-xl bg-surface-2 px-3 py-2 text-sm text-secondary">
-          No previous workout data
-        </p>
+        <p className="workout-no-history">No previous workout data</p>
       )}
     </Card>
   );

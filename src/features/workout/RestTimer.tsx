@@ -20,12 +20,8 @@ export function RestTimer({
   disabled?: boolean;
 }) {
   return (
-    <Card
-      as="section"
-      className="flex flex-wrap items-center justify-between gap-2 bg-surface-3/80"
-      aria-label="Rest timer"
-    >
-      <div className="relative size-20 shrink-0">
+    <Card as="section" className="workout-rest-timer" aria-label="Rest timer">
+      <div className="workout-rest-ring">
         <svg viewBox="0 0 100 100" className="size-full -rotate-90" aria-hidden="true">
           <circle
             cx="50"
@@ -33,7 +29,7 @@ export function RestTimer({
             r="42"
             fill="none"
             stroke="currentColor"
-            strokeWidth="8"
+            strokeWidth="7"
             className="text-border"
           />
           <circle
@@ -42,7 +38,7 @@ export function RestTimer({
             r="42"
             fill="none"
             stroke="currentColor"
-            strokeWidth="8"
+            strokeWidth="7"
             strokeLinecap="round"
             strokeDasharray={264}
             strokeDashoffset={264 * (1 - Math.min(1, remaining / Math.max(1, duration)))}
@@ -55,7 +51,7 @@ export function RestTimer({
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-secondary"
         />
       </div>
-      <div className="grid flex-1 gap-1">
+      <div className="workout-rest-time">
         <span className="text-xs uppercase tracking-widest text-secondary">Rest</span>
         <strong className="text-3xl font-bold tabular-nums">
           {formatDuration(remaining).padStart(5, '0')}
@@ -68,11 +64,11 @@ export function RestTimer({
               : 'Prepare for next exercise'}
         </span>
       </div>
-      <div className="flex gap-1">
+      <div className="workout-rest-actions">
         <div className="grid justify-items-center gap-1">
           {onAdd ? (
             <Button
-              className="size-11 px-1"
+              className="workout-rest-button"
               disabled={disabled}
               aria-label="Add 30 Seconds"
               onClick={onAdd}
@@ -86,7 +82,7 @@ export function RestTimer({
           <Button
             disabled={disabled}
             aria-label={onAdd ? 'Skip Rest Timer' : 'End rest'}
-            className="size-11 px-1"
+            className="workout-rest-button"
             onClick={onEnd}
           >
             <SkipForward size={18} aria-hidden="true" />

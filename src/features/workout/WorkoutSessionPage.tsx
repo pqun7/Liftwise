@@ -1,4 +1,5 @@
 import { ActiveWorkoutLogger } from './ActiveWorkoutLogger';
+import { WorkoutSummary } from './WorkoutSummary';
 import { MobilePage } from '../../components/layout/MobilePage';
 import { Textarea } from '../../components/ui/FormControl';
 import { useEffect, useRef, useState } from 'react';
@@ -116,6 +117,8 @@ export function WorkoutSessionPage() {
         }}
       />
     );
+
+  if (session.status === 'completed') return <WorkoutSummary workout={workout} />;
 
   return (
     <MobilePage className="grid gap-4" aria-labelledby="session-title">

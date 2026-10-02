@@ -93,11 +93,8 @@ export function SetLogger({
     void enqueue(() => updateWorkoutSet(current.id, values));
   };
   return (
-    <section aria-label="Set logger" className="grid gap-3">
-      <div
-        className="grid grid-cols-[36px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_44px] items-center gap-1.5 text-center text-sm text-secondary"
-        aria-hidden="true"
-      >
+    <section aria-label="Set logger" className="workout-set-logger">
+      <div className="workout-set-grid workout-set-labels" aria-hidden="true">
         <span>Set</span>
         <span>Kg</span>
         <span>Reps</span>
@@ -109,7 +106,7 @@ export function SetLogger({
         return (
           <div
             key={set.id}
-            className="grid grid-cols-[36px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_44px] items-center gap-1.5"
+            className={`workout-set-grid ${active ? 'is-current' : ''} ${set.completed ? 'is-completed' : ''}`}
             aria-label={`Set ${set.setNumber}${active ? ', current' : ''}`}
           >
             <span
@@ -121,7 +118,7 @@ export function SetLogger({
               <NumericInput
                 key={field}
                 value={read(set)[field]}
-                disabled={disabled || busy}
+                disabled={disabled || busy || set.completed}
                 inputMode={field === 'reps' ? 'numeric' : 'decimal'}
                 enterKeyHint={field === 'rir' ? 'done' : 'next'}
                 aria-label={`Set ${set.setNumber} ${field === 'rir' ? 'RIR' : field}`}
@@ -157,15 +154,12 @@ export function SetLogger({
       })}
       {current ? (
         <>
-          <div className="grid grid-cols-3 gap-1.5">
+          <div className="workout-adjustments">
             {(['weight', 'reps', 'rir'] as const).map((field) => {
               const step = field === 'weight' ? DEFAULT_WEIGHT_STEP : 1;
               return (
-                <div
-                  key={field}
-                  className="flex min-w-0 flex-wrap items-center justify-between rounded-2xl border border-border bg-surface-2 p-1"
-                >
-                  <span className="order-first w-full py-1 text-center text-xs text-secondary">
+                <div key={field} className="workout-adjustment">
+                  <span className="workout-adjustment-value">
                     {read(current)[field] || '—'}{' '}
                     {field === 'weight' ? 'kg' : field === 'reps' ? 'reps' : 'RIR'}
                   </span>
@@ -190,7 +184,7 @@ export function SetLogger({
                       }}
                     >
                       {direction > 0 ? '+' : '−'}
-                      {step}
+                      {field === 'weight' ? step : ''}
                     </button>
                   ))}
                 </div>
@@ -201,7 +195,7 @@ export function SetLogger({
           <Button
             variant="primary"
             size="large"
-            className="w-full"
+            className="workout-primary workout-active-action"
             disabled={busy || disabled}
             aria-pressed={false}
             onClick={complete}

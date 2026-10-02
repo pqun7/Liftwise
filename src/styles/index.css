@@ -3,6 +3,7 @@
 @import './legacy.css' layer(base);
 @import './home.css' layer(base);
 @import './plan.css' layer(base);
+@import './workout.css';
 
 @font-face {
   font-family: 'Manrope';

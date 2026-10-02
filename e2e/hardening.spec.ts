@@ -246,8 +246,10 @@ test('all core training, charts, backup and CSV flows work with network disabled
       .getByRole('region', { name: 'Workout history' })
       .getByRole('link', { name: /Offline Push/ })
       .click();
-    await expect(page.getByText('3 sets · 6–8 reps · 1–2 RIR')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(2);
+    await expect(page.getByRole('region', { name: 'Exercise summaries' })).toContainText(
+      '2 of 3 sets completed',
+    );
+    await expect(page.getByLabel('Completed set', { exact: true })).toHaveCount(2);
     await page.getByRole('link', { name: 'Plan', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Offline QA', exact: true })).toBeVisible();
     expect(external).toEqual([]);

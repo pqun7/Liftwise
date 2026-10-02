@@ -8,6 +8,8 @@ export async function finishLogger(page: Page) {
     await page.getByLabel('Workout menu', { exact: true }).click();
   }
   await menu.getByRole('button', { name: 'Finish Workout', exact: true }).click();
+  await expect(page.getByText('Workout complete', { exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'Done', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Start training' })).toBeVisible();
 }
 

@@ -100,6 +100,22 @@ test('focused logger preserves decimal sets, rest, prefill, recovery and canonic
   await expect(logger.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(1);
   await finishLogger(page);
   await expect(page.getByRole('link', { name: 'View Completed Workout' })).toBeVisible();
+  await page.getByRole('link', { name: 'View Completed Workout' }).click();
+  await expect(page.getByRole('region', { name: 'Exercise summaries' })).toContainText(
+    '3 of 3 sets completed',
+  );
+  await expect(page.locator('.workout-summary-metrics')).toContainText('Sets completed4');
+  for (const width of [375, 390, 393, 430]) {
+    await page.setViewportSize({ width, height: 844 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    await page.screenshot({
+      path: testInfo.outputPath('summary-' + width + '.png'),
+      fullPage: true,
+    });
+  }
+  await page.getByRole('link', { name: 'Done', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Start Workout', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: /Push Day/ }).click();
   await page.getByRole('button', { name: 'Start Workout', exact: true }).click();
@@ -110,6 +126,26 @@ test('focused logger preserves decimal sets, rest, prefill, recovery and canonic
   await logger.getByRole('button', { name: 'Complete set', exact: true }).click();
   await expect(logger.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(1);
   await expect(page.getByRole('button', { name: 'Add 30 Seconds' })).toBeEnabled();
+  for (const width of [375, 390, 393, 430]) {
+    await page.setViewportSize({ width, height: 844 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    const action = await logger
+      .getByRole('button', { name: 'Complete set', exact: true })
+      .boundingBox();
+    expect(action!.height).toBeGreaterThanOrEqual(54);
+    expect(action!.y + action!.height).toBeLessThanOrEqual(844);
+    for (const control of await page
+      .locator('.workout-adjustment button, .workout-rest-button')
+      .all()) {
+      const box = await control.boundingBox();
+      expect(box!.width).toBeGreaterThanOrEqual(44);
+      expect(box!.height).toBeGreaterThanOrEqual(44);
+    }
+    await page.screenshot({ path: testInfo.outputPath('active-' + width + '.png') });
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: testInfo.outputPath('active-logger.png'), fullPage: true });
   const sessionUrl = page.url();
   await page.getByRole('link', { name: 'Leave workout, keep session saved' }).click();

@@ -21,7 +21,7 @@ export function WorkoutLandingHero({
       id="workout-hero"
       radius="hero"
       padding="none"
-      className="relative isolate overflow-hidden"
+      className="workout-landing-hero relative isolate overflow-hidden"
     >
       <img
         src={resting ? restDay : workoutBench}
@@ -29,7 +29,7 @@ export function WorkoutLandingHero({
         className="absolute inset-0 -z-20 h-full w-full object-cover object-right"
       />
       <div className="absolute inset-0 -z-10 bg-gradient-to-r from-app via-app/85 to-app/30" />
-      <div className="grid min-h-64 content-between gap-8 p-5">
+      <div className="workout-landing-hero-content">
         <div>
           <p className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-mint">{eyebrow}</p>
           <h2 className="text-[30px] font-bold leading-tight">{title}</h2>

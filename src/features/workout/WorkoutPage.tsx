@@ -81,7 +81,7 @@ export function WorkoutPage() {
     <Button
       variant="primary"
       size="large"
-      className="min-h-14"
+      className="workout-primary"
       disabled={busy || missing}
       onClick={() => void start(() => startPlannedWorkout(selected!.day.id))}
     >
@@ -91,7 +91,10 @@ export function WorkoutPage() {
   );
 
   return (
-    <MobilePage className={`grid gap-5 ${pinned ? 'pb-20' : ''}`} aria-labelledby="workout-title">
+    <MobilePage
+      className={`workout-flow workout-landing grid gap-4 ${pinned ? 'pb-20' : ''}`}
+      aria-labelledby="workout-title"
+    >
       <PageIntro
         titleId="workout-title"
         eyebrow="Workout"
@@ -262,11 +265,7 @@ export function WorkoutPage() {
         <ShieldCheck size={16} aria-hidden="true" />
         Saved on this device · works offline
       </p>
-      {pinned ? (
-        <div className="fixed bottom-[calc(88px+var(--safe-bottom))] left-1/2 z-20 w-full max-w-[430px] -translate-x-1/2 bg-app/95 px-[max(16px,var(--safe-left))] py-3 backdrop-blur-xl [&>button]:w-full">
-          {plannedAction}
-        </div>
-      ) : null}
+      {pinned ? <div className="workout-landing-action">{plannedAction}</div> : null}
     </MobilePage>
   );
 }

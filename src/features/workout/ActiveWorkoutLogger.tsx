@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { ArrowLeft, ArrowRight, Ellipsis, Check } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
@@ -58,6 +58,9 @@ export function ActiveWorkoutLogger({
     workout.exercises.findIndex((entry) => entry.exercise.id === session.currentExerciseId),
   );
   const entry = workout.exercises[index];
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [entry?.exercise.id]);
   const current = entry?.sets.find((set) => !set.completed);
   const next = workout.exercises
     .slice(index + 1)
@@ -70,11 +73,7 @@ export function ActiveWorkoutLogger({
       !item.exercise.skipped && (!item.sets.length || item.sets.some((set) => !set.completed)),
   );
   const rest = restRemainingSeconds(session, now);
-  const finish = () =>
-    void run(async () => {
-      await finishWorkout(session.id);
-      await navigate('/workout');
-    });
+  const finish = () => void run(() => finishWorkout(session.id));
   const timer = session.restEndsAt ? (
     <RestTimer
       remaining={rest}
@@ -90,8 +89,8 @@ export function ActiveWorkoutLogger({
     />
   ) : null;
   return (
-    <section className="grid min-w-0 gap-4" aria-labelledby="session-title">
-      <header className="flex items-center justify-between gap-3">
+    <section className="workout-flow workout-active" aria-labelledby="session-title">
+      <header className="workout-session-header">
         <Link to="/" aria-label="Leave workout, keep session saved" className={iconButtonClasses()}>
           <ArrowLeft size={20} aria-hidden="true" />
         </Link>
@@ -147,7 +146,7 @@ export function ActiveWorkoutLogger({
           </div>
         </details>
       </header>
-      <p className="text-center text-xs text-secondary" aria-label="Elapsed workout time">
+      <p className="workout-session-status" aria-label="Elapsed workout time">
         {session.status === 'paused' ? 'Paused' : 'Saved locally'} ·{' '}
         {formatDuration(workoutElapsedSeconds(session, now))}
       </p>
@@ -187,6 +186,7 @@ export function ActiveWorkoutLogger({
               <Button
                 variant="primary"
                 size="large"
+                className="workout-primary workout-active-action"
                 onClick={() =>
                   void run(() =>
                     setCurrentWorkoutExercise(session.id, (next ?? unfinished)!.exercise.id),
@@ -197,7 +197,13 @@ export function ActiveWorkoutLogger({
                 Next Exercise <ArrowRight size={20} aria-hidden="true" />
               </Button>
             ) : (
-              <Button variant="primary" size="large" disabled={busy} onClick={finish}>
+              <Button
+                variant="primary"
+                size="large"
+                className="workout-primary workout-active-action"
+                disabled={busy}
+                onClick={finish}
+              >
                 <Check size={20} aria-hidden="true" />
                 Finish Workout
               </Button>

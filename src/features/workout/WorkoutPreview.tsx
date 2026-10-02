@@ -9,7 +9,7 @@ import type { WorkoutPreviewEntry } from './workoutService';
 
 export function WorkoutPreview({ entries }: { entries: WorkoutPreviewEntry[] }) {
   return (
-    <section aria-labelledby="preview-title" className="grid gap-2">
+    <section aria-labelledby="preview-title" className="workout-preview grid gap-2">
       <SectionHeader
         title="Workout preview"
         id="preview-title"
@@ -24,10 +24,10 @@ export function WorkoutPreview({ entries }: { entries: WorkoutPreviewEntry[] }) 
                 <ExerciseImage
                   key={exercise.id}
                   image={images.start ?? images.main ?? images.peak ?? null}
-                  className="!h-16 !w-16 shrink-0 rounded-xl bg-surface-3 object-contain"
+                  className="workout-preview-image"
                 />
               ) : (
-                <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-surface-3 text-mint">
+                <span className="workout-preview-image flex items-center justify-center text-secondary">
                   <Dumbbell aria-hidden="true" size={24} />
                 </span>
               )}
@@ -60,12 +60,12 @@ export function WorkoutPreview({ entries }: { entries: WorkoutPreviewEntry[] }) 
                   <Link
                     to={`/exercises/${encodeURIComponent(exercise.id)}`}
                     aria-label={`${index + 1}. ${exercise.name} — exercise details`}
-                    className="flex min-h-20 items-center gap-3 p-3 no-underline"
+                    className="workout-preview-row"
                   >
                     {content}
                   </Link>
                 ) : (
-                  <div className="flex items-center gap-3 p-3">{content}</div>
+                  <div className="workout-preview-row">{content}</div>
                 )}
               </Card>
             </li>
