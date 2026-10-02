@@ -79,7 +79,30 @@ const ExerciseHistoryPage = lazy(() =>
     default: module.ExerciseHistoryPage,
   })),
 );
-import { progressLoader, exerciseHistoryLoader } from '../features/progress/loaders';
+import {
+  progressLoader,
+  exerciseHistoryLoader,
+  workoutHistoryLoader,
+  bodyMeasurementsLoader,
+  exercisePickerLoader as progressExercisePickerLoader,
+} from '../features/progress/loaders';
+import { ProgressSkeleton } from '../features/progress/ProgressUI';
+import { ProgressRouteError } from '../features/progress/ProgressRouteError';
+const WorkoutHistoryPage = lazy(() =>
+  import('../features/progress/WorkoutHistoryPage').then((module) => ({
+    default: module.WorkoutHistoryPage,
+  })),
+);
+const BodyMeasurementsPage = lazy(() =>
+  import('../features/progress/BodyMetrics').then((module) => ({
+    default: module.BodyMeasurementsPage,
+  })),
+);
+const ExerciseInsightsPage = lazy(() =>
+  import('../features/progress/ExerciseInsightsPage').then((module) => ({
+    default: module.ExerciseInsightsPage,
+  })),
+);
 const DataSafetyPage = lazy(() =>
   import('../features/dataSafety/DataSafetyPage').then((module) => ({
     default: module.DataSafetyPage,
@@ -225,13 +248,32 @@ export const routeObjects: RouteObject[] = [
         path: 'progress',
         element: <ProgressPage />,
         loader: progressLoader,
-        errorElement: <WorkoutRouteError />,
+        errorElement: <ProgressRouteError />,
+        hydrateFallbackElement: <ProgressSkeleton />,
+      },
+      {
+        path: 'progress/history',
+        element: <WorkoutHistoryPage />,
+        loader: workoutHistoryLoader,
+        errorElement: <ProgressRouteError />,
+      },
+      {
+        path: 'progress/measurements',
+        element: <BodyMeasurementsPage />,
+        loader: bodyMeasurementsLoader,
+        errorElement: <ProgressRouteError />,
+      },
+      {
+        path: 'progress/exercises',
+        element: <ExerciseInsightsPage />,
+        loader: progressExercisePickerLoader,
+        errorElement: <ProgressRouteError />,
       },
       {
         path: 'progress/exercises/:exerciseId',
         element: <ExerciseHistoryPage />,
         loader: exerciseHistoryLoader,
-        errorElement: <WorkoutRouteError />,
+        errorElement: <ProgressRouteError />,
       },
       { path: 'settings', element: <SettingsPage /> },
       { path: 'settings/data-safety', element: <DataSafetyPage /> },

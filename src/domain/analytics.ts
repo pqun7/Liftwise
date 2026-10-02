@@ -24,10 +24,11 @@ export const metricLabels: Record<Metric, string> = {
   workingSets: 'Working Sets',
   averageRir: 'Average RIR',
 };
-export const ranges = ['1M', '3M', '6M', '1Y', 'ALL'] as const;
+export const ranges = ['7D', '1M', '3M', '6M', '1Y', 'ALL'] as const;
 export type DateRange = (typeof ranges)[number];
 export function rangeStart(range: DateRange, now = new Date()): string {
   if (range === 'ALL') return '0000-01-01T00:00:00.000Z';
+  if (range === '7D') return new Date(now.getTime() - 7 * 86400000).toISOString();
   const result = new Date(now);
   const day = result.getUTCDate();
   result.setUTCDate(1);

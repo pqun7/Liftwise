@@ -1,14 +1,23 @@
 import { Suspense } from 'react';
-import { Outlet, ScrollRestoration, useLocation, useMatches } from 'react-router-dom';
+import {
+  Outlet,
+  ScrollRestoration,
+  useLocation,
+  useMatches,
+  useNavigation,
+} from 'react-router-dom';
 
 import { BottomNavigation } from '../../components/layout/BottomNavigation';
 import { ActiveWorkoutBanner } from '../../features/workout/ActiveWorkoutBanner';
 import { UpdatePrompt } from './UpdatePrompt';
+import { ProgressSkeleton } from '../../features/progress/ProgressUI';
 
 export function AppShell() {
   const pathname = useLocation().pathname;
+  const navigation = useNavigation();
   const home = pathname === '/';
   const plan = pathname === '/plan' || pathname.startsWith('/plan/');
+  const progress = pathname === '/progress' || pathname.startsWith('/progress/');
   const focused = useMatches().some(({ data }) => {
     const status = (data as { workout?: { session?: { status?: string } } } | undefined)?.workout
       ?.session?.status;
@@ -22,7 +31,7 @@ export function AppShell() {
         Skip to content
       </a>
 
-      {!home && !plan && !pathname.startsWith('/workout') && !focused ? (
+      {!home && !plan && !progress && !pathname.startsWith('/workout') && !focused ? (
         <header className="top-bar flex items-center justify-between gap-3 pt-[calc(22px+var(--safe-top))] pb-2">
           <div>
             <p className="eyebrow">Your private training space</p>
@@ -44,8 +53,16 @@ export function AppShell() {
       >
         <UpdatePrompt />
         {!home && !focused && pathname !== '/workout' ? <ActiveWorkoutBanner /> : null}
-        <Suspense fallback={<p role="status">Opening local screen…</p>}>
-          <Outlet />
+        <Suspense
+          fallback={progress ? <ProgressSkeleton /> : <p role="status">Opening local screen…</p>}
+        >
+          {navigation.state === 'loading' &&
+          navigation.location.pathname !== pathname &&
+          navigation.location.pathname.startsWith('/progress') ? (
+            <ProgressSkeleton />
+          ) : (
+            <Outlet />
+          )}
         </Suspense>
       </main>
 

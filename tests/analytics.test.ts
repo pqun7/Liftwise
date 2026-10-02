@@ -10,6 +10,13 @@ import {
   type AnalyticsWorkout,
 } from '../src/domain/analytics';
 import type { WorkoutSet } from '../src/domain/entities';
+import {
+  calendarDays,
+  comparison,
+  periodSummary,
+  trainingDays,
+  weekdayActivity,
+} from '../src/features/progress/overviewAnalytics';
 
 const stamp = '2026-10-01T10:00:00.000Z';
 function set(values: Partial<WorkoutSet> = {}): WorkoutSet {
@@ -211,5 +218,36 @@ describe('deterministic analytics', () => {
       new Date('2026-10-02T12:00:00.000Z'),
     );
     expect(summary).toEqual({ workouts: 1, workingSets: 1, volume: 800, durationSeconds: 3540 });
+  });
+});
+
+describe('progress overview derivation', () => {
+  it('excludes active sessions, warmups and incomplete sets from period totals', () => {
+    const complete = graph('done', [
+      set(),
+      set({ id: 'warmup', setType: 'warmup' }),
+      set({ id: 'unfinished', completed: false }),
+    ]);
+    const active = graph('active', [set()], { status: 'active' });
+    const summary = periodSummary([complete, active]);
+    expect(summary).toEqual({ workouts: 1, duration: 3540, sets: 1, volume: 800 });
+    expect(comparison(2, 0)).toBeNull();
+    expect(comparison(4, 3)).toBe('↑ 33%');
+    expect(comparison(2, 4)).toBe('↓ 50%');
+  });
+  it('counts distinct actual training days and weekday sessions without assuming a schedule', () => {
+    const workouts = [
+      graph('one', [set()]),
+      graph('two', [set()]),
+      graph('active', [set()], { status: 'active' }),
+    ];
+    expect(trainingDays(workouts)).toBe(1);
+    const activity = weekdayActivity(workouts);
+    expect(activity.reduce((sum, n) => sum + n, 0)).toBe(2);
+    expect(activity[(new Date(stamp).getDay() + 6) % 7]).toBe(2);
+  });
+  it('uses the same rolling seven-day boundary for all progress calculations', () => {
+    expect(calendarDays('2026-09-26T12:34:56.000Z', '2026-10-03T12:34:56.000Z')).toBe(8);
+    expect(rangeStart('7D', new Date('2026-10-03T12:34:56.000Z'))).toBe('2026-09-26T12:34:56.000Z');
   });
 });

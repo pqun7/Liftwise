@@ -9,6 +9,23 @@ import type { AnalyticsWorkout } from '../../domain/analytics';
 
 export class ProgressRepository {
   constructor(private readonly db: LiftwiseDatabase = database) {}
+  async exerciseOptions() {
+    const sessions = await this.db.workoutSessions
+      .where('status')
+      .equals('completed')
+      .primaryKeys();
+    const entries = sessions.length
+      ? await this.db.workoutExercises.where('workoutSessionId').anyOf(sessions).toArray()
+      : [];
+    return [
+      ...new Map(
+        entries.map((entry) => [
+          entry.exerciseId,
+          { id: entry.exerciseId, name: entry.exerciseName },
+        ]),
+      ).values(),
+    ].sort((a, b) => a.name.localeCompare(b.name));
+  }
   async history(from: string, until = new Date().toISOString()): Promise<AnalyticsWorkout[]> {
     return this.db.transaction(
       'r',

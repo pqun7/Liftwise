@@ -75,7 +75,7 @@ test('installs its app shell and serves routes offline', async ({
     } else {
       await page.goto('/progress');
     }
-    await expect(page.getByRole('heading', { name: 'See the work add up' })).toBeVisible({
+    await expect(page.getByRole('heading', { name: 'Progress', exact: true })).toBeVisible({
       timeout: 15_000,
     });
   } finally {

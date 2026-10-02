@@ -44,6 +44,7 @@ describe('progress storage, export and compatibility', () => {
     expect(graphs).toHaveLength(1);
     expect(graphs[0]?.exercises[0]?.exercise.exerciseName).toBe('Snapshot Bench');
     expect(await progress.exerciseHistory(source.id)).toHaveLength(2);
+    expect(await progress.exerciseOptions()).toEqual([{ id: source.id, name: 'Snapshot Bench' }]);
     expect(await progress.exerciseHistory('missing')).toEqual([]);
     expect(await progress.history('2030-01-01T00:00:00.000Z')).toEqual([]);
   });
