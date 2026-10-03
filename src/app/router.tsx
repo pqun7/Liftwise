@@ -1,3 +1,4 @@
+import { progressRepository } from '../features/progress/progressService';
 import { lazy } from 'react';
 import { createBrowserRouter, type RouteObject } from 'react-router-dom';
 
@@ -137,6 +138,19 @@ import { NotFoundPage } from './shell/NotFoundPage';
 export const routeObjects: RouteObject[] = [
   {
     path: '/',
+    loader: async ({ request }) => {
+      const path = new URL(request.url).pathname;
+      return {
+        streak:
+          path === '/' ||
+          ['/progress', '/plan', '/workout'].some(
+            (route) => path === route || path.startsWith(`${route}/`),
+          )
+            ? null
+            : await progressRepository.streak().catch(() => null),
+      };
+    },
+    shouldRevalidate: () => true,
     element: <AppShell />,
     hydrateFallbackElement: (
       <div className="app-frame">

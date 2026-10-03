@@ -34,7 +34,7 @@ export function WorkoutSummary({
           <p className="text-secondary">Great work. Today's workout is saved.</p>
         </header>
         <div className="rounded-2xl border border-border bg-surface p-4">
-          <h2 className="text-xl font-bold">{workout.session.name ?? 'Quick Workout'}</h2>
+          <h2 className="type-section-title">{workout.session.name ?? 'Quick Workout'}</h2>
           <p className="mt-1 text-sm text-secondary">
             {exercises.length} exercises · {completed.length} sets ·{' '}
             {Math.ceil(workoutElapsedSeconds(workout.session) / 60)} min
@@ -56,7 +56,7 @@ export function WorkoutSummary({
           ].map(([label, value]) => (
             <div className="rounded-xl border border-border bg-surface p-3" key={label}>
               <dt className="text-xs text-secondary">{label}</dt>
-              <dd className="mt-1 font-bold">{value}</dd>
+              <dd className="mt-1 type-card-title tabular-nums">{value}</dd>
             </div>
           ))}
         </dl>

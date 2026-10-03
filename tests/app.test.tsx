@@ -1,3 +1,4 @@
+import { progressRepository } from '../src/features/progress/progressService';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
@@ -81,10 +82,25 @@ describe('Liftwise app shell', () => {
     );
   });
 
-  it('renders a safe not-found screen for unknown routes', () => {
+  it('keeps Settings available when optional header streak data cannot load', async () => {
+    const streak = vi
+      .spyOn(progressRepository, 'streak')
+      .mockRejectedValueOnce(new Error('History unavailable'));
+    try {
+      renderRoute('/settings');
+      expect(await screen.findByRole('heading', { name: /make liftwise yours/i })).toBeVisible();
+      expect(screen.getByRole('link', { name: 'Open Data Safety' })).toBeVisible();
+    } finally {
+      streak.mockRestore();
+    }
+  });
+
+  it('renders a safe not-found screen for unknown routes', async () => {
     renderRoute('/does-not-exist');
 
-    expect(screen.getByRole('heading', { name: /that screen is not here/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: /that screen is not here/i }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /return home/i })).toHaveAttribute('href', '/');
   });
 });

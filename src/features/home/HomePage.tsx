@@ -1,8 +1,8 @@
 import { MobilePage } from '../../components/layout/MobilePage';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
-import { Link, useLoaderData, useNavigate, useRevalidator } from 'react-router-dom';
+import { Link, useLoaderData, useNavigate } from 'react-router-dom';
 
 import { ChevronRight } from 'lucide-react';
 
@@ -49,7 +49,6 @@ export function HomePage() {
   const [error, setError] = useState<string | null>(null);
 
   const navigate = useNavigate();
-  const { revalidate } = useRevalidator();
 
   const selected = data.week.some(({ key }) => key === selection)
     ? selection!
@@ -65,27 +64,6 @@ export function HomePage() {
   const upcoming = data.nextDays
     .filter(({ day }) => day.id !== data.active?.session.programDayId)
     .slice(0, 2);
-
-  useEffect(() => {
-    const refresh = () => {
-      if (document.visibilityState === 'visible') {
-        void revalidate();
-      }
-    };
-
-    document.addEventListener('visibilitychange', refresh);
-
-    const midnightCheck = window.setInterval(() => {
-      if (localDateKey(new Date()) !== data.today) {
-        refresh();
-      }
-    }, 60_000);
-
-    return () => {
-      document.removeEventListener('visibilitychange', refresh);
-      window.clearInterval(midnightCheck);
-    };
-  }, [data.today, revalidate]);
 
   const start = async () => {
     if (busy || !data.suggestion) return;

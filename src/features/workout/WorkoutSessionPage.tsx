@@ -220,7 +220,7 @@ export function WorkoutSessionPage() {
       <header className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs uppercase text-mint">{session.status} · saved locally</p>
-          <h1 id="session-title" className="text-2xl font-bold">
+          <h1 id="session-title" className="type-page-title">
             {session.name ?? 'Quick Workout'}
           </h1>
         </div>

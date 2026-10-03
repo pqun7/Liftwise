@@ -3,7 +3,9 @@ import { expect, test } from '@playwright/test';
 test('progress screens retain compact layouts and real interactions at mobile widths', async ({
   page,
 }, testInfo) => {
-  test.setTimeout(90_000);
+  test.setTimeout(180_000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/progress');
   await expect(page.getByRole('heading', { name: 'Progress', exact: true })).toBeVisible();
@@ -96,7 +98,7 @@ test('progress screens retain compact layouts and real interactions at mobile wi
     });
     db.close();
   });
-  for (const width of [375, 390, 430]) {
+  for (const width of [320, 360, 375, 390, 393, 402, 430]) {
     await page.setViewportSize({ width, height: 844 });
     for (const [route, title, name] of [
       ['/progress', 'Progress', 'overview'],
@@ -105,9 +107,24 @@ test('progress screens retain compact layouts and real interactions at mobile wi
       ['/progress/measurements', 'Body Measurements', 'measurements'],
     ]) {
       await page.goto(route!);
-      await expect(page.getByRole('heading', { name: title!, exact: true })).toBeVisible();
+      await expect(page.getByRole('heading', { name: title!, exact: true })).toBeVisible({
+        timeout: 15_000,
+      });
       await expect(page.getByRole('heading', { name: 'Progress unavailable' })).toHaveCount(0);
       await page.evaluate(() => document.fonts.ready);
+      if (name === 'overview') {
+        await expect(page.locator('.streak-week > li')).toHaveCount(7);
+        for (const target of await page
+          .locator(
+            '.streak-badge, .streak-heading, .progress-activity-heading, .progress-explore-link',
+          )
+          .all()) {
+          const box = await target.boundingBox();
+          expect(box!.height).toBeGreaterThanOrEqual(44);
+          expect(box!.width).toBeGreaterThanOrEqual(44);
+        }
+        await expect(page.locator('.streak-badge-copy')).toHaveText('1 day streak');
+      }
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
         width,
       );
@@ -117,6 +134,15 @@ test('progress screens retain compact layouts and real interactions at mobile wi
           .getByRole('link', { name: 'Progress', exact: true }),
       ).toHaveAttribute('aria-current', 'page');
       await page.screenshot({ path: testInfo.outputPath(`${name}-${width}.png`), fullPage: true });
+      if (name === 'overview') {
+        await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+        const last = await page.locator('.progress-explore-link').last().boundingBox();
+        const nav = await page
+          .getByRole('navigation', { name: 'Primary navigation' })
+          .boundingBox();
+        expect(last!.y + last!.height).toBeLessThanOrEqual(nav!.y);
+        await page.screenshot({ path: testInfo.outputPath(`overview-bottom-${width}.png`) });
+      }
     }
   }
   await page.goto('/progress');
@@ -155,4 +181,5 @@ test('progress screens retain compact layouts and real interactions at mobile wi
   await expect(page.getByRole('button', { name: 'Next measurement', exact: true })).toBeDisabled();
   await page.getByRole('button', { name: 'Dismiss measurement guidance' }).click();
   await expect(page.getByRole('heading', { name: 'Measurement units and method' })).toHaveCount(0);
+  expect(errors).toEqual([]);
 });

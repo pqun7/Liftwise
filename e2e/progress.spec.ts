@@ -11,6 +11,9 @@ test('completed history, PRs, charts, measurements and CSV stay usable offline',
 }) => {
   test.setTimeout(120_000);
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/progress');
+  await expect(page.getByRole('link', { name: 'Workout streak', exact: true })).toBeVisible();
+  await expect(page.locator('.streak-badge-copy')).toHaveText('');
   await page.goto('/exercises/new');
   await page.getByLabel('Name', { exact: true }).fill('Progress Bench');
   await page.getByLabel('Primary muscle').fill('Chest');
@@ -35,9 +38,22 @@ test('completed history, PRs, charts, measurements and CSV stay usable offline',
     ).toBeVisible();
     await finishLogger(page);
     await expect(page.getByRole('heading', { name: 'Start training' })).toBeVisible();
+    await page
+      .getByRole('navigation', { name: 'Primary navigation' })
+      .getByRole('link', { name: 'Progress', exact: true })
+      .click();
+    await expect(page.getByRole('link', { name: '1 day streak', exact: true })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.locator('.streak-current strong')).toHaveText('1');
+    await expect(page.locator('.streak-best strong')).toHaveText('1');
   }
   await page.goto('/progress');
   await expect(page.getByRole('heading', { name: 'Progress', exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('link', { name: '1 day streak', exact: true })).toBeVisible({
+    timeout: 15_000,
+  });
   await page.getByRole('radio', { name: '7D', exact: true }).click();
   await expect(page.getByRole('radio', { name: '7D', exact: true })).toBeChecked();
   await page.getByRole('link', { name: /Workout History View/ }).click();

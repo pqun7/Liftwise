@@ -1,3 +1,6 @@
+import { ProgramRepository } from '../../lib/storage/repositories/programRepository';
+import { calculateStreakStats, scheduledTrainingWeekdays } from '../../domain/streak';
+import { localDateKey } from '../../domain/localCalendar';
 import { database, type LiftwiseDatabase } from '../../lib/storage/database';
 import { WorkoutRepository } from '../../lib/storage/repositories/workoutRepository';
 import {
@@ -9,6 +12,31 @@ import type { AnalyticsWorkout } from '../../domain/analytics';
 
 export class ProgressRepository {
   constructor(private readonly db: LiftwiseDatabase = database) {}
+  async trainingWeekdays(): Promise<number[] | null> {
+    const programs = new ProgramRepository(this.db);
+    const activeId = await programs.getActiveId();
+    return scheduledTrainingWeekdays(activeId ? await programs.get(activeId) : undefined);
+  }
+  async streak(now = new Date(), trainingWeekdays?: readonly number[] | null) {
+    return this.db.transaction(
+      'r',
+      [
+        this.db.workoutSessions,
+        this.db.programs,
+        this.db.programDays,
+        this.db.programExercises,
+        this.db.appSettings,
+      ],
+      async () => {
+        const [rawSessions, weekdays] = await Promise.all([
+          this.db.workoutSessions.where('status').equals('completed').toArray(),
+          trainingWeekdays === undefined ? this.trainingWeekdays() : trainingWeekdays,
+        ]);
+        const sessions = rawSessions.map((session) => workoutSessionSchema.parse(session));
+        return calculateStreakStats(sessions, localDateKey(now), now, weekdays);
+      },
+    );
+  }
   async exerciseOptions() {
     const sessions = await this.db.workoutSessions
       .where('status')

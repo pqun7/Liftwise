@@ -28,7 +28,7 @@
 }
 .previous-today h3 {
   margin: 0 0 0.4rem;
-  font-size: 0.9rem;
+  font-size: var(--type-size-body-small);
 }
 
 .keep-awake label {
@@ -52,7 +52,6 @@
 }
 
 :root {
-  font-family: var(--font-ui);
   color: #f3f8f5;
   background: #07100d;
   font-synthesis: none;
@@ -143,21 +142,10 @@ button {
 .section-kicker {
   margin: 0 0 0.25rem;
   color: #77efb5;
-  font-size: 0.72rem;
-  font-weight: 750;
+  font-size: var(--type-size-caption);
+  font-weight: var(--fw-bold);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-}
-
-.brand {
-  margin: 0;
-  font-size: 1.55rem;
-  font-weight: 850;
-  letter-spacing: -0.045em;
-}
-
-.brand span {
-  color: #77efb5;
 }
 
 .offline-badge {
@@ -170,8 +158,8 @@ button {
   background: rgb(255 255 255 / 5%);
   border: 1px solid rgb(255 255 255 / 9%);
   border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 700;
+  font-size: var(--type-size-caption);
+  font-weight: var(--fw-bold);
 }
 
 .offline-badge span {
@@ -195,9 +183,9 @@ button {
 .page-stack > h1 {
   max-width: 18ch;
   margin: 0;
-  font-size: clamp(2rem, 9vw, 3.25rem);
-  line-height: 0.98;
-  letter-spacing: -0.055em;
+  font-size: var(--type-size-page);
+  line-height: var(--type-leading-heading);
+  letter-spacing: var(--type-tracking-tight);
 }
 
 .page-intro > p:last-child,
@@ -205,8 +193,8 @@ button {
   max-width: 35rem;
   margin: 0.8rem 0 0;
   color: #9fb1a8;
-  font-size: 1rem;
-  line-height: 1.6;
+  font-size: var(--type-size-body);
+  line-height: var(--type-leading-body);
 }
 
 .hero-card {
@@ -239,8 +227,8 @@ button {
 
 .hero-card h2 {
   margin: 0.4rem 0 0.7rem;
-  font-size: 1.7rem;
-  letter-spacing: -0.035em;
+  font-size: var(--type-size-display);
+  letter-spacing: var(--type-tracking-tight);
 }
 
 .hero-card p:last-child,
@@ -248,7 +236,7 @@ button {
 .privacy-note p {
   margin: 0;
   color: #a9bdb3;
-  line-height: 1.55;
+  line-height: var(--type-leading-body);
 }
 
 .weight-mark {
@@ -296,19 +284,19 @@ button {
   color: #07100d;
   background: #77efb5;
   border-radius: 50%;
-  font-weight: 900;
+  font-weight: var(--fw-bold);
 }
 
 .privacy-note strong,
 .placeholder-card h2 {
   display: block;
   margin: 0 0 0.2rem;
-  font-size: 1rem;
+  font-size: var(--type-size-body);
 }
 
 .privacy-note p,
 .placeholder-card p {
-  font-size: 0.9rem;
+  font-size: var(--type-size-body-small);
 }
 
 .placeholder-card {
@@ -362,7 +350,7 @@ button {
   background: #77efb5;
   border: 0;
   border-radius: 0.75rem;
-  font-weight: 800;
+  font-weight: var(--fw-bold);
   text-decoration: none;
   cursor: pointer;
 }
@@ -379,7 +367,7 @@ button {
 
 .version-label {
   color: #6f8479;
-  font-size: 0.78rem;
+  font-size: var(--type-size-caption);
   text-align: center;
 }
 
@@ -401,7 +389,7 @@ button {
   align-items: center;
   margin-top: 1rem;
   color: #77efb5;
-  font-weight: 800;
+  font-weight: var(--fw-bold);
   text-decoration: none;
 }
 
@@ -458,7 +446,7 @@ button {
   background: #77efb5;
   border: 0;
   border-radius: 0.8rem;
-  font-weight: 800;
+  font-weight: var(--fw-bold);
   text-decoration: none;
   cursor: pointer;
 }
@@ -474,7 +462,7 @@ button {
   min-height: 2.5rem;
   align-content: center;
   color: #dce9e2;
-  font-weight: 800;
+  font-weight: var(--fw-bold);
   cursor: pointer;
 }
 
@@ -489,8 +477,8 @@ button {
   display: grid;
   gap: 0.4rem;
   color: #b9ccc2;
-  font-size: 0.82rem;
-  font-weight: 750;
+  font-size: var(--type-size-body-small);
+  font-weight: var(--fw-bold);
 }
 
 .filter-field select,
@@ -512,14 +500,14 @@ button {
   color: #77efb5;
   background: transparent;
   border: 0;
-  font-weight: 800;
+  font-weight: var(--fw-bold);
   cursor: pointer;
 }
 
 .result-count {
   margin: 0;
   color: #82988d;
-  font-size: 0.85rem;
+  font-size: var(--type-size-body-small);
 }
 
 .exercise-list {
@@ -551,7 +539,7 @@ button {
   place-items: center;
   color: #77efb5;
   background: radial-gradient(circle, rgb(119 239 181 / 12%), transparent 65%), #102019;
-  font-weight: 900;
+  font-weight: var(--fw-bold);
   letter-spacing: 0.08em;
 }
 
@@ -576,15 +564,15 @@ button {
 
 .exercise-card h2 {
   margin: 0;
-  font-size: 1rem;
-  letter-spacing: -0.02em;
+  font-size: var(--type-size-body);
+  letter-spacing: var(--type-tracking-tight);
 }
 
 .exercise-card p {
   overflow: hidden;
   margin: 0;
   color: #91a69b;
-  font-size: 0.77rem;
+  font-size: var(--type-size-caption);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -594,8 +582,8 @@ button {
   min-height: 2rem;
   align-content: center;
   color: #77efb5;
-  font-size: 0.8rem;
-  font-weight: 800;
+  font-size: var(--type-size-label);
+  font-weight: var(--fw-bold);
   text-decoration: none;
 }
 
@@ -606,8 +594,8 @@ button {
   background: rgb(119 239 181 / 9%);
   border: 1px solid rgb(119 239 181 / 15%);
   border-radius: 999px;
-  font-size: 0.65rem;
-  font-weight: 800;
+  font-size: var(--type-size-caption);
+  font-weight: var(--fw-bold);
 }
 
 .empty-state {
@@ -631,7 +619,7 @@ button {
   min-height: 2.75rem;
   align-items: center;
   color: #9fb1a8;
-  font-weight: 750;
+  font-weight: var(--fw-bold);
   text-decoration: none;
 }
 
@@ -643,15 +631,15 @@ button {
 
 .exercise-detail-header h1 {
   margin: 0.2rem 0 0.7rem;
-  font-size: clamp(2rem, 9vw, 3.25rem);
-  line-height: 1;
-  letter-spacing: -0.055em;
+  font-size: var(--type-size-page);
+  line-height: var(--type-leading-heading);
+  letter-spacing: var(--type-tracking-tight);
 }
 
 .exercise-detail-header > p:last-child,
 .detail-section p {
   color: #9fb1a8;
-  line-height: 1.6;
+  line-height: var(--type-leading-body);
 }
 
 .exercise-media {
@@ -678,7 +666,7 @@ button {
   background: rgb(255 255 255 / 4%);
   border: 1px solid rgb(255 255 255 / 8%);
   border-radius: 0.75rem;
-  font-weight: 800;
+  font-weight: var(--fw-bold);
 }
 
 .pose-toggle button[aria-pressed='true'] {
@@ -702,14 +690,14 @@ button {
 
 .detail-fact dt {
   color: #7f948a;
-  font-size: 0.7rem;
-  font-weight: 750;
+  font-size: var(--type-size-caption);
+  font-weight: var(--fw-bold);
   text-transform: uppercase;
 }
 
 .detail-fact dd {
   margin: 0.3rem 0 0;
-  line-height: 1.35;
+  line-height: var(--type-leading-body);
 }
 
 .detail-section {
@@ -721,7 +709,7 @@ button {
 
 .detail-section h2 {
   margin: 0 0 0.85rem;
-  font-size: 1.15rem;
+  font-size: var(--type-size-section);
 }
 
 .tag-list {
@@ -737,20 +725,20 @@ button {
   margin: 0;
   padding-left: 1.35rem;
   color: #c4d2cb;
-  line-height: 1.65;
+  line-height: var(--type-leading-body);
 }
 
 .readable-steps li::marker {
   color: #77efb5;
-  font-weight: 900;
+  font-weight: var(--fw-bold);
 }
 
 .met-note,
 .storage-note {
   margin: 0;
   color: #7f948a;
-  font-size: 0.78rem;
-  line-height: 1.5;
+  font-size: var(--type-size-caption);
+  line-height: var(--type-leading-body);
 }
 
 .secondary-action {
@@ -776,7 +764,7 @@ button {
 .form-error {
   margin: 0;
   color: #ffaaa5;
-  font-size: 0.78rem;
+  font-size: var(--type-size-caption);
 }
 
 .settings-card {
@@ -796,7 +784,7 @@ button {
 .settings-card > div > p:last-child,
 .settings-card > p:not(.section-kicker, .form-error, .storage-note) {
   color: #9fb1a8;
-  line-height: 1.55;
+  line-height: var(--type-leading-body);
 }
 
 .settings-card a {
@@ -818,7 +806,7 @@ button {
   background: transparent;
   border: 1px solid rgb(255 255 255 / 17%);
   border-radius: 0.8rem;
-  font-weight: 800;
+  font-weight: var(--fw-bold);
 }
 
 .primary-action:disabled,
@@ -882,7 +870,7 @@ button {
 .safety-counts dd {
   margin: 0;
   color: #f3f8f5;
-  font-weight: 750;
+  font-weight: var(--fw-bold);
   text-align: right;
 }
 
@@ -895,7 +883,7 @@ button {
   color: #07100d;
   background: #77efb5;
   border-radius: 0.8rem;
-  font-weight: 800;
+  font-weight: var(--fw-bold);
   cursor: pointer;
 }
 
@@ -953,7 +941,7 @@ button {
   background: #a83838;
   border: 1px solid #d46868;
   border-radius: 0.8rem;
-  font-weight: 800;
+  font-weight: var(--fw-bold);
   cursor: pointer;
 }
 
@@ -966,8 +954,8 @@ button {
   display: grid;
   gap: 0.4rem;
   color: #ffc2c2;
-  font-size: 0.82rem;
-  font-weight: 750;
+  font-size: var(--type-size-body-small);
+  font-weight: var(--fw-bold);
 }
 
 .delete-confirmation input {
@@ -985,7 +973,7 @@ button {
   display: grid;
   gap: 0.4rem;
   color: #9fb1a8;
-  font-size: 0.8rem;
+  font-size: var(--type-size-label);
 }
 
 .download-progress progress {
@@ -1035,7 +1023,7 @@ button {
 .prescription-card small,
 .program-header > p:last-child {
   color: #91a69b;
-  line-height: 1.5;
+  line-height: var(--type-leading-body);
 }
 
 .program-card > a,
@@ -1043,7 +1031,7 @@ button {
 .prescription-card a,
 .picker-row {
   color: #77efb5;
-  font-weight: 800;
+  font-weight: var(--fw-bold);
   text-decoration: none;
 }
 
@@ -1058,9 +1046,9 @@ button {
 .program-header h1 {
   max-width: 18ch;
   margin: 0;
-  font-size: clamp(2rem, 9vw, 3.25rem);
-  line-height: 1;
-  letter-spacing: -0.055em;
+  font-size: var(--type-size-page);
+  line-height: var(--type-leading-heading);
+  letter-spacing: var(--type-tracking-tight);
 }
 
 .program-actions,
@@ -1084,8 +1072,8 @@ button {
   border: 1px solid rgb(255 255 255 / 12%);
   border-radius: 0.7rem;
   font: inherit;
-  font-size: 0.82rem;
-  font-weight: 800;
+  font-size: var(--type-size-body-small);
+  font-weight: var(--fw-bold);
   text-decoration: none;
   cursor: pointer;
 }
@@ -1127,7 +1115,7 @@ button {
   color: #07100d;
   background: #77efb5;
   border-radius: 50%;
-  font-weight: 900;
+  font-weight: var(--fw-bold);
 }
 
 .prescription-card {
@@ -1143,12 +1131,12 @@ button {
 }
 
 .prescription-copy h2 {
-  font-size: 1rem;
+  font-size: var(--type-size-body);
 }
 
 .prescription-copy p,
 .prescription-copy small {
-  font-size: 0.78rem;
+  font-size: var(--type-size-caption);
 }
 
 .prescription-actions {
@@ -1176,7 +1164,7 @@ button {
 .picker-row span {
   overflow: hidden;
   color: #91a69b;
-  font-size: 0.75rem;
+  font-size: var(--type-size-label);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1230,7 +1218,7 @@ button {
   border: 1px solid rgb(255 255 255 / 14%);
   border-radius: 0.75rem;
   font: inherit;
-  font-weight: 800;
+  font-weight: var(--fw-bold);
   text-decoration: none;
 }
 .recovery-actions > .primary-action {
@@ -1249,13 +1237,13 @@ button {
   border: 0;
   border-radius: 1rem;
   font: inherit;
-  font-size: 1.1rem;
-  font-weight: 900;
+  font-size: var(--type-size-card);
+  font-weight: var(--fw-bold);
 }
 
 .quick-workout-action small {
-  font-size: 0.75rem;
-  font-weight: 650;
+  font-size: var(--type-size-label);
+  font-weight: var(--fw-semibold);
 }
 
 .workout-day-list,
@@ -1304,8 +1292,8 @@ button {
 
 .workout-day-list button span {
   color: #77efb5;
-  font-size: 0.7rem;
-  font-weight: 800;
+  font-size: var(--type-size-caption);
+  font-weight: var(--fw-bold);
   text-transform: uppercase;
 }
 
@@ -1338,8 +1326,8 @@ button {
 .planned-note,
 .previous-performance {
   color: #9fb1a8;
-  font-size: 0.8rem;
-  line-height: 1.45;
+  font-size: var(--type-size-label);
+  line-height: var(--type-leading-body);
 }
 
 .workout-set-row {
@@ -1366,7 +1354,7 @@ button {
   color: #07100d;
   background: #77efb5;
   border-radius: 50%;
-  font-weight: 900;
+  font-weight: var(--fw-bold);
 }
 
 .workout-set-row label {
@@ -1374,8 +1362,8 @@ button {
   min-width: 0;
   gap: 0.25rem;
   color: #8fa49a;
-  font-size: 0.65rem;
-  font-weight: 750;
+  font-size: var(--type-size-caption);
+  font-weight: var(--fw-bold);
 }
 
 .workout-set-row input,
@@ -1389,7 +1377,7 @@ button {
   border: 1px solid rgb(255 255 255 / 12%);
   border-radius: 0.55rem;
   font: inherit;
-  font-size: 0.9rem;
+  font-size: var(--type-size-body-small);
 }
 
 /* WebKit may zoom the viewport when a focused editable control is below 16 CSS px. */
@@ -1412,7 +1400,7 @@ button {
   background: #77efb5;
   border: 0;
   border-radius: 0.7rem;
-  font-weight: 900;
+  font-weight: var(--fw-bold);
 }
 
 .set-complete-action[aria-pressed='true'] {

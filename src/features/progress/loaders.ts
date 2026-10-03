@@ -1,3 +1,5 @@
+import { calculateStreakStats, completionDate } from '../../domain/streak';
+import { localPeriodStart } from '../../domain/localCalendar';
 import type { LoaderFunctionArgs } from 'react-router-dom';
 import { ranges, rangeStart, type DateRange } from '../../domain/analytics';
 import { bodyMetricRepository } from '../../lib/storage/repositories/bodyMetricRepository';
@@ -10,37 +12,64 @@ export function selectedRange(url: string): DateRange {
 export async function progressLoader({ request }: LoaderFunctionArgs) {
   const range = selectedRange(request.url);
   const now = new Date();
-  const start = rangeStart(range, now);
-  const previousStart =
-    range === 'ALL'
-      ? start
-      : new Date(Date.parse(start) - (now.getTime() - Date.parse(start))).toISOString();
-  const [workouts, previous] = await Promise.all([
-    progressRepository.history(start, now.toISOString()),
-    range === 'ALL'
-      ? Promise.resolve([])
-      : progressRepository.history(previousStart, new Date(Date.parse(start) - 1).toISOString()),
+  const start = localPeriodStart(range, now);
+  const [history, trainingWeekdays] = await Promise.all([
+    progressRepository.history(rangeStart('ALL'), now.toISOString()),
+    progressRepository.trainingWeekdays(),
   ]);
-  return { workouts, previous, range, now: now.toISOString(), start };
+  const workouts = history.filter(({ session }) => {
+    const date = completionDate(session, now);
+    return date !== null && date >= start;
+  });
+  const streak = calculateStreakStats(
+    history.map(({ session }) => session),
+    start,
+    now,
+    trainingWeekdays,
+  );
+  return { workouts, range, now: now.toISOString(), start, streak };
 }
 export async function workoutHistoryLoader() {
-  return { workouts: await progressRepository.history(rangeStart('ALL')) };
+  const now = new Date();
+  const [workouts, trainingWeekdays] = await Promise.all([
+    progressRepository.history(rangeStart('ALL'), now.toISOString()),
+    progressRepository.trainingWeekdays(),
+  ]);
+  return {
+    workouts,
+    streak: calculateStreakStats(
+      workouts.map(({ session }) => session),
+      localPeriodStart('ALL', now),
+      now,
+      trainingWeekdays,
+    ),
+  };
 }
 export async function bodyMeasurementsLoader() {
-  return { bodyMetrics: await bodyMetricRepository.list() };
+  const [bodyMetrics, streak] = await Promise.all([
+    bodyMetricRepository.list(),
+    progressRepository.streak(),
+  ]);
+  return { bodyMetrics, streak };
 }
 export async function exercisePickerLoader() {
-  return { exercises: await progressRepository.exerciseOptions() };
+  const [exercises, streak] = await Promise.all([
+    progressRepository.exerciseOptions(),
+    progressRepository.streak(),
+  ]);
+  return { exercises, streak };
 }
 export async function exerciseHistoryLoader({ params, request }: LoaderFunctionArgs) {
   if (!params.exerciseId) throw new Error('Exercise ID is required.');
-  const [workouts, exercises] = await Promise.all([
+  const [workouts, exercises, streak] = await Promise.all([
     progressRepository.exerciseHistory(params.exerciseId),
     progressRepository.exerciseOptions(),
+    progressRepository.streak(),
   ]);
   return {
     workouts,
     exercises,
+    streak,
     exerciseId: params.exerciseId,
     range: selectedRange(request.url),
     now: new Date().toISOString(),

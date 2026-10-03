@@ -157,7 +157,7 @@ export function ActiveWorkoutLogger({
           <ArrowLeft size={20} aria-hidden="true" />
         </Link>
         <div className="min-w-0 text-center">
-          <h1 id="session-title" className="truncate text-xl font-bold">
+          <h1 id="session-title" className="type-page-title">
             {session.name ?? 'Quick Workout'}
           </h1>
           <p className="mt-1 text-sm text-secondary">

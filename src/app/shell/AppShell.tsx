@@ -1,3 +1,7 @@
+import { StreakBadge } from '../../components/ui/StreakBadge';
+import { AppWordmark } from '../../components/ui/AppWordmark';
+import { useRouteStreak } from '../../features/progress/useRouteStreak';
+import { useCalendarRevalidation } from './useCalendarRevalidation';
 import { Suspense } from 'react';
 import {
   Outlet,
@@ -14,6 +18,8 @@ import { ProgressSkeleton } from '../../features/progress/ProgressUI';
 
 export function AppShell() {
   const pathname = useLocation().pathname;
+  useCalendarRevalidation(!pathname.startsWith('/workout') && !pathname.startsWith('/plan'));
+  const streak = useRouteStreak();
   const navigation = useNavigation();
   const home = pathname === '/';
   const plan = pathname === '/plan' || pathname.startsWith('/plan/');
@@ -35,17 +41,12 @@ export function AppShell() {
       </a>
 
       {!home && !plan && !progress && !pathname.startsWith('/workout') && !focused ? (
-        <header className="top-bar flex items-center justify-between gap-3 pt-[calc(22px+var(--safe-top))] pb-2">
+        <header className="top-bar flex flex-wrap items-center justify-between gap-3 pt-[calc(22px+var(--safe-top))] pb-2">
           <div>
             <p className="eyebrow">Your private training space</p>
-            <p className="brand" aria-label="Liftwise">
-              Lift<span>wise</span>
-            </p>
+            <AppWordmark />
           </div>
-          <div className="offline-badge" aria-label="Works offline">
-            <span aria-hidden="true" />
-            Local
-          </div>
+          <StreakBadge currentStreak={streak?.currentStreak ?? 0} />
         </header>
       ) : null}
 

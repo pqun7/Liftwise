@@ -1,13 +1,14 @@
-import { LocalStatus } from './LocalStatus';
+import { StreakBadge } from '../ui/StreakBadge';
+import { AppWordmark } from '../ui/AppWordmark';
+import { useRouteStreak } from '../../features/progress/useRouteStreak';
 
 export function HomeHeader({ greeting, active }: { greeting: string; active: boolean }) {
+  const streak = useRouteStreak();
   return (
     <header className={`home-header${active ? ' home-header-active' : ''}`}>
       <div className="home-brand-row">
-        <p className="home-brand" aria-label="Liftwise">
-          Lift<span>wise</span>
-        </p>
-        <LocalStatus />
+        <AppWordmark />
+        <StreakBadge currentStreak={streak?.currentStreak ?? 0} />
       </div>
       {active ? (
         <p className="home-subtitle">Your private training space</p>

@@ -1,11 +1,13 @@
 import type { ReactNode } from 'react';
 import { ArrowLeft, type LucideIcon } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { LocalStatus } from '../../components/home/LocalStatus';
+import { StreakBadge } from '../../components/ui/StreakBadge';
+import { AppWordmark } from '../../components/ui/AppWordmark';
+import { useRouteStreak } from './useRouteStreak';
 import { Card } from '../../components/ui/Card';
 import type { DateRange } from '../../domain/analytics';
 
-export const progressLayout = 'grid gap-3 [&_h1]:m-0 [&_h2]:m-0 [&_h3]:m-0 [&_p]:m-0';
+export const progressLayout = 'progress-page grid gap-3 [&_h1]:m-0 [&_h2]:m-0 [&_h3]:m-0 [&_p]:m-0';
 export const surface =
   'rounded-[16px] border border-border bg-gradient-to-br from-surface-2 to-surface';
 export const focus =
@@ -19,13 +21,12 @@ export function ProgressHeader({
   description: string;
   overview?: boolean;
 }) {
+  const streak = useRouteStreak();
   return (
     <header className="grid gap-3 pb-1">
-      <div className="flex min-h-11 items-center justify-between">
+      <div className="flex min-h-11 flex-wrap items-center justify-between gap-2">
         {overview ? (
-          <p className="text-[26px] font-extrabold tracking-[-0.05em]" aria-label="Liftwise">
-            Lift<span className="text-mint">wise</span>
-          </p>
+          <AppWordmark />
         ) : (
           <Link
             to="/progress"
@@ -35,11 +36,11 @@ export function ProgressHeader({
             <ArrowLeft size={19} />
           </Link>
         )}
-        <LocalStatus />
+        <StreakBadge currentStreak={streak?.currentStreak ?? 0} />
       </div>
       <div>
-        <h1 className="text-[26px] leading-tight font-extrabold tracking-[-0.035em]">{title}</h1>
-        <p className="mt-1! text-sm leading-[1.45] text-secondary">{description}</p>
+        <h1 className="type-page-title">{title}</h1>
+        <p className="mt-1! type-body text-secondary">{description}</p>
       </div>
     </header>
   );
@@ -105,13 +106,11 @@ export function MetricCard({
         <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-mint/10 text-mint">
           <Icon size={20} />
         </span>
-        <h2 className="pt-0.5 text-[11px] leading-[14px] font-medium">{label}</h2>
+        <h2 className="pt-0.5 type-label">{label}</h2>
       </div>
-      <p className="mt-1.5! text-[23px] leading-7 font-extrabold tracking-[-0.035em] tabular-nums">
-        {value}
-      </p>
+      <p className="mt-1.5! type-metric-md">{value}</p>
       {trend && <p className="mt-0.5! text-sm font-bold text-mint">{trend}</p>}
-      {caption && <p className="mt-0.5! text-[10px] leading-[14px] text-secondary">{caption}</p>}
+      {caption && <p className="mt-0.5! type-caption text-secondary">{caption}</p>}
     </Card>
   );
 }

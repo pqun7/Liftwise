@@ -37,7 +37,8 @@ function formText(data: FormData, key: string) {
   return typeof value === 'string' ? value.trim() : '';
 }
 function Sparkline({ values }: { values: number[] }) {
-  if (values.length < 2) return <span className="text-[9px] text-muted">More entries needed</span>;
+  if (values.length < 2)
+    return <span className="type-caption text-muted">More entries needed</span>;
   const min = Math.min(...values),
     spread = Math.max(...values) - min || 1;
   const points = values
@@ -189,14 +190,14 @@ export function BodyMetrics({
                   <span className="rounded-md bg-mint/10 p-1 text-mint">
                     <Icon size={16} />
                   </span>
-                  <h3 className="text-[11px] font-medium">{label}</h3>
+                  <h3 className="type-caption font-medium">{label}</h3>
                 </div>
-                <p className="mt-1! text-[20px] leading-6 font-extrabold tabular-nums">
+                <p className="mt-1! type-metric-md">
                   {number(current?.[key])}
                   {current?.[key] != null ? ` ${unit}` : ''}
                 </p>
                 <div className="mt-1 flex min-h-6 items-center justify-between gap-1">
-                  <span className="text-[11px] font-semibold text-secondary">
+                  <span className="type-caption font-semibold text-secondary">
                     {delta === null
                       ? 'No comparison'
                       : `${delta > 0 ? '+' : ''}${number(delta)} ${unit}`}
@@ -214,7 +215,7 @@ export function BodyMetrics({
           <Info className="shrink-0 text-mint" size={22} />
           <div>
             <h2 className="text-xs font-semibold">Measurement units and method</h2>
-            <p className="mt-1! text-[11px] leading-[1.4] text-secondary">
+            <p className="mt-1! type-caption text-secondary">
               Weight is in kilograms (kg); circumferences are in centimeters (cm). Use the same
               method each time for useful comparisons.
             </p>
@@ -261,7 +262,7 @@ export function BodyMetrics({
                 <Icon size={20} />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[10px] text-secondary">{label}</span>
+                <span className="block type-caption text-secondary">{label}</span>
                 <input
                   name={key}
                   aria-label={label}

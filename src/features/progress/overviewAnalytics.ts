@@ -1,3 +1,5 @@
+import { completionDate } from '../../domain/streak';
+import { dateFromKey } from '../../domain/localCalendar';
 import { setMetrics, type AnalyticsWorkout } from '../../domain/analytics';
 import { workoutElapsedSeconds } from '../../domain/workoutTime';
 
@@ -35,9 +37,11 @@ export function calendarDays(from: string, until: string) {
   };
   return Math.max(1, ordinal(until) - ordinal(from) + 1);
 }
-export function weekdayActivity(workouts: readonly AnalyticsWorkout[]) {
+export function weekdayActivity(workouts: readonly AnalyticsWorkout[], now = new Date()) {
   const counts = Array<number>(7).fill(0);
-  for (const { session } of workouts)
-    if (session.status === 'completed') counts[(new Date(session.startedAt).getDay() + 6) % 7]!++;
+  for (const { session } of workouts) {
+    const date = completionDate(session, now);
+    if (date) counts[(dateFromKey(date).getDay() + 6) % 7]!++;
+  }
   return counts;
 }

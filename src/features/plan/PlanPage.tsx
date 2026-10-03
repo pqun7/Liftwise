@@ -41,7 +41,7 @@ export function PlanPage() {
     <section className="plan-experience grid gap-5" aria-labelledby="plan-title">
       <header>
         <p className="plan-eyebrow">Programs</p>
-        <h1 id="plan-title" className="text-2xl font-bold mt-1">
+        <h1 id="plan-title" className="type-page-title mt-1">
           My Training Plan
         </h1>
       </header>

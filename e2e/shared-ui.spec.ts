@@ -55,7 +55,9 @@ test('shared controls and navigation stay coherent at mobile widths', async ({
       page.evaluate(async () => {
         for (const name of await caches.keys()) {
           if (
-            (await (await caches.open(name)).keys()).some((request) => request.url.endsWith('.ttf'))
+            (await (await caches.open(name)).keys()).filter((request) =>
+              /\/Manrope-(400|500|600|700|800)-[^/]+\.woff2$/.test(new URL(request.url).pathname),
+            ).length === 5
           )
             return true;
         }

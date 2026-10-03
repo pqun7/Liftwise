@@ -11,7 +11,7 @@ export function SectionHeader({
 }) {
   return (
     <div className="flex min-h-11 items-center justify-between gap-3">
-      <h2 id={id} className="text-lg font-bold leading-tight text-primary">
+      <h2 id={id} className="type-section-title text-primary">
         {title}
       </h2>
       {trailing}

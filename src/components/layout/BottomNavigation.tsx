@@ -13,11 +13,11 @@ export function BottomNavigation() {
           to={to}
           end={to === '/'}
           className={({ isActive }) =>
-            `nav-item flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 rounded-[20px] border text-xs no-underline [&>svg]:size-6 ${isActive ? 'nav-item-active border-mint/20 bg-mint/10 font-semibold text-mint' : 'border-transparent bg-transparent text-secondary'}`
+            `nav-item flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 rounded-[20px] border type-navigation no-underline [&>svg]:size-6 ${isActive ? 'nav-item-active border-mint/20 bg-mint/10 font-semibold text-mint' : 'border-transparent bg-transparent text-secondary'}`
           }
         >
           {icon}
-          <span>{label}</span>
+          <span className="max-w-full text-center wrap-anywhere">{label}</span>
         </NavLink>
       ))}
     </nav>

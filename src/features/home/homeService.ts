@@ -1,3 +1,4 @@
+import { scheduledTrainingWeekdays } from '../../domain/streak';
 import { database, type LiftwiseDatabase } from '../../lib/storage/database';
 import {
   ProgramRepository,
@@ -51,20 +52,28 @@ export async function getHomeData(db: LiftwiseDatabase = database, now = new Dat
               .first()
           : undefined,
       ]);
-      return deriveHomeData(
-        {
-          programs: graphs.filter((graph): graph is ProgramGraph => graph !== undefined),
-          activeProgramId,
-          lastProgramDayId: lastPlanned
-            ? workoutSessionSchema.parse(lastPlanned).programDayId
-            : null,
-          active: active ?? null,
-          history,
-          recent: recent.filter((graph) => graph !== undefined),
-          catalogCount: catalog ? catalogMetadataSchema.parse(catalog).exerciseCount : null,
-        },
+      const activeGraph = graphs.find((graph) => graph?.program.id === activeProgramId);
+      const streak = await new ProgressRepository(db).streak(
         now,
+        scheduledTrainingWeekdays(activeGraph),
       );
+      return {
+        ...deriveHomeData(
+          {
+            programs: graphs.filter((graph): graph is ProgramGraph => graph !== undefined),
+            activeProgramId,
+            lastProgramDayId: lastPlanned
+              ? workoutSessionSchema.parse(lastPlanned).programDayId
+              : null,
+            active: active ?? null,
+            history,
+            recent: recent.filter((graph) => graph !== undefined),
+            catalogCount: catalog ? catalogMetadataSchema.parse(catalog).exerciseCount : null,
+          },
+          now,
+        ),
+        streak,
+      };
     },
   );
 }

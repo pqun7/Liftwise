@@ -89,30 +89,27 @@ export function RestTimer({
             strokeLinecap="round"
             strokeDasharray={Math.PI * 90}
             strokeDashoffset={Math.PI * 90 * (1 - progress)}
-            className={`transition-[stroke-dashoffset] duration-500 motion-reduce:transition-none ${ending ? 'text-amber' : 'text-mint'
-              }`}
+            className={`transition-[stroke-dashoffset] duration-500 motion-reduce:transition-none ${
+              ending ? 'text-amber' : 'text-mint'
+            }`}
           />
         </svg>
 
-        <div className="absolute inset-0 grid content-center justify-items-center gap-1 text-center">
-          <span className="text-xs font-semibold uppercase tracking-widest text-secondary">
+        {/* Smaller inner stack: tightened label, timer, and context */}
+        <div className="absolute inset-0 grid content-center justify-items-center gap-0.5 px-6 text-center">
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-secondary">
             {isDone ? 'Rest complete' : 'Rest'}
           </span>
-          <strong
-            role="timer"
-            aria-live="off"
-            className="workout-rest-countdown tabular-nums"
-          >
+          <strong role="timer" aria-live="off" className="workout-rest-countdown type-timer">
             {formatDuration(remaining)}
           </strong>
-          {/* Context lives under the number instead of its own block */}
-          <span className="max-w-[12rem] truncate text-sm text-secondary">
+          <span className="mt-0.5 max-w-[10rem] truncate text-xs text-secondary">
             {entry?.exercise.exerciseName ?? 'Next'} · {setLabel}
             {entry ? ` of ${entry.sets.length}` : ''}
           </span>
           {onAdd ? (
-            <span className="flex items-center gap-1.5 text-xs text-secondary">
-              <Clock size={14} aria-hidden="true" /> of {formatDuration(duration)}
+            <span className="flex items-center gap-1 text-[10px] text-secondary">
+              <Clock size={12} aria-hidden="true" /> of {formatDuration(duration)}
             </span>
           ) : null}
         </div>

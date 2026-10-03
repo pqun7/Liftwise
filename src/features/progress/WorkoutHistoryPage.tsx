@@ -105,7 +105,7 @@ export function WorkoutHistoryPage() {
                       <h3 className="text-sm leading-5 font-bold">
                         {graph.session.name ?? 'Workout'}
                       </h3>
-                      <p className="mt-1! text-[11px] leading-4 text-secondary">
+                      <p className="mt-1! type-caption text-secondary">
                         {new Date(graph.session.startedAt).toLocaleDateString(undefined, {
                           weekday: 'short',
                           month: 'short',
@@ -114,7 +114,7 @@ export function WorkoutHistoryPage() {
                         · {formatDuration(workoutElapsedSeconds(graph.session))}
                       </p>
                     </div>
-                    <div className="shrink-0 text-[10px] leading-[1.6] text-secondary">
+                    <div className="shrink-0 type-caption text-secondary">
                       <p>
                         {
                           graph.exercises.filter((entry) => entry.sets.some((set) => set.completed))
