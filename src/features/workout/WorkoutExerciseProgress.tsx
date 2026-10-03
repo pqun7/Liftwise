@@ -1,7 +1,4 @@
-import { Check, Minus, ChevronDown } from 'lucide-react';
-import { Select } from '../../components/ui/FormControl';
 import type { HydratedWorkoutExercise } from './workoutService';
-
 export function WorkoutExerciseProgress({
   exercises,
   currentId,
@@ -33,15 +30,7 @@ export function WorkoutExerciseProgress({
               >
                 <span
                   className={`workout-progress-node ${current ? 'is-current' : ''} ${done ? 'is-done' : ''} ${skipped ? 'is-skipped' : ''} ${completed && !done ? 'is-partial' : ''}`}
-                >
-                  {skipped ? (
-                    <Minus size={14} aria-hidden="true" />
-                  ) : done ? (
-                    <Check size={14} aria-hidden="true" />
-                  ) : (
-                    <span aria-hidden="true">{index + 1}</span>
-                  )}
-                </span>
+                ></span>
               </button>
               {index < exercises.length - 1 ? (
                 <span
@@ -53,32 +42,6 @@ export function WorkoutExerciseProgress({
           );
         })}
       </nav>
-      <label className="sr-only" htmlFor="jump-exercise">
-        Jump to exercise
-      </label>
-      <div className="relative">
-        <Select
-          className="appearance-none pr-10"
-          id="jump-exercise"
-          value={currentId}
-          disabled={disabled}
-          onChange={(event) => onSelect(event.target.value)}
-        >
-          {exercises.map((entry, index) => (
-            <option key={entry.exercise.id} value={entry.exercise.id}>
-              {index + 1}. {entry.exercise.exerciseName} ·{' '}
-              {entry.exercise.skipped
-                ? 'Skipped'
-                : `${entry.sets.filter((set) => set.completed).length}/${entry.sets.length} sets`}
-            </option>
-          ))}
-        </Select>
-        <ChevronDown
-          size={18}
-          aria-hidden="true"
-          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-secondary"
-        />
-      </div>
     </div>
   );
 }

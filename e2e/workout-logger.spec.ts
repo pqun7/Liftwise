@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { saveEmptyProgram } from './programHelpers';
-import { finishLogger, expectProgressCounts } from './workoutUi';
+import { expectProgressCounts } from './workoutUi';
 
 test('focused logger preserves decimal sets, rest, prefill, recovery and canonical history', async ({
   page,
@@ -73,127 +73,83 @@ test('focused logger preserves decimal sets, rest, prefill, recovery and canonic
   await logger.getByLabel('Set 1 RIR', { exact: true }).fill('3');
   await logger.getByRole('button', { name: 'Set 1 weight plus 2.5' }).click();
   await expect(logger.getByLabel('Set 1 weight', { exact: true })).toHaveValue('65');
-  await logger.getByRole('button', { name: 'Complete set', exact: true }).click();
-  await expect(
-    logger.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
-  ).toHaveCount(1);
-  await expect(page.getByText('Next: Set 2', { exact: true })).toBeVisible();
-  // Busy equipment: jump without skipping or changing the unfinished work, then return.
-  await page
-    .getByRole('combobox', { name: 'Jump to exercise' })
-    .selectOption({ label: '2. Logger Row · 0/1 sets' });
-  await expect(page.getByRole('heading', { name: 'Logger Row', exact: true })).toBeVisible();
-  await expect(page.getByRole('region', { name: 'Rest timer' })).toBeVisible();
-  await page
-    .getByRole('combobox', { name: 'Jump to exercise' })
-    .selectOption({ label: '1. Barbell Bench Press · 1/3 sets' });
-  await expect(logger.getByLabel('Set 2 weight', { exact: true })).toHaveValue('65');
-  await expect(logger.getByLabel('Set 2 reps', { exact: true })).toHaveValue('8');
+
+  const complete = logger.getByRole('button', { name: 'Complete set', exact: true });
+  await complete.dblclick();
+  const rest = page.getByRole('region', { name: 'Rest timer' });
+  await expect(rest).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Set 1 complete!' })).toBeVisible();
+  await expect(logger).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'Next set preview' })).toContainText('65 kg');
   await page.getByRole('button', { name: 'Undo completion' }).click();
   await expect(logger.getByRole('heading', { name: 'Set 1 of 3' })).toBeVisible();
-  await logger.getByRole('button', { name: 'Complete set', exact: true }).click();
-  await expect(logger.getByRole('heading', { name: 'Set 2 of 3' })).toBeVisible();
+  await complete.click();
+  await expect(rest).toBeVisible();
   await page.getByLabel('Workout menu', { exact: true }).click();
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
-  await page.getByLabel('Workout menu', { exact: true }).click();
-  await expect(logger.getByLabel('Set 2 weight', { exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Start Set 2', exact: true })).toBeDisabled();
   await page.getByRole('button', { name: 'Resume Workout', exact: true }).click();
-  await expect(logger.getByLabel('Set 2 weight', { exact: true })).toBeEnabled();
   await page.getByRole('button', { name: 'Add 30 Seconds' }).click();
+  await expect(page.getByText('3:30', { exact: true })).toBeVisible();
   await page.reload();
-  await expect(logger.getByLabel('Set 1 weight', { exact: true })).toHaveValue('65');
-  await expect(
-    logger.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
-  ).toHaveCount(1);
-  await page.getByRole('button', { name: 'Skip Rest Timer' }).click();
-  await expect(page.getByRole('region', { name: 'Rest timer' })).toHaveCount(0);
-  for (const number of [2, 3]) {
-    await logger.getByLabel(`Set ${number} weight`, { exact: true }).fill('62.5');
-    await logger.getByLabel(`Set ${number} reps`, { exact: true }).fill('8');
-    await logger.getByLabel(`Set ${number} RIR`, { exact: true }).fill('2');
-    await logger.getByRole('button', { name: 'Complete set', exact: true }).click();
-    await expect(
-      logger.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
-    ).toHaveCount(number);
+  await expect(rest).toBeVisible();
+  await expect(page.getByText('3:30', { exact: true })).toBeVisible();
+  for (const width of [320, 360, 375, 390, 430, 768, 1280]) {
+    await page.setViewportSize({ width, height: 844 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    const action = await page
+      .getByRole('button', { name: 'Start Set 2', exact: true })
+      .boundingBox();
+    expect(action!.y + action!.height).toBeLessThanOrEqual(844);
+    await page.screenshot({ path: testInfo.outputPath(`rest-${width}.png`) });
   }
-  await expect(logger.getByRole('button', { name: 'Complete set', exact: true })).toHaveCount(0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Edit', exact: true }).click();
+  await page.getByLabel('Set 2 weight', { exact: true }).fill('67.5');
+  await page.getByRole('button', { name: 'Done editing' }).click();
+  await expect(page.getByRole('region', { name: 'Next set preview' })).toContainText('67.5 kg');
+  await page.getByRole('button', { name: 'Skip Rest Timer' }).click();
+  await expect(rest).toHaveCount(0);
+  await page.reload();
+  await expect(logger.getByLabel('Set 2 weight', { exact: true })).toHaveValue('67.5');
+  await expect(complete).toBeEnabled();
+  await complete.click();
+  await expect(rest).toBeVisible();
+  await page.clock.install();
+  await page.clock.fastForward(181000);
+  await expect(page.getByText('REST COMPLETE', { exact: true })).toBeVisible();
+  await expect(logger).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByText('REST COMPLETE', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Start Set 3', exact: true }).click();
+  await complete.click();
+  await expect(page.getByRole('region', { name: 'Exercise complete' })).toBeVisible();
+  await expect(rest).toHaveCount(0);
+  await page.screenshot({ path: testInfo.outputPath('exercise-complete.png') });
   await page.getByRole('button', { name: 'Next Exercise' }).click();
   await expect(page.getByRole('heading', { name: 'Logger Row', exact: true })).toBeVisible();
-  await logger.getByLabel('Set 1 weight', { exact: true }).fill('40');
+  await logger.getByLabel('Set 1 weight', { exact: true }).fill('0');
   await logger.getByLabel('Set 1 reps', { exact: true }).fill('10');
-  await logger.getByRole('button', { name: 'Complete set', exact: true }).click();
-  await expect(
-    logger.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
-  ).toHaveCount(1);
-  await finishLogger(page);
-  await expect(page.getByRole('link', { name: 'View Completed Workout' })).toBeVisible();
-  await page.getByRole('link', { name: 'View Completed Workout' }).click();
+  await page.screenshot({ path: testInfo.outputPath('active.png') });
+  await page.getByRole('link', { name: 'Leave workout, keep session saved' }).click();
+  await page.getByRole('button', { name: 'Save & Exit' }).click();
+  await page.getByRole('link', { name: 'Workout', exact: true }).click();
+  await page.getByRole('link', { name: 'Resume Workout', exact: true }).click();
+  await expect(logger.getByLabel('Set 1 weight', { exact: true })).toHaveValue('0');
+  await complete.click();
+  await expect(page.getByRole('heading', { name: 'Workout complete', exact: true })).toBeVisible();
+  await expect(rest).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Workout complete', exact: true })).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('workout-complete.png') });
+  await page.getByRole('button', { name: 'View Workout' }).click();
   await expect(page.getByRole('region', { name: 'Exercise summaries' })).toContainText(
     '3 of 3 sets completed',
   );
   await expect(page.locator('.workout-summary-metrics')).toContainText('Sets completed4');
-  for (const width of [375, 390, 393, 430]) {
-    await page.setViewportSize({ width, height: 844 });
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
-      true,
-    );
-    await page.screenshot({
-      path: testInfo.outputPath('summary-' + width + '.png'),
-      fullPage: true,
-    });
-  }
   await page.getByRole('link', { name: 'Done', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Start Workout', exact: true })).toHaveCount(0);
-  await page.getByRole('button', { name: /Push Day/ }).click();
-  await page.getByRole('button', { name: 'Start Workout', exact: true }).click();
-  await expect(logger.getByLabel('Set 1 weight', { exact: true })).toHaveValue('65');
-  await expect(logger.getByLabel('Set 2 weight', { exact: true })).toHaveValue('62.5');
-  await expect(
-    logger.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
-  ).toHaveCount(0);
-  await expect(page.getByRole('link', { name: 'Last workout', exact: true })).toBeVisible();
-  await logger.getByRole('button', { name: 'Complete set', exact: true }).click();
-  await expect(
-    logger.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
-  ).toHaveCount(1);
-  await expect(page.getByRole('button', { name: 'Add 30 Seconds' })).toBeEnabled();
-  for (const width of [375, 390, 393, 430]) {
-    await page.setViewportSize({ width, height: 844 });
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
-      true,
-    );
-    const action = await logger
-      .getByRole('button', { name: 'Complete set', exact: true })
-      .boundingBox();
-    expect(action!.height).toBeGreaterThanOrEqual(54);
-    expect(action!.y + action!.height).toBeLessThanOrEqual(844);
-    for (const control of await page
-      .locator('.workout-adjustment button, .workout-rest-button')
-      .all()) {
-      const box = await control.boundingBox();
-      expect(box!.width).toBeGreaterThanOrEqual(44);
-      expect(box!.height).toBeGreaterThanOrEqual(44);
-    }
-    await page.screenshot({ path: testInfo.outputPath('active-' + width + '.png') });
-  }
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.screenshot({ path: testInfo.outputPath('active-logger.png'), fullPage: true });
-  const sessionUrl = page.url();
-  await page.getByRole('link', { name: 'Leave workout, keep session saved' }).click();
-  await page.getByRole('link', { name: 'Workout', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Start training' })).toBeVisible();
-  await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toHaveCount(1);
-  await expect(page.getByRole('button', { name: /Start/ })).toHaveCount(0);
-  await page.screenshot({
-    path: testInfo.outputPath('workout-landing-active.png'),
-    fullPage: true,
-  });
-  await page.getByRole('link', { name: 'Resume Workout', exact: true }).click();
-  await expect(page).toHaveURL(sessionUrl);
-  await expect(
-    logger.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
-  ).toHaveCount(1);
-  await finishLogger(page);
   await page.goto('/progress');
-  await expectProgressCounts(page, 2, 5);
+  await expectProgressCounts(page, 1, 4);
 });

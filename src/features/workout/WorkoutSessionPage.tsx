@@ -195,7 +195,22 @@ export function WorkoutSessionPage() {
       </WorkoutSaveContext.Provider>
     );
 
-  if (session.status === 'completed') return <WorkoutSummary workout={workout} />;
+  if (session.status === 'completed')
+    return (
+      <WorkoutSummary
+        workout={workout}
+        onUndo={
+          undo && now <= undo.expiresAt
+            ? () => {
+                void run(async () => {
+                  await undoWorkoutCompletion(undo);
+                  setUndo(null);
+                });
+              }
+            : undefined
+        }
+      />
+    );
 
   return (
     <MobilePage className="grid gap-4" aria-labelledby="session-title">

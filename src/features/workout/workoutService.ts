@@ -215,7 +215,7 @@ export const resumeWorkout = (sessionId: string) => workouts.resume(sessionId);
 export const finishWorkout = (sessionId: string) => workouts.finish(sessionId);
 export const discardWorkout = (sessionId: string) => workouts.discard(sessionId);
 export const completeWorkoutSet = (id: string, input: UpdateWorkoutSetInput) =>
-  workouts.completeSet(id, input);
+  workouts.completeSet(id, input, true);
 export const undoWorkoutCompletion = (
   undo: import('../../lib/storage/repositories/workoutRepository').SetCompletionUndo,
 ) => workouts.undoCompletion(undo);

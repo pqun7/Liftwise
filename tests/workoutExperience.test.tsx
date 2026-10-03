@@ -2,7 +2,15 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { WorkoutSessionPage } from '../src/features/workout/WorkoutSessionPage';
-import { updateWorkoutSet, finishWorkout } from '../src/features/workout/workoutService';
+import {
+  updateWorkoutSet,
+  finishWorkout,
+  completeWorkoutSet,
+  clearWorkoutRest,
+  extendWorkoutRest,
+  setCurrentWorkoutExercise,
+  undoWorkoutCompletion,
+} from '../src/features/workout/workoutService';
 import { CurrentExerciseCard } from '../src/features/workout/CurrentExerciseCard';
 import { targetRange } from '../src/features/workout/workoutFormat';
 import { ExerciseRepository } from '../src/lib/storage/repositories/exerciseRepository';
@@ -13,6 +21,11 @@ vi.mock('../src/features/workout/workoutService', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../src/features/workout/workoutService')>()),
   updateWorkoutSet: vi.fn(),
   finishWorkout: vi.fn(),
+  completeWorkoutSet: vi.fn(),
+  clearWorkoutRest: vi.fn(),
+  extendWorkoutRest: vi.fn(),
+  setCurrentWorkoutExercise: vi.fn(),
+  undoWorkoutCompletion: vi.fn(),
 }));
 afterEach(async () => {
   vi.resetAllMocks();
@@ -69,7 +82,7 @@ async function renderSession(repo: WorkoutRepository, id: string) {
       )}
     />,
   );
-  await screen.findByRole('heading', { name: 'Bench' });
+  await screen.findByRole('heading', { name: 'Quick Workout' });
 }
 describe('workout targets, history and next set', () => {
   it('holds route departure until a slow draft commits to IndexedDB', async () => {
@@ -85,6 +98,7 @@ describe('workout targets, history and next set', () => {
     await renderSession(repo, session.id);
     fireEvent.change(screen.getByLabelText('Set 1 weight'), { target: { value: '82.5' } });
     fireEvent.click(screen.getByRole('link', { name: 'Leave workout, keep session saved' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save & Exit' }));
     expect(screen.queryByRole('heading', { name: 'Home after save' })).toBeNull();
     await act(async () => {
       release();
@@ -103,9 +117,11 @@ describe('workout targets, history and next set', () => {
     fireEvent.change(screen.getByLabelText('Set 1 weight'), { target: { value: '77.5' } });
     await screen.findByRole('button', { name: 'Retry save' });
     fireEvent.click(screen.getByRole('link', { name: 'Leave workout, keep session saved' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save & Exit' }));
     await waitFor(() =>
       expect(screen.queryByRole('heading', { name: 'Home after save' })).toBeNull(),
     );
+    fireEvent.click(screen.getByRole('button', { name: 'Continue Workout' }));
     fireEvent.click(screen.getByRole('button', { name: 'Finish Workout', hidden: true }));
     expect(screen.getByText('3 sets are incomplete.')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Finish anyway' }));
@@ -143,8 +159,8 @@ describe('workout targets, history and next set', () => {
     const targets = screen.getByRole('region', { name: 'Target' });
     expect(targets).toHaveTextContent('Sets3');
     expect(targets).toHaveTextContent('Reps8–10');
-    expect(targets).toHaveTextContent('RIR0–2');
-    expect(targets).toHaveTextContent('Rest2:00');
+    expect(targets).toHaveTextContent('RIR 0–2');
+    expect(targets).toHaveTextContent('Rest 2:00');
     const previous = screen.getByRole('link', { name: 'Last workout' });
     expect(previous).toHaveTextContent('Previous · Set 2');
     expect(previous).toHaveTextContent('85 kg × 9 @ 1 RIR');
@@ -208,5 +224,129 @@ describe('workout targets, history and next set', () => {
     });
     await repo.finish(duplicateSession.id, new Date(Date.now() + 4000));
     expect((await repo.getPreviousCompletedExercise(source.id))?.sets[0]?.weight).toBe(70);
+  });
+});
+
+describe('canonical workout V2 journey', () => {
+  async function ready() {
+    const data = await fixture();
+    const { repo, sets } = data;
+    await repo.updateSet(sets[0]!.id, { weight: 20, reps: 12, rir: 0 });
+    vi.mocked(updateWorkoutSet).mockImplementation((id, input) => repo.updateSet(id, input));
+    vi.mocked(completeWorkoutSet).mockImplementation((id, input) =>
+      repo.completeSet(id, input, true),
+    );
+    vi.mocked(clearWorkoutRest).mockImplementation((id) => repo.clearRest(id));
+    vi.mocked(extendWorkoutRest).mockImplementation((id) => repo.extendRest(id));
+    vi.mocked(setCurrentWorkoutExercise).mockImplementation((id, exercise) =>
+      repo.setCurrentExercise(id, exercise),
+    );
+    vi.mocked(undoWorkoutCompletion).mockImplementation((undo) => repo.undoCompletion(undo));
+    return data;
+  }
+  it('completes once, restores Rest from storage, extends it, edits the next canonical set and starts without logging it', async () => {
+    const { repo, session } = await ready();
+    await renderSession(repo, session.id);
+    const complete = screen.getByRole('button', { name: 'Complete set' });
+    fireEvent.click(complete);
+    fireEvent.click(complete);
+    await screen.findByRole('region', { name: 'Rest timer' });
+    expect(completeWorkoutSet).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('button', { name: 'Complete set' })).toBeNull();
+    const before = (await repo.get(session.id))!.session.restEndsAt!;
+    fireEvent.click(screen.getByRole('button', { name: 'Add 30 Seconds' }));
+    await waitFor(async () =>
+      expect(
+        Date.parse((await repo.get(session.id))!.session.restEndsAt!) - Date.parse(before),
+      ).toBe(30000),
+    );
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Edit' })).toBeEnabled());
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    fireEvent.change(screen.getByLabelText('Set 2 weight'), { target: { value: '22.5' } });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Start Set 2' })).toBeEnabled());
+    fireEvent.click(screen.getByRole('button', { name: 'Start Set 2' }));
+    await screen.findByRole('button', { name: 'Complete set' }, { timeout: 5000 });
+    expect(screen.getByLabelText('Set 2 weight')).toHaveValue('22.5');
+    expect((await repo.get(session.id))!.session.restEndsAt).toBeNull();
+    expect((await repo.get(session.id))!.exercises[0]!.sets[1]!.completed).toBe(false);
+  });
+  it('restores an expired rest without auto-starting and undo restores prior rest', async () => {
+    const { repo, session, sets } = await ready();
+    await repo.startRest(session.id, 60);
+    const prior = (await repo.get(session.id))!.session.restEndsAt;
+    const undo = await repo.completeSet(sets[0]!.id, {}, true);
+    await repo.startRest(session.id, 120, new Date(Date.now() - 200000));
+    await renderSession(repo, session.id);
+    expect(screen.getByText('REST COMPLETE')).toBeInTheDocument();
+    expect(screen.getByText('00:00')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Complete set' })).toBeNull();
+    // Restore the exact completion timer before exercising existing undo semantics.
+    await repo.clearRest(session.id);
+    await repo.undoCompletion({ ...undo, completionRestEndsAt: null });
+    expect((await repo.get(session.id))!.session.restEndsAt).toBe(prior);
+    expect((await repo.get(session.id))!.exercises[0]!.sets[0]!.completed).toBe(false);
+  });
+  it('shows exercise completion without rest and selects the next unfinished exercise', async () => {
+    const { repo, session, source, sets } = await ready();
+    const next = await repo.addExercise({ workoutSessionId: session.id, exerciseId: source.id });
+    await repo.addSet({ workoutExerciseId: next.id, setType: 'working', weight: 0, reps: 10 });
+    for (const set of sets) await repo.completeSet(set.id, { weight: 20, reps: 12 }, true);
+    await renderSession(repo, session.id);
+    expect(screen.getByRole('region', { name: 'Exercise complete' })).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Rest timer' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Next Exercise' }));
+    await screen.findByRole('button', { name: 'Complete set' }, { timeout: 5000 });
+    expect((await repo.get(session.id))!.session.currentExerciseId).toBe(next.id);
+  });
+  it('commits the final set and workout together, skips rest, survives reopen, and supports final Undo', async () => {
+    const { repo, session, sets } = await ready();
+    await repo.completeSet(sets[0]!.id, {}, true);
+    await repo.completeSet(sets[1]!.id, {}, true);
+    await repo.clearRest(session.id);
+    await renderSession(repo, session.id);
+    fireEvent.click(screen.getByRole('button', { name: 'Complete set' }));
+    await screen.findByRole('heading', { name: 'Workout complete' });
+    expect((await repo.get(session.id))!.session).toMatchObject({
+      status: 'completed',
+      restEndsAt: null,
+    });
+    expect(await repo.getUnfinished()).toBeUndefined();
+    fireEvent.click(screen.getByRole('button', { name: 'View Workout' }));
+    expect(screen.getByRole('region', { name: 'Exercise summaries' })).toHaveTextContent('3 of 3');
+  });
+  it('rejects paused completion and persists the source exercise when completing out of order', async () => {
+    const { repo, session, source, sets } = await ready();
+    await repo.pause(session.id);
+    await expect(repo.completeSet(sets[0]!.id, {}, true)).rejects.toThrow('Resume the workout');
+    expect((await repo.get(session.id))!.exercises[0]!.sets[0]!.completed).toBe(false);
+    await repo.resume(session.id);
+    const other = await repo.addExercise({ workoutSessionId: session.id, exerciseId: source.id });
+    const set = await repo.addSet({
+      workoutExerciseId: other.id,
+      setType: 'working',
+      weight: 0,
+      reps: 10,
+    });
+    await repo.completeSet(set.id, {}, true);
+    expect((await repo.get(session.id))!.session).toMatchObject({
+      currentExerciseId: other.id,
+      restEndsAt: null,
+      status: 'active',
+    });
+  });
+  it('omits zero-second rest and serializes competing repository completions', async () => {
+    const { repo, session, sets, db, exercise } = await ready();
+    await db.workoutExercises.update(exercise.id, { plannedRestSeconds: 0 });
+    const results = await Promise.allSettled([
+      repo.completeSet(sets[0]!.id, {}, true),
+      repo.completeSet(sets[0]!.id, {}, true),
+    ]);
+    expect(results.filter((value) => value.status === 'fulfilled')).toHaveLength(1);
+    expect((await repo.get(session.id))!.session.restEndsAt).toBeNull();
+    await repo.completeSet(sets[1]!.id, {}, true);
+    const undo = await repo.completeSet(sets[2]!.id, {}, true);
+    await repo.undoCompletion(undo);
+    expect((await repo.get(session.id))!.session.status).toBe('active');
+    expect((await repo.get(session.id))!.exercises[0]!.sets[2]!.completed).toBe(false);
   });
 });

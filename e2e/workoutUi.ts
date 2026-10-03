@@ -13,6 +13,11 @@ export async function expectProgressCounts(page: Page, workouts: number, sets: n
 }
 
 export async function finishLogger(page: Page) {
+  await expect(page.getByRole('button', { name: 'Saving set…', exact: true })).toHaveCount(0);
+  if (await page.getByRole('heading', { name: 'Workout complete', exact: true }).isVisible()) {
+    await page.getByRole('link', { name: 'Done', exact: true }).click();
+    return;
+  }
   const menu = page
     .locator('details')
     .filter({ has: page.getByLabel('Workout menu', { exact: true }) });
@@ -70,4 +75,16 @@ export async function openLegacyUnplannedFixture(page: Page) {
   await page.getByRole('link', { name: 'Workout', exact: true }).click();
   await page.getByRole('link', { name: 'Resume Workout', exact: true }).click();
   await expect(page).toHaveURL(new RegExp('/workout/' + id));
+}
+
+export async function openWorkoutMenu(page: Page) {
+  const menu = page
+    .locator('details')
+    .filter({ has: page.getByLabel('Workout menu', { exact: true }) });
+  if (!(await menu.evaluate((element) => (element as HTMLDetailsElement).open)))
+    await page.getByLabel('Workout menu', { exact: true }).click();
+}
+export async function openWorkoutOverview(page: Page) {
+  await openWorkoutMenu(page);
+  await page.getByRole('button', { name: 'Workout Overview', exact: true }).click();
 }

@@ -1,7 +1,7 @@
 import { useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { WorkoutSaveContext } from './WorkoutSaveContext';
 import { ArrowLeft, ArrowRight, Ellipsis, Check } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Textarea } from '../../components/ui/FormControl';
 import { iconButtonClasses, buttonClasses } from '../../components/ui/controlStyles';
@@ -9,6 +9,8 @@ import { WorkoutExerciseProgress } from './WorkoutExerciseProgress';
 import { CurrentExerciseCard } from './CurrentExerciseCard';
 import { SetLogger } from './SetLogger';
 import { RestTimer } from './RestTimer';
+import { calculateWorkoutVolume } from '../../domain/calculations';
+import { formatPreviousSets } from './workoutFormat';
 import { KeepAwake } from './KeepAwake';
 import {
   formatDuration,
@@ -57,6 +59,13 @@ export function ActiveWorkoutLogger({
   showOverview: boolean;
   setShowOverview: (value: boolean) => void;
 }) {
+  const navigate = useNavigate();
+  const [leave, setLeave] = useState(false);
+  const leaveDialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    if (leave) leaveDialog.current?.showModal();
+    else leaveDialog.current?.close();
+  }, [leave]);
   const [reviewFinish, setReviewFinish] = useState(false);
   const reviewHeading = useRef<HTMLHeadingElement>(null);
   const menu = useRef<HTMLDetailsElement>(null);
@@ -70,10 +79,11 @@ export function ActiveWorkoutLogger({
     workout.exercises.findIndex((entry) => entry.exercise.id === session.currentExerciseId),
   );
   const entry = workout.exercises[index];
+  const current = entry?.sets.find((set) => !set.completed);
+  const hasRest = session.restEndsAt !== null;
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
-  }, [entry?.exercise.id]);
-  const current = entry?.sets.find((set) => !set.completed);
+  }, [entry?.exercise.id, current?.id, hasRest]);
   const next = workout.exercises
     .slice(index + 1)
     .find(
@@ -109,16 +119,25 @@ export function ActiveWorkoutLogger({
       .then(() => setShowOverview(!showOverview))
       .catch(() => {});
   };
-  const timer = session.restEndsAt ? (
+  const resting = Boolean(session.restEndsAt && current && !entry?.exercise.skipped);
+  const exerciseDone = Boolean(entry && entry.sets.length && !current && !entry.exercise.skipped);
+  const best = entry?.sets
+    .filter((set) => set.completed && set.weight !== null && set.reps !== null)
+    .sort((a, b) => b.weight! * b.reps! - a.weight! * a.reps!)[0];
+  const timer = resting ? (
     <RestTimer
+      entry={entry}
+      refresh={refresh}
+      onCompleted={onCompleted}
       remaining={rest}
       duration={Math.max(
         1,
-        (Date.parse(session.restEndsAt) - Date.parse(session.restStartedAt ?? session.restEndsAt)) /
+        (Date.parse(session.restEndsAt!) -
+          Date.parse(session.restStartedAt ?? session.restEndsAt!)) /
           1000,
       )}
       nextSet={entry?.exercise.skipped ? undefined : current?.setNumber}
-      disabled={busy}
+      disabled={busy || session.status === 'paused'}
       onAdd={() => void run(() => extendWorkoutRest(session.id))}
       onEnd={() => void run(() => clearWorkoutRest(session.id))}
     />
@@ -126,7 +145,15 @@ export function ActiveWorkoutLogger({
   return (
     <section className="workout-flow workout-active" aria-labelledby="session-title">
       <header className="workout-session-header">
-        <Link to="/" aria-label="Leave workout, keep session saved" className={iconButtonClasses()}>
+        <Link
+          to="/"
+          onClick={(event) => {
+            event.preventDefault();
+            setLeave(true);
+          }}
+          aria-label="Leave workout, keep session saved"
+          className={iconButtonClasses()}
+        >
           <ArrowLeft size={20} aria-hidden="true" />
         </Link>
         <div className="min-w-0 text-center">
@@ -137,6 +164,9 @@ export function ActiveWorkoutLogger({
             {entry
               ? `${index + 1} of ${workout.exercises.length} exercises`
               : 'Add your first exercise'}
+            {entry
+              ? ` · ${completedSets}/${workout.exercises.flatMap((item) => item.sets).length} sets`
+              : ''}
           </p>
         </div>
         <details ref={menu} className="relative">
@@ -149,13 +179,14 @@ export function ActiveWorkoutLogger({
           <div className="absolute right-0 z-30 mt-2 grid w-52 gap-2 rounded-2xl border border-border bg-surface-3 p-3 shadow-lg">
             <Button
               disabled={busy}
-              onClick={() =>
+              onClick={() => {
+                menu.current?.removeAttribute('open');
                 void run(() =>
                   session.status === 'paused'
                     ? resumeWorkout(session.id)
                     : pauseWorkout(session.id),
-                )
-              }
+                );
+              }}
             >
               {session.status === 'paused' ? 'Resume' : 'Pause'}
             </Button>
@@ -175,6 +206,18 @@ export function ActiveWorkoutLogger({
             >
               Discard Workout
             </Button>
+            <Button
+              disabled={busy}
+              onClick={() => {
+                menu.current?.removeAttribute('open');
+                toggleOverview();
+              }}
+            >
+              {showOverview ? 'Close overview' : 'Workout Overview'}
+            </Button>
+            <Link className={buttonClasses('outline')} to={`/workout/${session.id}/exercises`}>
+              Add Exercise
+            </Link>
             <KeepAwake active={session.status === 'active'} />
           </div>
         </details>
@@ -245,8 +288,45 @@ export function ActiveWorkoutLogger({
               if (!busy) void run(() => setCurrentWorkoutExercise(session.id, id));
             }}
           />
-          <CurrentExerciseCard entry={entry} />
-          {entry.exercise.plannedNotes ? (
+          {resting ? (
+            timer
+          ) : exerciseDone ? (
+            <section
+              className="grid gap-4 rounded-2xl border border-border bg-surface p-5 text-center"
+              aria-label="Exercise complete"
+            >
+              <span className="workout-summary-check mx-auto">
+                <Check size={28} aria-hidden="true" />
+              </span>
+              <h2 className="text-xl font-bold">{entry.exercise.exerciseName} complete!</h2>
+              <p className="text-sm text-secondary">
+                You've finished all {entry.sets.length} sets.
+              </p>
+              <dl className="grid grid-cols-3 gap-2 text-sm">
+                <div>
+                  <dt className="text-secondary">Volume</dt>
+                  <dd className="font-bold">
+                    {calculateWorkoutVolume(entry.sets).toLocaleString()} kg
+                  </dd>
+                </div>
+                {best ? (
+                  <div>
+                    <dt className="text-secondary">Best set</dt>
+                    <dd className="font-bold">{formatPreviousSets([best]).split(' @')[0]}</dd>
+                  </div>
+                ) : null}
+                <div>
+                  <dt className="text-secondary">Sets</dt>
+                  <dd className="font-bold">
+                    {entry.sets.length} / {entry.sets.length}
+                  </dd>
+                </div>
+              </dl>
+            </section>
+          ) : (
+            <CurrentExerciseCard entry={entry} />
+          )}
+          {!resting && !exerciseDone && entry.exercise.plannedNotes ? (
             <p className="text-sm text-secondary">Target notes: {entry.exercise.plannedNotes}</p>
           ) : null}
           {entry.exercise.skipped ? (
@@ -259,17 +339,17 @@ export function ActiveWorkoutLogger({
                 Resume exercise
               </Button>
             </div>
-          ) : (
+          ) : !resting && !exerciseDone ? (
             <SetLogger
               key={`${entry.exercise.id}:${entry.exercise.exerciseId}`}
               sets={entry.sets}
               previous={entry.previous?.sets ?? []}
               refresh={refresh}
               onCompleted={onCompleted}
-              footer={timer}
+              finalSet={incompleteSets === 1 && emptyExercises === 0}
               disabled={busy || session.status === 'paused'}
             />
-          )}
+          ) : null}
           {entry.exercise.skipped ? timer : null}
           {!entry.sets.length && !entry.exercise.skipped ? (
             <Button
@@ -284,7 +364,7 @@ export function ActiveWorkoutLogger({
               <Button
                 variant="primary"
                 size="large"
-                className="workout-primary workout-active-action"
+                className="workout-primary"
                 onClick={() =>
                   void run(() =>
                     setCurrentWorkoutExercise(session.id, (next ?? unfinished)!.exercise.id),
@@ -307,6 +387,9 @@ export function ActiveWorkoutLogger({
               </Button>
             )
           ) : null}
+          {exerciseDone && (next ?? unfinished) ? (
+            <CurrentExerciseCard entry={(next ?? unfinished)!} />
+          ) : null}
         </>
       ) : !entry ? (
         <p className="rounded-2xl border border-border bg-surface p-4 text-secondary">
@@ -324,23 +407,50 @@ export function ActiveWorkoutLogger({
           </Button>
         </aside>
       ) : null}
-      {!reviewFinish ? (
-        <div className="flex items-center justify-between gap-2">
-          <Link
-            className={buttonClasses('outline')}
-            to={`/workout/${session.id}/exercises`}
-            aria-disabled={busy}
-            onClick={(event) => {
-              if (busy) event.preventDefault();
+      <dialog
+        ref={leaveDialog}
+        onCancel={() => setLeave(false)}
+        className="m-auto w-[calc(100%-32px)] max-w-[398px] rounded-2xl border border-border bg-surface p-5 text-primary backdrop:bg-black/70"
+      >
+        <h2 className="text-xl font-bold">Leave Workout?</h2>
+        <p className="my-3 text-sm text-secondary">
+          Your progress is saved on this device. Pending changes will save before you leave.
+        </p>
+        {error || saves?.error ? (
+          <p role="alert" className="my-3 text-sm text-red-300">
+            {error ?? saves?.error}
+          </p>
+        ) : null}
+        <div className="grid gap-2">
+          <Button variant="primary" onClick={() => setLeave(false)}>
+            Continue Workout
+          </Button>
+          <Button
+            disabled={busy}
+            onClick={() => {
+              void (saves?.flush() ?? Promise.resolve()).then(() => navigate('/')).catch(() => {});
             }}
           >
-            Add Exercise
-          </Link>
-          <Button variant="ghost" aria-expanded={showOverview} onClick={() => toggleOverview()}>
-            {showOverview ? 'Close overview' : 'Workout Overview'}
+            Save &amp; Exit
+          </Button>
+          <Button
+            disabled={busy}
+            onClick={() => {
+              if (
+                window.confirm(
+                  'Discard this workout? This ends the session; recorded sets stay saved.',
+                )
+              )
+                void run(async () => {
+                  await discardWorkout(session.id);
+                  void navigate('/');
+                });
+            }}
+          >
+            Discard Workout
           </Button>
         </div>
-      ) : null}
+      </dialog>
       {showOverview && !reviewFinish ? (
         <section aria-label="Workout Overview" className="grid gap-4">
           {timer}

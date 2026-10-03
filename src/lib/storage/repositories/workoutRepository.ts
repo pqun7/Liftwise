@@ -85,7 +85,11 @@ function unfinished(status: WorkoutSessionStatus): boolean {
 export class WorkoutRepository {
   constructor(private readonly db: LiftwiseDatabase = database) {}
 
-  async completeSet(id: string, input: UpdateWorkoutSetInput): Promise<SetCompletionUndo> {
+  async completeSet(
+    id: string,
+    input: UpdateWorkoutSetInput,
+    finishWhenDone = false,
+  ): Promise<SetCompletionUndo> {
     return this.db.transaction(
       'rw',
       [this.db.workoutSessions, this.db.workoutExercises, this.db.workoutSets],
@@ -105,6 +109,10 @@ export class WorkoutRepository {
             exercise.workoutSessionId,
           ),
         );
+        if (session.status !== 'active')
+          throw new Error('Resume the workout before completing sets.');
+        if (session.currentExerciseId !== exercise.id)
+          await this.setCurrentExercise(session.id, exercise.id);
         const updated = await this.updateSet(id, { ...input, completed: true });
         const next = (
           await this.db.workoutSets
@@ -131,10 +139,22 @@ export class WorkoutRepository {
             rir: updated.rir,
           });
         }
+        const graph = (await this.get(session.id))!;
+        const relevant = graph.exercises.filter((item) => !item.exercise.skipped);
+        const allDone =
+          relevant.length > 0 &&
+          relevant.every(
+            (item) => item.sets.length > 0 && item.sets.every((value) => value.completed),
+          );
+        const moreSets = graph.exercises
+          .find((item) => item.exercise.id === exercise.id)!
+          .sets.some((value) => !value.completed);
         const rest =
-          exercise.plannedRestSeconds === null
-            ? session
-            : await this.startRest(session.id, exercise.plannedRestSeconds);
+          finishWhenDone && allDone
+            ? await this.finish(session.id)
+            : moreSets && (exercise.plannedRestSeconds ?? 0) > 0
+              ? await this.startRest(session.id, exercise.plannedRestSeconds!)
+              : await this.clearRest(session.id);
         return {
           setId: id,
           sessionId: session.id,
@@ -171,6 +191,17 @@ export class WorkoutRepository {
           set.updatedAt !== undo.completedAt
         )
           throw new Error('The set changed since completion.');
+        const originalSession = requireRecord(
+          await this.db.workoutSessions.get(undo.sessionId),
+          'WorkoutSession',
+          undo.sessionId,
+        );
+        if (originalSession.status === 'completed') {
+          await this.requireNoUnfinishedSession();
+          await this.db.workoutSessions.put(
+            workoutSessionSchema.parse({ ...originalSession, status: 'active', endedAt: null }),
+          );
+        }
         await this.updateSet(set.id, { completed: false });
         const session = this.requireMutableSession(
           requireRecord(

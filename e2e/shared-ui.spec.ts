@@ -8,13 +8,16 @@ test('shared controls and navigation stay coherent at mobile widths', async ({
     { route: '/', action: 'Create Program', role: 'link' as const },
     { route: '/plan/new', action: 'Next: Choose Days', role: 'button' as const },
     { route: '/workout', action: 'Create Program', role: 'link' as const },
-    { route: '/progress', action: 'Add measurement', role: 'button' as const },
+    { route: '/progress/measurements', action: 'Add measurement', role: 'button' as const },
   ];
   for (const { route, action, role } of screens) {
     await page.goto(route);
     const primary = page.getByRole(role, { name: action, exact: role === 'link' });
     await expect(primary).toBeVisible();
-    await expect(primary).toHaveCSS('background-color', 'rgb(72, 240, 187)');
+    await expect(primary).toHaveCSS(
+      'background-color',
+      route === '/' ? 'rgb(10, 29, 25)' : 'rgb(72, 240, 187)',
+    );
     await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toHaveCount(1);
     for (const width of [320, 375, 390, 393, 402, 430]) {
       await page.setViewportSize({ width, height: 844 });

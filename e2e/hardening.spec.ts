@@ -1,3 +1,4 @@
+import { openWorkoutMenu } from './workoutUi';
 import { openLegacyUnplannedFixture } from './workoutUi';
 import { finishLogger, expectProgressCounts } from './workoutUi';
 import { expect, test, type Page } from '@playwright/test';
@@ -160,16 +161,9 @@ test('all core training, charts, backup and CSV flows work with network disabled
       await page.getByLabel(`Set ${number} weight`, { exact: true }).fill('100');
       await page.getByLabel(`Set ${number} reps`, { exact: true }).fill('8');
       await page.getByRole('button', { name: 'Complete set', exact: true }).first().click();
-      await expect(
-        page.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
-      ).toHaveCount(number);
+      await expect(page.getByRole('heading', { name: `Set ${number} complete!` })).toBeVisible();
+      if (number === 1) await page.getByRole('button', { name: 'Start Set 2' }).click();
     }
-    await expect(
-      page.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
-    ).toHaveCount(2);
-    const current = await page.getByRole('region', { name: 'Set logger' }).boundingBox();
-    const undo = await page.getByRole('status').filter({ hasText: 'Set saved' }).boundingBox();
-    expect(undo!.y).toBeGreaterThanOrEqual(current!.y + current!.height);
     await auditLayout(page);
     if (browserName === 'webkit') {
       for (const width of [320, 375, 390, 393, 414, 430]) {
@@ -179,23 +173,22 @@ test('all core training, charts, backup and CSV flows work with network disabled
     }
     await page.getByLabel('Workout menu', { exact: true }).click();
     await page.getByRole('button', { name: 'Pause', exact: true }).click();
-    await page.getByRole('button', { name: 'Resume', exact: true }).click();
-    await page.getByLabel('Workout menu', { exact: true }).click();
+    await page.getByRole('button', { name: 'Resume Workout', exact: true }).click();
     if (browserName !== 'webkit') await page.reload();
     else {
       await page.getByRole('link', { name: 'Leave workout, keep session saved' }).click();
+      await page.getByRole('button', { name: 'Save & Exit' }).click();
       await expect(page.locator('[data-home-state=in-progress]')).toBeVisible();
       await page.getByRole('link', { name: 'Continue Workout', exact: true }).click();
     }
-    await expect(
-      page.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
-    ).toHaveCount(2);
+    await expect(page.getByRole('heading', { name: 'Set 2 complete!' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Skip Rest Timer' })).toBeVisible();
     await page.getByLabel('Workout menu', { exact: true }).click();
     await expect(page.getByLabel('Keep screen awake while training')).toBeChecked();
     await page.getByLabel('Workout menu', { exact: true }).click();
     await finishLogger(page);
     await openLegacyUnplannedFixture(page);
+    await openWorkoutMenu(page);
     await page.getByRole('link', { name: 'Add Exercise', exact: true }).click();
     await page.getByRole('searchbox', { name: 'Search exercises' }).fill('Barbell Bench Press');
     await page
@@ -252,10 +245,12 @@ test('all core training, charts, backup and CSV flows work with network disabled
     await expectProgressCounts(page, 2, 3);
     await page.getByRole('link', { name: /Workout History View/ }).click();
     await page.getByRole('link', { name: /Offline Push/ }).click();
+    await page.getByRole('button', { name: 'View Workout' }).click();
     await expect(page.getByRole('region', { name: 'Exercise summaries' })).toContainText(
       '2 of 3 sets completed',
     );
     await expect(page.getByLabel('Completed set', { exact: true })).toHaveCount(2);
+    await page.getByRole('link', { name: 'Done', exact: true }).click();
     await page.getByRole('link', { name: 'Plan', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Offline QA', exact: true })).toBeVisible();
     expect(external).toEqual([]);

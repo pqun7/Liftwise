@@ -1,3 +1,4 @@
+import { openWorkoutMenu, openWorkoutOverview } from './workoutUi';
 import { openLegacyUnplannedFixture } from './workoutUi';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { saveEmptyProgram } from './programHelpers';
@@ -96,8 +97,9 @@ test('mobile editable controls have zoom-safe computed typography and an unrestr
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/workout');
   await openLegacyUnplannedFixture(page);
-  await page.getByRole('button', { name: 'Workout Overview', exact: true }).click();
+  await openWorkoutOverview(page);
   await assertMobileInputIsZoomSafe(page.getByLabel('Workout notes'));
+  await openWorkoutMenu(page);
   await page.getByRole('link', { name: 'Add Exercise' }).click();
   await assertMobileInputIsZoomSafe(page.getByRole('searchbox', { name: 'Search exercises' }));
   await assertMobileInputIsZoomSafe(page.getByLabel('Body part'));
@@ -109,6 +111,6 @@ test('mobile editable controls have zoom-safe computed typography and an unrestr
   for (const label of ['Set 1 weight', 'Set 1 reps', 'Set 1 RIR']) {
     await assertMobileInputIsZoomSafe(page.getByLabel(label, { exact: true }));
   }
-  await page.getByRole('button', { name: 'Workout Overview', exact: true }).click();
+  await openWorkoutOverview(page);
   await assertMobileInputIsZoomSafe(page.getByLabel('Set 1 type', { exact: true }));
 });

@@ -1,3 +1,4 @@
+import { openWorkoutMenu } from './workoutUi';
 import { openLegacyUnplannedFixture } from './workoutUi';
 import { finishLogger } from './workoutUi';
 import { expect, test } from '@playwright/test';
@@ -20,6 +21,7 @@ test('completed history, PRs, charts, measurements and CSV stay usable offline',
     const dismiss = page.getByRole('button', { name: 'Dismiss' });
     if (await dismiss.isVisible()) await dismiss.click();
     await openLegacyUnplannedFixture(page);
+    await openWorkoutMenu(page);
     await page.getByRole('link', { name: 'Add Exercise', exact: true }).click();
     await page.getByRole('searchbox', { name: 'Search exercises' }).fill('Progress Bench');
     await page.getByRole('button', { name: /Progress Bench/ }).click();
@@ -29,8 +31,8 @@ test('completed history, PRs, charts, measurements and CSV stay usable offline',
     await page.getByLabel('Set 1 RIR', { exact: true }).press('Tab');
     await page.getByRole('button', { name: 'Complete set', exact: true }).click();
     await expect(
-      page.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
-    ).toHaveAttribute('aria-pressed', 'true');
+      page.getByRole('heading', { name: 'Workout complete', exact: true }),
+    ).toBeVisible();
     await finishLogger(page);
     await expect(page.getByRole('heading', { name: 'Start training' })).toBeVisible();
   }
@@ -46,6 +48,7 @@ test('completed history, PRs, charts, measurements and CSV stay usable offline',
   await page.getByLabel('Sort workouts').selectOption('oldest');
   await page.locator('main ul').getByRole('link').first().click();
   await expect(page.getByText('Workout complete', { exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'Done', exact: true }).click();
   await page.getByRole('navigation').getByRole('link', { name: 'Progress', exact: true }).click();
   await page.getByRole('link', { name: /Body Measurements Track/ }).click();
   await page.getByLabel('Weight (kg)', { exact: true }).fill('80');

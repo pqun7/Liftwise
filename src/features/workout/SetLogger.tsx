@@ -16,6 +16,8 @@ export function SetLogger({
   onCompleted,
   footer,
   disabled = false,
+  editingOnly = false,
+  finalSet = false,
 }: {
   sets: WorkoutSet[];
   previous: WorkoutSet[];
@@ -23,6 +25,8 @@ export function SetLogger({
   onCompleted: (undo: SetCompletionUndo) => void;
   footer?: ReactNode;
   disabled?: boolean;
+  editingOnly?: boolean;
+  finalSet?: boolean;
 }) {
   const editor = useWorkoutSetDrafts(sets);
   const completing = useRef(false);
@@ -100,7 +104,10 @@ export function SetLogger({
     </div>
   );
   return (
-    <section aria-label="Set logger" className="workout-set-logger">
+    <section
+      aria-label="Set logger"
+      className={`workout-set-logger ${editingOnly ? '' : 'workout-set-logger-focused'}`}
+    >
       {current ? (
         <>
           <div className="flex items-center justify-between gap-2">
@@ -127,7 +134,7 @@ export function SetLogger({
                       enterKeyHint={field === 'rir' ? 'done' : 'next'}
                       placeholder="—"
                       aria-label={`Set ${current.setNumber} ${field === 'rir' ? 'RIR' : field}`}
-                      className="border-0 bg-transparent px-1 text-center text-2xl font-bold tabular-nums"
+                      className="workout-metric-input border-0 bg-transparent px-1 text-center text-2xl font-bold tabular-nums"
                       onChange={(event) => {
                         setError(null);
                         editor.change(current, field, event.target.value);
@@ -141,7 +148,7 @@ export function SetLogger({
                           if (index < 2) inputs?.[index + 1]?.focus();
                           else {
                             event.currentTarget.blur();
-                            complete();
+                            if (!editingOnly) complete();
                           }
                         }
                       }}
@@ -178,7 +185,6 @@ export function SetLogger({
                         }}
                       >
                         {direction > 0 ? '+' : '−'}
-                        {field === 'weight' ? step : ''}
                       </button>
                     ))}
                   </div>
@@ -187,18 +193,21 @@ export function SetLogger({
             })}
           </div>
           {footer}
-          <Button
-            variant="primary"
-            size="large"
-            className="workout-primary workout-active-action"
-            disabled={busy || disabled}
-            aria-pressed={false}
-            onPointerDown={(event) => event.preventDefault()}
-            onClick={complete}
-          >
-            <Check size={22} aria-hidden="true" />
-            {busy ? 'Saving set…' : 'Complete set'}
-          </Button>
+          {finalSet ? <p className="text-sm text-mint">Final set · finish strong</p> : null}
+          {!editingOnly ? (
+            <Button
+              variant="primary"
+              size="large"
+              className="workout-primary workout-active-action"
+              disabled={busy || disabled}
+              aria-pressed={false}
+              onPointerDown={(event) => event.preventDefault()}
+              onClick={complete}
+            >
+              <Check size={22} aria-hidden="true" />
+              {busy ? 'Saving set…' : 'Complete set'}
+            </Button>
+          ) : null}
           {showCopy && reference ? (
             <Button
               variant="ghost"
@@ -217,7 +226,7 @@ export function SetLogger({
           </p>
         </>
       )}
-      {sets.some((set) => set.id !== current?.id) ? (
+      {!editingOnly && sets.some((set) => set.id !== current?.id) ? (
         <details className="rounded-xl border border-border p-2" open={!current}>
           <summary className="flex min-h-11 cursor-pointer items-center text-sm text-secondary">
             All sets · {sets.filter((set) => set.completed).length}/{sets.length} completed

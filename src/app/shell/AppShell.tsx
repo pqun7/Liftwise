@@ -21,7 +21,10 @@ export function AppShell() {
   const focused = useMatches().some(({ data }) => {
     const status = (data as { workout?: { session?: { status?: string } } } | undefined)?.workout
       ?.session?.status;
-    return /^\/workout\/[^/]+$/.test(pathname) && (status === 'active' || status === 'paused');
+    return (
+      /^\/workout\/[^/]+$/.test(pathname) &&
+      (status === 'active' || status === 'paused' || status === 'completed')
+    );
   });
   return (
     <div
