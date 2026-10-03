@@ -1,6 +1,7 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { WorkoutSaveContext } from './WorkoutSaveContext';
 import { ArrowLeft, ArrowRight, Ellipsis, Check } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Textarea } from '../../components/ui/FormControl';
 import { iconButtonClasses, buttonClasses } from '../../components/ui/controlStyles';
@@ -17,12 +18,14 @@ import {
 import type { SetCompletionUndo } from '../../lib/storage/repositories/workoutRepository';
 import {
   clearWorkoutRest,
+  addWorkoutSet,
   extendWorkoutRest,
   finishWorkout,
   discardWorkout,
   pauseWorkout,
   resumeWorkout,
   setCurrentWorkoutExercise,
+  skipWorkoutExercise,
   updateWorkoutNotes,
   type HydratedWorkoutGraph,
 } from './workoutService';
@@ -38,6 +41,8 @@ export function ActiveWorkoutLogger({
   onUndo,
   overview,
   error,
+  showOverview,
+  setShowOverview,
 }: {
   workout: HydratedWorkoutGraph;
   now: number;
@@ -49,10 +54,17 @@ export function ActiveWorkoutLogger({
   onUndo: () => void;
   overview: ReactNode;
   error: string | null;
+  showOverview: boolean;
+  setShowOverview: (value: boolean) => void;
 }) {
-  const [showOverview, setShowOverview] = useState(false);
-  const navigate = useNavigate();
+  const [reviewFinish, setReviewFinish] = useState(false);
+  const reviewHeading = useRef<HTMLHeadingElement>(null);
+  const menu = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    if (reviewFinish) reviewHeading.current?.focus();
+  }, [reviewFinish]);
   const session = workout.session;
+  const saves = useContext(WorkoutSaveContext);
   const index = Math.max(
     0,
     workout.exercises.findIndex((entry) => entry.exercise.id === session.currentExerciseId),
@@ -70,10 +82,33 @@ export function ActiveWorkoutLogger({
     );
   const unfinished = workout.exercises.find(
     (item) =>
-      !item.exercise.skipped && (!item.sets.length || item.sets.some((set) => !set.completed)),
+      item.exercise.id !== entry?.exercise.id &&
+      !item.exercise.skipped &&
+      (!item.sets.length || item.sets.some((set) => !set.completed)),
   );
   const rest = restRemainingSeconds(session, now);
-  const finish = () => void run(() => finishWorkout(session.id));
+  const incompleteSets = workout.exercises
+    .filter((item) => !item.exercise.skipped)
+    .flatMap((item) => item.sets)
+    .filter((set) => !set.completed).length;
+  const emptyExercises = workout.exercises.filter(
+    (item) => !item.exercise.skipped && !item.sets.length,
+  ).length;
+  const completedSets = workout.exercises
+    .flatMap((item) => item.sets)
+    .filter((set) => set.completed).length;
+  const finish = () => {
+    menu.current?.removeAttribute('open');
+    if (incompleteSets || emptyExercises) setReviewFinish(true);
+    else void run(() => finishWorkout(session.id));
+  };
+  const toggleOverview = () => {
+    if (busy) return;
+    // Presentation changes need committed drafts, but do not need another full route load.
+    void (saves?.flush() ?? Promise.resolve())
+      .then(() => setShowOverview(!showOverview))
+      .catch(() => {});
+  };
   const timer = session.restEndsAt ? (
     <RestTimer
       remaining={rest}
@@ -82,7 +117,7 @@ export function ActiveWorkoutLogger({
         (Date.parse(session.restEndsAt) - Date.parse(session.restStartedAt ?? session.restEndsAt)) /
           1000,
       )}
-      nextSet={current?.setNumber}
+      nextSet={entry?.exercise.skipped ? undefined : current?.setNumber}
       disabled={busy}
       onAdd={() => void run(() => extendWorkoutRest(session.id))}
       onEnd={() => void run(() => clearWorkoutRest(session.id))}
@@ -104,7 +139,7 @@ export function ActiveWorkoutLogger({
               : 'Add your first exercise'}
           </p>
         </div>
-        <details className="relative">
+        <details ref={menu} className="relative">
           <summary
             aria-label="Workout menu"
             className={`${iconButtonClasses()} list-none cursor-pointer [&::-webkit-details-marker]:hidden`}
@@ -112,7 +147,6 @@ export function ActiveWorkoutLogger({
             <Ellipsis size={20} aria-hidden="true" />
           </summary>
           <div className="absolute right-0 z-30 mt-2 grid w-52 gap-2 rounded-2xl border border-border bg-surface-3 p-3 shadow-lg">
-            <Button onClick={() => setShowOverview((value) => !value)}>Workout Overview</Button>
             <Button
               disabled={busy}
               onClick={() =>
@@ -136,28 +170,75 @@ export function ActiveWorkoutLogger({
                 )
                   void run(async () => {
                     await discardWorkout(session.id);
-                    await navigate('/workout');
                   });
               }}
             >
-              Cancel Workout
+              Discard Workout
             </Button>
             <KeepAwake active={session.status === 'active'} />
           </div>
         </details>
       </header>
       <p className="workout-session-status" aria-label="Elapsed workout time">
-        {session.status === 'paused' ? 'Paused' : 'Saved locally'} ·{' '}
-        {formatDuration(workoutElapsedSeconds(session, now))}
+        {session.status === 'paused'
+          ? 'Paused'
+          : `${completedSets}/${completedSets + incompleteSets} sets completed`}{' '}
+        · {formatDuration(workoutElapsedSeconds(session, now))}
       </p>
       {error ? (
         <p role="alert" className="text-sm text-red-300">
           {error}
         </p>
       ) : null}
-      {entry && !showOverview ? (
+      {session.status === 'paused' ? (
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-mint p-3">
+          <p className="text-sm">Workout paused</p>
+          <Button
+            variant="primary"
+            disabled={busy}
+            onClick={() => void run(() => resumeWorkout(session.id))}
+          >
+            Resume Workout
+          </Button>
+        </div>
+      ) : null}
+      {reviewFinish ? (
+        <section
+          aria-labelledby="finish-review-title"
+          className="grid gap-3 rounded-2xl border border-border bg-surface p-4"
+        >
+          <h2
+            ref={reviewHeading}
+            tabIndex={-1}
+            id="finish-review-title"
+            className="text-xl font-bold"
+          >
+            Finish this workout?
+          </h2>
+          <p>
+            {incompleteSets} sets are incomplete
+            {emptyExercises ? ` · ${emptyExercises} exercises have no sets` : ''}.
+          </p>
+          <p className="text-sm text-secondary">
+            Your {completedSets} completed sets will be kept. Unfinished sets will not count toward
+            performance.
+          </p>
+          <Button
+            variant="primary"
+            disabled={busy}
+            onClick={() => void run(() => finishWorkout(session.id))}
+          >
+            Finish anyway
+          </Button>
+          <Button disabled={busy} onClick={() => setReviewFinish(false)}>
+            Keep training
+          </Button>
+        </section>
+      ) : null}
+      {entry && !showOverview && !reviewFinish ? (
         <>
           <WorkoutExerciseProgress
+            disabled={busy}
             exercises={workout.exercises}
             currentId={entry.exercise.id}
             onSelect={(id) => {
@@ -169,18 +250,35 @@ export function ActiveWorkoutLogger({
             <p className="text-sm text-secondary">Target notes: {entry.exercise.plannedNotes}</p>
           ) : null}
           {entry.exercise.skipped ? (
-            <p className="text-sm text-secondary">Skipped · saved locally</p>
+            <div className="flex items-center justify-between gap-2 text-sm text-secondary">
+              <span>Exercise skipped</span>
+              <Button
+                disabled={busy}
+                onClick={() => void run(() => skipWorkoutExercise(entry.exercise.id, false))}
+              >
+                Resume exercise
+              </Button>
+            </div>
           ) : (
             <SetLogger
-              key={`${entry.exercise.id}:${entry.sets.map((set) => `${set.id}-${set.completed}`).join(',')}`}
+              key={`${entry.exercise.id}:${entry.exercise.exerciseId}`}
               sets={entry.sets}
               previous={entry.previous?.sets ?? []}
               refresh={refresh}
               onCompleted={onCompleted}
               footer={timer}
-              disabled={busy}
+              disabled={busy || session.status === 'paused'}
             />
           )}
+          {entry.exercise.skipped ? timer : null}
+          {!entry.sets.length && !entry.exercise.skipped ? (
+            <Button
+              disabled={busy || session.status === 'paused'}
+              onClick={() => void run(() => addWorkoutSet(entry.exercise.id))}
+            >
+              Add set
+            </Button>
+          ) : null}
           {!current || entry.exercise.skipped ? (
             next || unfinished ? (
               <Button
@@ -192,7 +290,7 @@ export function ActiveWorkoutLogger({
                     setCurrentWorkoutExercise(session.id, (next ?? unfinished)!.exercise.id),
                   )
                 }
-                disabled={busy}
+                disabled={busy || session.status === 'paused'}
               >
                 Next Exercise <ArrowRight size={20} aria-hidden="true" />
               </Button>
@@ -201,7 +299,7 @@ export function ActiveWorkoutLogger({
                 variant="primary"
                 size="large"
                 className="workout-primary workout-active-action"
-                disabled={busy}
+                disabled={busy || session.status === 'paused'}
                 onClick={finish}
               >
                 <Check size={20} aria-hidden="true" />
@@ -226,27 +324,38 @@ export function ActiveWorkoutLogger({
           </Button>
         </aside>
       ) : null}
-      <div className="flex items-center justify-between gap-2">
-        <Link className={buttonClasses('outline')} to={`/workout/${session.id}/exercises`}>
-          Add Exercise
-        </Link>
-        <Button
-          variant="ghost"
-          aria-expanded={showOverview}
-          onClick={() => setShowOverview((value) => !value)}
-        >
-          {showOverview ? 'Close overview' : 'Workout Overview'}
-        </Button>
-      </div>
-      {showOverview ? (
+      {!reviewFinish ? (
+        <div className="flex items-center justify-between gap-2">
+          <Link
+            className={buttonClasses('outline')}
+            to={`/workout/${session.id}/exercises`}
+            aria-disabled={busy}
+            onClick={(event) => {
+              if (busy) event.preventDefault();
+            }}
+          >
+            Add Exercise
+          </Link>
+          <Button variant="ghost" aria-expanded={showOverview} onClick={() => toggleOverview()}>
+            {showOverview ? 'Close overview' : 'Workout Overview'}
+          </Button>
+        </div>
+      ) : null}
+      {showOverview && !reviewFinish ? (
         <section aria-label="Workout Overview" className="grid gap-4">
+          {timer}
           <label className="grid gap-2 text-sm">
             <span>Workout notes</span>
             <Textarea
               defaultValue={session.notes ?? ''}
-              onBlur={(event) =>
-                void run(() => updateWorkoutNotes(session.id, event.target.value.trim() || null))
-              }
+              onChange={(event) => {
+                const notes = event.target.value;
+                void saves
+                  ?.save('workout-notes', () =>
+                    updateWorkoutNotes(session.id, notes.trim() || null),
+                  )
+                  .catch(() => {});
+              }}
             />
           </label>
           {overview}

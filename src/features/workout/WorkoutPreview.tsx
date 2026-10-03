@@ -20,6 +20,12 @@ export function WorkoutPreview({ entries }: { entries: WorkoutPreviewEntry[] }) 
           const images = exercise?.images;
           const content = (
             <>
+              <span
+                className="w-5 shrink-0 text-center text-sm font-semibold text-secondary"
+                aria-hidden="true"
+              >
+                {index + 1}
+              </span>
               {images ? (
                 <ExerciseImage
                   key={exercise.id}

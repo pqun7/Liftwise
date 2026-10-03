@@ -16,7 +16,7 @@ test('Workout keeps one thumb action clear of navigation across mobile widths', 
   await page.goto('/workout');
   await page.getByRole('button', { name: 'Upper A', exact: true }).click();
   const start = page.getByRole('button', { name: 'Start Workout', exact: true });
-  for (const width of [375, 390, 393, 430]) {
+  for (const width of [320, 375, 390, 430]) {
     await page.setViewportSize({ width, height: 844 });
     await expect(start).toHaveCount(1);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
@@ -41,8 +41,11 @@ test('Workout keeps one thumb action clear of navigation across mobile widths', 
   await expect(page.getByText('2 of 6 exercises', { exact: true })).toBeVisible();
   await expect(page.locator('.workout-progress-connector.is-done')).toHaveCount(1);
   await expect(page.locator('.workout-progress-node.is-current')).toHaveCount(1);
-  for (const width of [375, 390, 393, 430]) {
+  for (const width of [320, 375, 390, 430]) {
     await page.setViewportSize({ width, height: 844 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
     await page.screenshot({ path: testInfo.outputPath(`logger-progress-${width}.png`) });
   }
   expect(errors).toEqual([]);

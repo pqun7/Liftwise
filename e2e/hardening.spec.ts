@@ -1,5 +1,5 @@
 import { openLegacyUnplannedFixture } from './workoutUi';
-import { finishLogger } from './workoutUi';
+import { finishLogger, expectProgressCounts } from './workoutUi';
 import { expect, test, type Page } from '@playwright/test';
 import { setOffline } from './offline';
 import { saveEmptyProgram } from './programHelpers';
@@ -160,11 +160,13 @@ test('all core training, charts, backup and CSV flows work with network disabled
       await page.getByLabel(`Set ${number} weight`, { exact: true }).fill('100');
       await page.getByLabel(`Set ${number} reps`, { exact: true }).fill('8');
       await page.getByRole('button', { name: 'Complete set', exact: true }).first().click();
-      await expect(page.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(
-        number,
-      );
+      await expect(
+        page.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
+      ).toHaveCount(number);
     }
-    await expect(page.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(2);
+    await expect(
+      page.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
+    ).toHaveCount(2);
     const current = await page.getByRole('region', { name: 'Set logger' }).boundingBox();
     const undo = await page.getByRole('status').filter({ hasText: 'Set saved' }).boundingBox();
     expect(undo!.y).toBeGreaterThanOrEqual(current!.y + current!.height);
@@ -185,7 +187,9 @@ test('all core training, charts, backup and CSV flows work with network disabled
       await expect(page.locator('[data-home-state=in-progress]')).toBeVisible();
       await page.getByRole('link', { name: 'Continue Workout', exact: true }).click();
     }
-    await expect(page.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(2);
+    await expect(
+      page.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
+    ).toHaveCount(2);
     await expect(page.getByRole('button', { name: 'Skip Rest Timer' })).toBeVisible();
     await page.getByLabel('Workout menu', { exact: true }).click();
     await expect(page.getByLabel('Keep screen awake while training')).toBeChecked();
@@ -205,14 +209,18 @@ test('all core training, charts, backup and CSV flows work with network disabled
     await finishLogger(page);
     started = Date.now();
     await page.getByRole('link', { name: 'Progress', exact: true }).click();
-    await expect(page.getByText('2 completed workouts · 3 working sets')).toBeVisible();
+    await expectProgressCounts(page, 2, 3);
     timings.history = Date.now() - started;
+    await page.getByRole('link', { name: /Workout History View/ }).click();
+    await page.getByText('Export user data', { exact: true }).click();
     for (const filename of ['workouts.csv', 'sets.csv', 'body_metrics.csv']) {
       const event = page.waitForEvent('download');
       await page.getByRole('button', { name: `Export ${filename}` }).click();
       expect((await event).suggestedFilename()).toBe(filename);
     }
     started = Date.now();
+    await page.getByRole('link', { name: 'Progress', exact: true }).click();
+    await page.getByRole('link', { name: /Exercise Insights Analyze/ }).click();
     await page.getByRole('link', { name: 'Barbell Bench Press', exact: true }).click();
     await expect(page.locator('.recharts-surface')).toBeVisible();
     timings.chart = Date.now() - started;
@@ -229,7 +237,7 @@ test('all core training, charts, backup and CSV flows work with network disabled
     await page.getByRole('button', { name: 'Delete My Liftwise Data' }).click();
     await expect(page.getByText(/user data was deleted/i)).toBeVisible();
     await page.getByRole('link', { name: 'Progress', exact: true }).click();
-    await expect(page.getByText('0 completed workouts · 0 working sets')).toBeVisible();
+    await expectProgressCounts(page, 0, 0);
     await page.getByRole('link', { name: 'More', exact: true }).click();
     await page.getByRole('link', { name: 'Open Data Safety' }).click();
     await page.getByLabel('Restore Backup').setInputFiles(backupPath);
@@ -241,11 +249,9 @@ test('all core training, charts, backup and CSV flows work with network disabled
     await page.getByRole('button', { name: 'Restore and Replace Current User Data' }).click();
     await expect(page.getByText('Backup restored and verified.')).toBeVisible();
     await page.getByRole('link', { name: 'Progress', exact: true }).click();
-    await expect(page.getByText('2 completed workouts · 3 working sets')).toBeVisible();
-    await page
-      .getByRole('region', { name: 'Workout history' })
-      .getByRole('link', { name: /Offline Push/ })
-      .click();
+    await expectProgressCounts(page, 2, 3);
+    await page.getByRole('link', { name: /Workout History View/ }).click();
+    await page.getByRole('link', { name: /Offline Push/ }).click();
     await expect(page.getByRole('region', { name: 'Exercise summaries' })).toContainText(
       '2 of 3 sets completed',
     );

@@ -106,6 +106,31 @@ export class WorkoutRepository {
           ),
         );
         const updated = await this.updateSet(id, { ...input, completed: true });
+        const next = (
+          await this.db.workoutSets
+            .where('workoutExerciseId')
+            .equals(exercise.id)
+            .sortBy('setNumber')
+        ).find(
+          (item) =>
+            !item.completed &&
+            item.setType === updated.setType &&
+            item.setNumber > updated.setNumber,
+        );
+        // Preserve history prefill and deliberate clears. Only a never-edited blank set inherits today.
+        if (
+          next &&
+          next.weight === null &&
+          next.reps === null &&
+          next.rir === null &&
+          next.updatedAt === next.createdAt
+        ) {
+          await this.updateSet(next.id, {
+            weight: updated.weight,
+            reps: updated.reps,
+            rir: updated.rir,
+          });
+        }
         const rest =
           exercise.plannedRestSeconds === null
             ? session
@@ -550,7 +575,10 @@ export class WorkoutRepository {
             exercise.workoutSessionId,
           ),
         );
-        const timestamp = createTimestamp();
+        // Distinguish a deliberate edit from an untouched set even within the same millisecond.
+        const timestamp = new Date(
+          Math.max(Date.now(), Date.parse(current.updatedAt) + 1),
+        ).toISOString();
         const updated = workoutSetSchema.parse({
           ...current,
           ...input,
@@ -744,19 +772,21 @@ export class WorkoutRepository {
     const eligible = sessions
       .filter(({ startedAt }) => beforeStartedAt === undefined || startedAt < beforeStartedAt)
       .sort((left, right) => right.startedAt.localeCompare(left.startedAt));
-    const matching = eligible
-      .map((session) =>
-        sessionExercises.find(({ workoutSessionId }) => workoutSessionId === session.id),
-      )
-      .find((exercise) => exercise !== undefined);
-    if (!matching) return undefined;
-    const sets = (
-      await this.db.workoutSets.where('workoutExerciseId').equals(matching.id).toArray()
-    )
-      .map((set) => workoutSetSchema.parse(set))
-      .filter(({ completed }) => completed)
-      .sort((left, right) => left.setNumber - right.setNumber);
-    return { exercise: workoutExerciseSchema.parse(matching), sets };
+    for (const session of eligible) {
+      const candidates = sessionExercises
+        .filter(({ workoutSessionId }) => workoutSessionId === session.id)
+        .sort((a, b) => a.order - b.order);
+      for (const matching of candidates) {
+        const sets = (
+          await this.db.workoutSets.where('workoutExerciseId').equals(matching.id).toArray()
+        )
+          .map((set) => workoutSetSchema.parse(set))
+          .filter(({ completed }) => completed)
+          .sort((left, right) => left.setNumber - right.setNumber);
+        if (sets.length) return { exercise: workoutExerciseSchema.parse(matching), sets };
+      }
+    }
+    return undefined;
   }
 
   async get(id: string): Promise<WorkoutGraph | undefined> {

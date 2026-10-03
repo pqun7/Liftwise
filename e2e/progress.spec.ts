@@ -28,10 +28,9 @@ test('completed history, PRs, charts, measurements and CSV stay usable offline',
     await page.getByLabel('Set 1 RIR', { exact: true }).fill('2');
     await page.getByLabel('Set 1 RIR', { exact: true }).press('Tab');
     await page.getByRole('button', { name: 'Complete set', exact: true }).click();
-    await expect(page.getByRole('button', { name: 'Completed', exact: true })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
+    await expect(
+      page.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
+    ).toHaveAttribute('aria-pressed', 'true');
     await finishLogger(page);
     await expect(page.getByRole('heading', { name: 'Start training' })).toBeVisible();
   }

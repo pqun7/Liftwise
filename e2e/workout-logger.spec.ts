@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { saveEmptyProgram } from './programHelpers';
-import { finishLogger } from './workoutUi';
+import { finishLogger, expectProgressCounts } from './workoutUi';
 
 test('focused logger preserves decimal sets, rest, prefill, recovery and canonical history', async ({
   page,
@@ -74,12 +74,37 @@ test('focused logger preserves decimal sets, rest, prefill, recovery and canonic
   await logger.getByRole('button', { name: 'Set 1 weight plus 2.5' }).click();
   await expect(logger.getByLabel('Set 1 weight', { exact: true })).toHaveValue('65');
   await logger.getByRole('button', { name: 'Complete set', exact: true }).click();
-  await expect(logger.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(1);
+  await expect(
+    logger.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
+  ).toHaveCount(1);
   await expect(page.getByText('Next: Set 2', { exact: true })).toBeVisible();
+  // Busy equipment: jump without skipping or changing the unfinished work, then return.
+  await page
+    .getByRole('combobox', { name: 'Jump to exercise' })
+    .selectOption({ label: '2. Logger Row · 0/1 sets' });
+  await expect(page.getByRole('heading', { name: 'Logger Row', exact: true })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Rest timer' })).toBeVisible();
+  await page
+    .getByRole('combobox', { name: 'Jump to exercise' })
+    .selectOption({ label: '1. Barbell Bench Press · 1/3 sets' });
+  await expect(logger.getByLabel('Set 2 weight', { exact: true })).toHaveValue('65');
+  await expect(logger.getByLabel('Set 2 reps', { exact: true })).toHaveValue('8');
+  await page.getByRole('button', { name: 'Undo completion' }).click();
+  await expect(logger.getByRole('heading', { name: 'Set 1 of 3' })).toBeVisible();
+  await logger.getByRole('button', { name: 'Complete set', exact: true }).click();
+  await expect(logger.getByRole('heading', { name: 'Set 2 of 3' })).toBeVisible();
+  await page.getByLabel('Workout menu', { exact: true }).click();
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await page.getByLabel('Workout menu', { exact: true }).click();
+  await expect(logger.getByLabel('Set 2 weight', { exact: true })).toBeDisabled();
+  await page.getByRole('button', { name: 'Resume Workout', exact: true }).click();
+  await expect(logger.getByLabel('Set 2 weight', { exact: true })).toBeEnabled();
   await page.getByRole('button', { name: 'Add 30 Seconds' }).click();
   await page.reload();
   await expect(logger.getByLabel('Set 1 weight', { exact: true })).toHaveValue('65');
-  await expect(logger.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(1);
+  await expect(
+    logger.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
+  ).toHaveCount(1);
   await page.getByRole('button', { name: 'Skip Rest Timer' }).click();
   await expect(page.getByRole('region', { name: 'Rest timer' })).toHaveCount(0);
   for (const number of [2, 3]) {
@@ -87,9 +112,9 @@ test('focused logger preserves decimal sets, rest, prefill, recovery and canonic
     await logger.getByLabel(`Set ${number} reps`, { exact: true }).fill('8');
     await logger.getByLabel(`Set ${number} RIR`, { exact: true }).fill('2');
     await logger.getByRole('button', { name: 'Complete set', exact: true }).click();
-    await expect(logger.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(
-      number,
-    );
+    await expect(
+      logger.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
+    ).toHaveCount(number);
   }
   await expect(logger.getByRole('button', { name: 'Complete set', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Next Exercise' }).click();
@@ -97,7 +122,9 @@ test('focused logger preserves decimal sets, rest, prefill, recovery and canonic
   await logger.getByLabel('Set 1 weight', { exact: true }).fill('40');
   await logger.getByLabel('Set 1 reps', { exact: true }).fill('10');
   await logger.getByRole('button', { name: 'Complete set', exact: true }).click();
-  await expect(logger.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(1);
+  await expect(
+    logger.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
+  ).toHaveCount(1);
   await finishLogger(page);
   await expect(page.getByRole('link', { name: 'View Completed Workout' })).toBeVisible();
   await page.getByRole('link', { name: 'View Completed Workout' }).click();
@@ -121,10 +148,14 @@ test('focused logger preserves decimal sets, rest, prefill, recovery and canonic
   await page.getByRole('button', { name: 'Start Workout', exact: true }).click();
   await expect(logger.getByLabel('Set 1 weight', { exact: true })).toHaveValue('65');
   await expect(logger.getByLabel('Set 2 weight', { exact: true })).toHaveValue('62.5');
-  await expect(logger.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(0);
+  await expect(
+    logger.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
+  ).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Last workout', exact: true })).toBeVisible();
   await logger.getByRole('button', { name: 'Complete set', exact: true }).click();
-  await expect(logger.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(1);
+  await expect(
+    logger.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
+  ).toHaveCount(1);
   await expect(page.getByRole('button', { name: 'Add 30 Seconds' })).toBeEnabled();
   for (const width of [375, 390, 393, 430]) {
     await page.setViewportSize({ width, height: 844 });
@@ -157,10 +188,12 @@ test('focused logger preserves decimal sets, rest, prefill, recovery and canonic
     path: testInfo.outputPath('workout-landing-active.png'),
     fullPage: true,
   });
-  await page.getByRole('link', { name: 'Continue Workout', exact: true }).click();
+  await page.getByRole('link', { name: 'Resume Workout', exact: true }).click();
   await expect(page).toHaveURL(sessionUrl);
-  await expect(logger.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(1);
+  await expect(
+    logger.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
+  ).toHaveCount(1);
   await finishLogger(page);
   await page.goto('/progress');
-  await expect(page.getByText('2 completed workouts · 5 working sets')).toBeVisible();
+  await expectProgressCounts(page, 2, 5);
 });

@@ -1,6 +1,7 @@
 import { Button } from '../../components/ui/Button';
 import { NumericInput, Select } from '../../components/ui/FormControl';
 import { useRef, useState } from 'react';
+import { useWorkoutSetDrafts, draftFor, numeric } from './useWorkoutSetDrafts';
 import type { WorkoutSet, WorkoutSetType } from '../../domain/entities';
 import {
   copiedSetValues,
@@ -15,8 +16,6 @@ import {
   duplicateWorkoutSet,
   updateWorkoutSet,
 } from './workoutService';
-
-const numberOrNull = (value: string) => (value.trim() === '' ? null : Number(value));
 
 export function WorkoutSetRow({
   set,
@@ -33,49 +32,37 @@ export function WorkoutSetRow({
   refresh: () => Promise<void>;
   completed: (undo: SetCompletionUndo) => void;
 }>) {
-  const [weight, setWeight] = useState(set.weight?.toString() ?? '');
-  const [reps, setReps] = useState(set.reps?.toString() ?? '');
-  const [rir, setRir] = useState(set.rir?.toString() ?? '');
+  const editor = useWorkoutSetDrafts([set]);
+  const { weight, reps, rir } = editor.read(set);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const queue = useRef(Promise.resolve());
+  const running = useRef(false);
   const nextField = useRef<HTMLInputElement>(null);
   const rirField = useRef<HTMLInputElement>(null);
   const previousSet = previousSetFor(set, previous);
   const recent = lastUsedSet(set, today, previous);
   const perform = (action: () => Promise<unknown>) => {
+    if (running.current) return;
+    running.current = true;
     setBusy(true);
-    queue.current = queue.current.then(async () => {
-      setError(null);
-      try {
+    setError(null);
+    void editor.queue
+      .perform(async () => {
         await action();
         await refresh();
-      } catch (nextError) {
-        setError(nextError instanceof Error ? nextError.message : 'Set could not be saved.');
-      } finally {
+      })
+      .catch((failure: Error) => setError(failure.message))
+      .finally(() => {
+        running.current = false;
         setBusy(false);
-      }
-    });
+      });
   };
-  const copy = (source: WorkoutSet) =>
-    perform(async () => {
-      const values = copiedSetValues(source);
-      await updateWorkoutSet(set.id, values);
-      setWeight(values.weight?.toString() ?? '');
-      setReps(values.reps?.toString() ?? '');
-      setRir(values.rir?.toString() ?? '');
-    });
-  const adjust = (field: 'weight' | 'reps', delta: number) =>
-    perform(async () => {
-      const current = numberOrNull(field === 'weight' ? weight : reps);
-      const value = Math.max(
-        0,
-        Math.round(((current ?? recent?.[field] ?? 0) + delta) * 100) / 100,
-      );
-      await updateWorkoutSet(set.id, { [field]: value });
-      if (field === 'weight') setWeight(String(value));
-      else setReps(String(value));
-    });
+  const copy = (source: WorkoutSet) => editor.save(set, draftFor(copiedSetValues(source)));
+  const adjust = (field: 'weight' | 'reps', delta: number) => {
+    const current = numeric(editor.read(set)[field]);
+    const value = Math.max(0, Math.round(((current ?? recent?.[field] ?? 0) + delta) * 100) / 100);
+    editor.change(set, field, String(value));
+  };
   const editable = mutable && !set.completed;
   return (
     <div
@@ -90,10 +77,9 @@ export function WorkoutSetRow({
         <NumericInput
           inputMode="decimal"
           enterKeyHint="next"
-          disabled={!mutable}
+          disabled={!mutable || busy}
           value={weight}
-          onChange={(event) => setWeight(event.target.value)}
-          onBlur={() => perform(() => updateWorkoutSet(set.id, { weight: numberOrNull(weight) }))}
+          onChange={(event) => editor.change(set, 'weight', event.target.value)}
           onKeyDown={(event) => {
             if (event.key === 'Enter') {
               event.preventDefault();
@@ -109,10 +95,9 @@ export function WorkoutSetRow({
           ref={nextField}
           inputMode="numeric"
           enterKeyHint="next"
-          disabled={!mutable}
+          disabled={!mutable || busy}
           value={reps}
-          onChange={(event) => setReps(event.target.value)}
-          onBlur={() => perform(() => updateWorkoutSet(set.id, { reps: numberOrNull(reps) }))}
+          onChange={(event) => editor.change(set, 'reps', event.target.value)}
           onKeyDown={(event) => {
             if (event.key === 'Enter') {
               event.preventDefault();
@@ -128,10 +113,9 @@ export function WorkoutSetRow({
           ref={rirField}
           inputMode="decimal"
           enterKeyHint="done"
-          disabled={!mutable}
+          disabled={!mutable || busy}
           value={rir}
-          onChange={(event) => setRir(event.target.value)}
-          onBlur={() => perform(() => updateWorkoutSet(set.id, { rir: numberOrNull(rir) }))}
+          onChange={(event) => editor.change(set, 'rir', event.target.value)}
           aria-label={'Set ' + set.setNumber + ' RIR'}
         />
       </label>
@@ -210,9 +194,7 @@ export function WorkoutSetRow({
             else
               completed(
                 await completeWorkoutSet(set.id, {
-                  weight: numberOrNull(weight),
-                  reps: numberOrNull(reps),
-                  rir: numberOrNull(rir),
+                  ...editor.values(set, true),
                 }),
               );
           })
@@ -227,11 +209,7 @@ export function WorkoutSetRow({
             disabled={busy}
             onClick={() =>
               perform(async () => {
-                await updateWorkoutSet(set.id, {
-                  weight: numberOrNull(weight),
-                  reps: numberOrNull(reps),
-                  rir: numberOrNull(rir),
-                });
+                await updateWorkoutSet(set.id, editor.values(set));
                 await duplicateWorkoutSet(set.id);
               })
             }
@@ -251,9 +229,21 @@ export function WorkoutSetRow({
           </Button>
         </div>
       ) : null}
-      {error ? (
+      {error || editor.saveError ? (
         <p className="form-error set-error" role="alert">
-          {error}
+          {error ?? editor.saveError}
+          {editor.saveError ? (
+            <Button
+              onClick={() =>
+                void editor.queue
+                  .retry()
+                  .then(refresh)
+                  .catch((failure: Error) => setError(failure.message))
+              }
+            >
+              Retry save
+            </Button>
+          ) : null}
         </p>
       ) : null}
     </div>

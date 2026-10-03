@@ -136,11 +136,8 @@ export function WorkoutPage() {
               to={`/workout/${data.unfinished!.id}`}
             >
               <Play size={18} aria-hidden="true" />
-              Continue Workout
+              Resume Workout
             </Link>
-            <p className="text-center text-xs text-secondary">
-              Resume the same saved session. Nothing starts again.
-            </p>
           </>
         ) : state === 'scheduled' ? (
           <>

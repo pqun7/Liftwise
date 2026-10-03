@@ -1,5 +1,17 @@
 import { expect, type Page } from '@playwright/test';
 
+export async function expectProgressCounts(page: Page, workouts: number, sets: number) {
+  for (const [label, value] of [
+    ['Completed Workouts', workouts],
+    ['Working Sets', sets],
+  ] as const) {
+    const card = page
+      .getByRole('heading', { name: label, exact: true })
+      .locator('xpath=ancestor::section[1]');
+    await expect(card.getByText(String(value), { exact: true })).toBeVisible();
+  }
+}
+
 export async function finishLogger(page: Page) {
   const menu = page
     .locator('details')
@@ -8,6 +20,8 @@ export async function finishLogger(page: Page) {
     await page.getByLabel('Workout menu', { exact: true }).click();
   }
   await menu.getByRole('button', { name: 'Finish Workout', exact: true }).click();
+  const earlyFinish = page.getByRole('button', { name: 'Finish anyway', exact: true });
+  if (await earlyFinish.isVisible()) await earlyFinish.click();
   await expect(page.getByText('Workout complete', { exact: true })).toBeVisible();
   await page.getByRole('link', { name: 'Done', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Start training' })).toBeVisible();
@@ -54,6 +68,6 @@ export async function openLegacyUnplannedFixture(page: Page) {
   });
   await page.getByRole('link', { name: 'Home', exact: true }).click();
   await page.getByRole('link', { name: 'Workout', exact: true }).click();
-  await page.getByRole('link', { name: 'Continue Workout', exact: true }).click();
+  await page.getByRole('link', { name: 'Resume Workout', exact: true }).click();
   await expect(page).toHaveURL(new RegExp('/workout/' + id));
 }

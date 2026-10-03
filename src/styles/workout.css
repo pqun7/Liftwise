@@ -38,7 +38,7 @@
   margin: -5px 0 0;
   text-align: center;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 13px;
 }
 .workout-exercise-progress {
   display: flex;
@@ -66,26 +66,29 @@
 }
 .workout-progress-node {
   display: flex;
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   background: var(--surface-3);
   border: 1px solid var(--border-default);
-  color: var(--app-bg);
+  color: var(--text-secondary);
+  font-size: 12px;
 }
 .workout-progress-node.is-done {
+  color: var(--app-bg);
   background: var(--mint);
   border-color: var(--mint);
 }
 .workout-progress-node.is-current {
+  color: var(--app-bg);
   background: var(--mint);
   border: 3px solid var(--app-bg);
   outline: 2px solid var(--mint);
   outline-offset: 2px;
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
 }
 .workout-progress-connector {
   height: 2px;
@@ -111,8 +114,8 @@
   text-decoration: none;
 }
 .workout-current-image {
-  width: 104px !important;
-  height: 74px !important;
+  width: 64px !important;
+  height: 56px !important;
   flex-shrink: 0;
   border-radius: 12px;
   background: var(--surface-3);
@@ -137,7 +140,7 @@
   border: 1px solid var(--border-default);
   border-radius: 12px;
   background: var(--surface-2);
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.4;
   text-decoration: none;
 }
@@ -194,37 +197,6 @@
 }
 .workout-set-grid > button > span {
   padding: 5px;
-}
-.workout-adjustments {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-  margin-top: 2px;
-}
-.workout-adjustment {
-  display: grid;
-  grid-template-columns: 44px 44px;
-  justify-content: space-between;
-  gap: 0;
-  padding: 3px;
-  border: 1px solid var(--border-default);
-  border-radius: 14px;
-  background: var(--surface-2);
-  min-width: 0;
-}
-.workout-adjustment-value {
-  grid-column: 1 / -1;
-  text-align: center;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 2px 0 4px;
-  white-space: nowrap;
-}
-.workout-adjustment button {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  font-size: 13px;
 }
 .workout-rest-timer {
   display: grid;
@@ -290,8 +262,8 @@
   box-shadow: none;
 }
 .workout-primary svg {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   stroke-width: 2.5;
 }
 .workout-primary:disabled {
@@ -435,7 +407,7 @@
 }
 .workout-summary-metrics dt {
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: 13px;
 }
 .workout-summary-metrics dd {
   font-size: 22px;
@@ -526,7 +498,7 @@
   flex: 0 0 48px;
 }
 .workout-current-image {
-  flex: 0 0 104px;
+  flex: 0 0 64px;
 }
 .workout-flow .exercise-image-fallback {
   background: var(--surface-3);
@@ -536,4 +508,22 @@
 }
 .workout-summary-exercise-heading > .exercise-image-fallback {
   flex: 0 0 48px;
+}
+
+.workout-progress-node.is-skipped {
+  background: var(--surface-3);
+  color: var(--text-secondary);
+  border-style: dashed;
+}
+.workout-progress-node.is-partial:not(.is-current) {
+  border-color: var(--mint);
+  color: var(--mint);
+}
+/* Keep direct-entry actions in the scrollable viewport while the software keyboard is open. */
+.workout-active:has(input:focus, textarea:focus, select:focus) .workout-active-action {
+  position: static;
+  width: 100%;
+  max-width: none;
+  transform: none;
+  box-shadow: none;
 }

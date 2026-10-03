@@ -63,6 +63,9 @@ export function RestTimer({
               ? `Next: Set ${nextSet}`
               : 'Prepare for next exercise'}
         </span>
+        <span role="status" className="sr-only">
+          {remaining === 0 ? 'Rest complete. Ready for the next set.' : ''}
+        </span>
       </div>
       <div className="workout-rest-actions">
         <div className="grid justify-items-center gap-1">

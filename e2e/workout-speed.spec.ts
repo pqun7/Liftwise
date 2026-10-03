@@ -35,20 +35,19 @@ test('gym-speed Quick Workout survives undo, skip, replacement, and reload on iP
   await page.getByLabel('Set 1 RIR', { exact: true }).fill('2');
   await page.getByLabel('Set 1 RIR', { exact: true }).press('Tab');
   await page.getByRole('button', { name: 'Complete set', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Completed', exact: true })).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  );
+  await expect(
+    page.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
+  ).toHaveAttribute('aria-pressed', 'true');
   await finishLogger(page);
   await expect(page.getByRole('heading', { name: 'Start training' })).toBeVisible();
   await openLegacyUnplannedFixture(page);
   await addExercise(page, 'Speed Bench');
   const bench = page.getByRole('region', { name: 'Set logger' });
   await expect(page.getByRole('link', { name: 'Last workout' })).toContainText('100');
-  await bench.getByRole('button', { name: 'Copy Previous Set' }).click();
   await expect(bench.getByLabel('Set 1 weight', { exact: true })).toHaveValue('100');
   await bench.getByRole('button', { name: 'Set 1 weight plus 2.5' }).click();
   await expect(bench.getByLabel('Set 1 weight', { exact: true })).toHaveValue('102.5');
+  await expect(bench.getByRole('button', { name: 'Copy Previous Set' })).toBeVisible();
   await bench.getByRole('button', { name: 'Complete set', exact: true }).click();
   await page.getByRole('button', { name: 'Undo completion' }).click();
   await expect(bench.getByRole('button', { name: 'Complete set', exact: true })).toHaveAttribute(
@@ -89,7 +88,7 @@ test('gym-speed Quick Workout survives undo, skip, replacement, and reload on iP
   await expect(overviewBench.getByLabel('Set 1 reps', { exact: true })).toHaveValue('8');
   await expect(overviewBench.getByLabel('Set 1 RIR', { exact: true })).toHaveValue('2');
   await expect(
-    overviewBench.getByRole('button', { name: 'Completed', exact: true }),
+    overviewBench.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
   ).toHaveAttribute('aria-pressed', 'true');
   await expect(row).toContainText('Skipped');
   await expect(overview.getByRole('article')).toHaveCount(3);

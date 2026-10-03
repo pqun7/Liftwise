@@ -177,7 +177,7 @@ it('continues an unfinished session and never offers another start on landing', 
   const { db, workouts, day } = await fixture();
   const graph = await workouts.startPlannedWorkout(day.id, now.toISOString());
   await renderLanding(await getWorkoutLanding(db, now));
-  expect(screen.getByRole('link', { name: 'Continue Workout' })).toHaveAttribute(
+  expect(screen.getByRole('link', { name: 'Resume Workout' })).toHaveAttribute(
     'href',
     `/workout/${graph.session.id}`,
   );

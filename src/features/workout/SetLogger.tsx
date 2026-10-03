@@ -1,22 +1,14 @@
 import { useRef, useState, type ReactNode } from 'react';
-import { Check, Circle, Info } from 'lucide-react';
+import { Check, Circle } from 'lucide-react';
 import { NumericInput } from '../../components/ui/FormControl';
 import { Button } from '../../components/ui/Button';
 import { DEFAULT_WEIGHT_STEP, copiedSetValues, previousSetFor } from '../../domain/workoutPrefill';
 import type { WorkoutSet } from '../../domain/entities';
 import type { SetCompletionUndo } from '../../lib/storage/repositories/workoutRepository';
-import { completeWorkoutSet, updateWorkoutSet } from './workoutService';
+import { completeWorkoutSet } from './workoutService';
+import { useWorkoutSetDrafts, draftFor, numeric, type SetField } from './useWorkoutSetDrafts';
 
-type Field = 'weight' | 'reps' | 'rir';
-type Draft = Record<Field, string>;
-const draftFor = (set: WorkoutSet): Draft => ({
-  weight: set.weight?.toString() ?? '',
-  reps: set.reps?.toString() ?? '',
-  rir: set.rir?.toString() ?? '',
-});
-const numeric = (value: string) => (value.trim() === '' ? null : Number(value));
-
-// Controlled input drafts are transient text only; every valid edit uses the canonical repository.
+const fields: SetField[] = ['weight', 'reps', 'rir'];
 export function SetLogger({
   sets,
   previous,
@@ -32,161 +24,164 @@ export function SetLogger({
   footer?: ReactNode;
   disabled?: boolean;
 }) {
-  const [drafts, setDrafts] = useState<Record<string, Draft>>(() =>
-    Object.fromEntries(sets.map((set) => [set.id, draftFor(set)])),
-  );
-  const draftRef = useRef(drafts);
-  const queue = useRef(Promise.resolve());
+  const editor = useWorkoutSetDrafts(sets);
   const completing = useRef(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const current = sets.find((set) => !set.completed);
-  const read = (set: WorkoutSet) => drafts[set.id] ?? draftFor(set);
-  const enqueue = (action: () => Promise<unknown>) => {
-    queue.current = queue.current.then(async () => {
-      try {
-        await action();
-        setError(null);
-      } catch (failure) {
-        setError(
-          failure instanceof Error
-            ? failure.message
-            : 'Could not save this set. Retry before leaving.',
-        );
-      }
-    });
-    return queue.current;
-  };
-  const change = (set: WorkoutSet, field: Field, value: string) => {
-    const next = { ...(draftRef.current[set.id] ?? draftFor(set)), [field]: value };
-    draftRef.current = { ...draftRef.current, [set.id]: next };
-    setDrafts(draftRef.current);
-    void enqueue(() => updateWorkoutSet(set.id, { [field]: numeric(value) }));
-  };
+  const reference = current && previousSetFor(current, previous);
+  const showCopy =
+    current &&
+    reference &&
+    fields.some((field) => numeric(editor.read(current)[field]) !== reference[field]);
   const complete = () => {
     if (!current || completing.current || disabled) return;
+    try {
+      editor.values(current, true);
+    } catch (failure) {
+      setError((failure as Error).message);
+      return;
+    }
     completing.current = true;
+    if (document.activeElement instanceof HTMLInputElement) document.activeElement.blur();
     setBusy(true);
-    void enqueue(async () => {
-      const values = draftRef.current[current.id] ?? draftFor(current);
-      onCompleted(
-        await completeWorkoutSet(current.id, {
-          weight: numeric(values.weight),
-          reps: numeric(values.reps),
-          rir: numeric(values.rir),
-        }),
-      );
-      await refresh();
-    }).finally(() => {
-      completing.current = false;
-      setBusy(false);
-    });
+    setError(null);
+    void editor.queue
+      .perform(async () => {
+        onCompleted(await completeWorkoutSet(current.id, editor.values(current, true)));
+        await refresh();
+      })
+      .catch((failure: Error) => setError(failure.message))
+      .finally(() => {
+        completing.current = false;
+        setBusy(false);
+      });
   };
-  const copy = () => {
-    if (!current) return;
-    const source = previousSetFor(current, previous);
-    if (!source) return;
-    const values = copiedSetValues(source);
-    const draft = draftFor({ ...current, ...values });
-    draftRef.current = { ...draftRef.current, [current.id]: draft };
-    setDrafts(draftRef.current);
-    void enqueue(() => updateWorkoutSet(current.id, values));
+  const retry = () => {
+    setError(null);
+    void editor.queue
+      .retry()
+      .then(refresh)
+      .catch((failure: Error) => setError(failure.message));
   };
+  const row = (set: WorkoutSet) => (
+    <div
+      key={set.id}
+      className={`workout-set-grid ${set.completed ? 'is-completed' : ''}`}
+      aria-label={`Set ${set.setNumber}`}
+    >
+      <span className="flex min-h-11 items-center justify-center rounded-xl border border-border bg-surface-2 font-semibold">
+        {set.setNumber}
+      </span>
+      {fields.map((field) => (
+        <NumericInput
+          key={field}
+          value={editor.read(set)[field]}
+          disabled={disabled || busy || set.completed}
+          inputMode={field === 'reps' ? 'numeric' : 'decimal'}
+          aria-label={`Set ${set.setNumber} ${field === 'rir' ? 'RIR' : field}`}
+          className="px-1 text-center tabular-nums"
+          onChange={(event) => editor.change(set, field, event.target.value)}
+        />
+      ))}
+      <button
+        type="button"
+        disabled
+        aria-label={set.completed ? 'Completed' : `Set ${set.setNumber} incomplete`}
+        aria-pressed={set.completed}
+        className="flex size-11 items-center justify-center text-mint"
+      >
+        {set.completed ? (
+          <Check size={22} aria-hidden="true" />
+        ) : (
+          <Circle size={22} aria-hidden="true" />
+        )}
+      </button>
+    </div>
+  );
   return (
     <section aria-label="Set logger" className="workout-set-logger">
-      <div className="workout-set-grid workout-set-labels" aria-hidden="true">
-        <span>Set</span>
-        <span>Kg</span>
-        <span>Reps</span>
-        <span>RIR</span>
-        <span className="sr-only">Status</span>
-      </div>
-      {sets.map((set) => {
-        const active = current?.id === set.id;
-        return (
-          <div
-            key={set.id}
-            className={`workout-set-grid ${active ? 'is-current' : ''} ${set.completed ? 'is-completed' : ''}`}
-            aria-label={`Set ${set.setNumber}${active ? ', current' : ''}`}
-          >
-            <span
-              className={`flex min-h-11 items-center justify-center rounded-xl border font-semibold ${active ? 'border-mint bg-mint/5' : 'border-border bg-surface-2'}`}
-            >
-              {set.setNumber}
-            </span>
-            {(['weight', 'reps', 'rir'] as const).map((field, index) => (
-              <NumericInput
-                key={field}
-                value={read(set)[field]}
-                disabled={disabled || busy || set.completed}
-                inputMode={field === 'reps' ? 'numeric' : 'decimal'}
-                enterKeyHint={field === 'rir' ? 'done' : 'next'}
-                aria-label={`Set ${set.setNumber} ${field === 'rir' ? 'RIR' : field}`}
-                className={`px-1 text-center font-semibold tabular-nums ${active ? 'border-mint bg-mint/5' : ''}`}
-                onChange={(event) => change(set, field, event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault();
-                    const row = event.currentTarget.parentElement;
-                    if (index < 2) row?.querySelectorAll('input')[index + 1]?.focus();
-                    else if (active) complete();
-                  }
-                }}
-              />
-            ))}
-            <button
-              type="button"
-              aria-label={set.completed ? 'Completed' : `Set ${set.setNumber} incomplete`}
-              aria-pressed={set.completed}
-              disabled
-              className={`flex size-11 items-center justify-center rounded-xl ${set.completed ? 'bg-mint/5 text-mint' : 'text-muted'}`}
-            >
-              {set.completed ? (
-                <span className="rounded-full bg-mint p-1 text-app">
-                  <Check size={18} aria-hidden="true" />
-                </span>
-              ) : (
-                <Circle size={22} aria-hidden="true" />
-              )}
-            </button>
-          </div>
-        );
-      })}
       {current ? (
         <>
-          <div className="workout-adjustments">
-            {(['weight', 'reps', 'rir'] as const).map((field) => {
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="text-lg font-bold" aria-live="polite">
+              Set {current.setNumber} of {sets.length}
+            </h3>
+            <span className="text-sm text-secondary">
+              {current.setType === 'working' ? 'Today' : current.setType}
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-1">
+            {fields.map((field, index) => {
               const step = field === 'weight' ? DEFAULT_WEIGHT_STEP : 1;
               return (
-                <div key={field} className="workout-adjustment">
-                  <span className="workout-adjustment-value">
-                    {read(current)[field] || '—'}{' '}
-                    {field === 'weight' ? 'kg' : field === 'reps' ? 'reps' : 'RIR'}
-                  </span>
-                  {([-1, 1] as const).map((direction) => (
-                    <button
-                      type="button"
-                      key={direction}
-                      disabled={busy || disabled}
-                      aria-label={`Set ${current.setNumber} ${field} ${direction > 0 ? 'plus' : 'minus'} ${step}`}
-                      className="flex size-11 items-center justify-center rounded-xl border border-border bg-surface-3 text-sm disabled:opacity-40"
-                      onClick={() => {
-                        const value = numeric(
-                          (draftRef.current[current.id] ?? draftFor(current))[field],
-                        );
-                        change(
-                          current,
-                          field,
-                          String(
-                            Math.max(0, Math.round(((value ?? 0) + direction * step) * 100) / 100),
-                          ),
-                        );
+                <div key={field} className="min-w-0 rounded-2xl border border-border bg-surface-2">
+                  <label className="grid gap-1 text-center">
+                    <span className="py-1 text-sm text-secondary">
+                      {field === 'weight' ? 'Weight · kg' : field === 'reps' ? 'Reps' : 'RIR'}
+                    </span>
+                    <NumericInput
+                      value={editor.read(current)[field]}
+                      disabled={disabled || busy}
+                      inputMode={field === 'reps' ? 'numeric' : 'decimal'}
+                      enterKeyHint={field === 'rir' ? 'done' : 'next'}
+                      placeholder="—"
+                      aria-label={`Set ${current.setNumber} ${field === 'rir' ? 'RIR' : field}`}
+                      className="border-0 bg-transparent px-1 text-center text-2xl font-bold tabular-nums"
+                      onChange={(event) => {
+                        setError(null);
+                        editor.change(current, field, event.target.value);
                       }}
-                    >
-                      {direction > 0 ? '+' : '−'}
-                      {field === 'weight' ? step : ''}
-                    </button>
-                  ))}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          event.preventDefault();
+                          const inputs = event.currentTarget
+                            .closest('section')
+                            ?.querySelectorAll('input');
+                          if (index < 2) inputs?.[index + 1]?.focus();
+                          else {
+                            event.currentTarget.blur();
+                            complete();
+                          }
+                        }
+                      }}
+                    />
+                  </label>
+                  <div className="workout-adjustment flex justify-between gap-0">
+                    {([-1, 1] as const).map((direction) => (
+                      <button
+                        key={direction}
+                        type="button"
+                        disabled={disabled || busy}
+                        aria-label={`Set ${current.setNumber} ${field} ${direction > 0 ? 'plus' : 'minus'} ${step}`}
+                        className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-surface-3 text-sm disabled:opacity-40"
+                        onClick={() => {
+                          const value = numeric(editor.read(current)[field]);
+                          setError(null);
+                          editor.change(
+                            current,
+                            field,
+                            String(
+                              Math.min(
+                                field === 'rir' ? 10 : Infinity,
+                                Math.max(
+                                  0,
+                                  Math.round(
+                                    ((Number.isFinite(value) ? (value ?? 0) : 0) +
+                                      direction * step) *
+                                      100,
+                                  ) / 100,
+                                ),
+                              ),
+                            ),
+                          );
+                        }}
+                      >
+                        {direction > 0 ? '+' : '−'}
+                        {field === 'weight' ? step : ''}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               );
             })}
@@ -198,46 +193,55 @@ export function SetLogger({
             className="workout-primary workout-active-action"
             disabled={busy || disabled}
             aria-pressed={false}
+            onPointerDown={(event) => event.preventDefault()}
             onClick={complete}
           >
             <Check size={22} aria-hidden="true" />
-            Complete set
+            {busy ? 'Saving set…' : 'Complete set'}
           </Button>
-          {previous.some((set) => set.completed) ? (
-            <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-secondary">
-              <Info size={14} aria-hidden="true" />
-              <span>Prefilled from last workout when available</span>
-              <Button variant="ghost" disabled={busy || disabled} onClick={copy}>
-                Copy Previous Set
-              </Button>
-            </div>
+          {showCopy && reference ? (
+            <Button
+              variant="ghost"
+              disabled={busy || disabled}
+              onClick={() => editor.save(current, draftFor(copiedSetValues(reference)))}
+            >
+              Copy Previous Set
+            </Button>
           ) : null}
         </>
       ) : (
-        footer
+        <>
+          {footer}
+          <p role="status" className="text-sm text-mint">
+            {sets.length ? 'All sets completed' : 'No sets yet. Add a set in Workout Overview.'}
+          </p>
+        </>
       )}
-      {error ? (
+      {sets.some((set) => set.id !== current?.id) ? (
+        <details className="rounded-xl border border-border p-2" open={!current}>
+          <summary className="flex min-h-11 cursor-pointer items-center text-sm text-secondary">
+            All sets · {sets.filter((set) => set.completed).length}/{sets.length} completed
+          </summary>
+          <div className="grid gap-2">
+            <div className="workout-set-grid workout-set-labels" aria-hidden="true">
+              <span>Set</span>
+              <span>Kg</span>
+              <span>Reps</span>
+              <span>RIR</span>
+              <span />
+            </div>
+            {sets.filter((set) => set.id !== current?.id).map(row)}
+          </div>
+        </details>
+      ) : null}
+      {error || editor.saveError ? (
         <p role="alert" className="text-sm text-red-300">
-          {error}{' '}
-          <Button
-            variant="ghost"
-            disabled={busy || disabled}
-            onClick={() =>
-              void enqueue(async () => {
-                for (const set of sets) {
-                  const values = draftRef.current[set.id] ?? draftFor(set);
-                  await updateWorkoutSet(set.id, {
-                    weight: numeric(values.weight),
-                    reps: numeric(values.reps),
-                    rir: numeric(values.rir),
-                  });
-                }
-                await refresh();
-              })
-            }
-          >
-            Retry save
-          </Button>
+          {error ?? editor.saveError}{' '}
+          {editor.saveError ? (
+            <Button variant="ghost" disabled={busy || disabled} onClick={retry}>
+              Retry save
+            </Button>
+          ) : null}
         </p>
       ) : null}
     </section>

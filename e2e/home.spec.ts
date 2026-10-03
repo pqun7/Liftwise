@@ -93,7 +93,9 @@ test('Home adapts to local program, active workout and rest states with cached p
   await page.getByLabel('Set 1 weight', { exact: true }).fill('100');
   await page.getByLabel('Set 1 reps', { exact: true }).fill('8');
   await page.getByRole('button', { name: 'Complete set', exact: true }).first().click();
-  await expect(page.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(1);
+  await expect(
+    page.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
+  ).toHaveCount(1);
   await page.getByRole('link', { name: 'Leave workout, keep session saved' }).click();
   await expect(page.locator('[data-home-state=in-progress]')).toBeVisible();
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '33');
@@ -121,11 +123,15 @@ test('Home adapts to local program, active workout and rest states with cached p
   try {
     if (browserName !== 'webkit') await page.reload();
     await page.getByRole('link', { name: 'Continue Workout', exact: true }).click();
-    await expect(page.getByRole('button', { name: 'Completed', exact: true })).toHaveCount(1);
+    await expect(
+      page.getByRole('button', { name: 'Completed', exact: true, includeHidden: true }),
+    ).toHaveCount(1);
     await finishLogger(page);
     await page.getByRole('link', { name: 'Home', exact: true }).click();
     await expect(page.locator('[data-home-state=rest-day]')).toBeVisible();
-    await expect(page.getByRole('link', { name: /Push Day.*1 completed set/ })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Weekly Progress' })).toContainText(
+      '1 working sets',
+    );
     await auditHome(page);
     await page.screenshot({ path: testInfo.outputPath('home-rest-day.png'), fullPage: true });
     await page.getByRole('link', { name: /Upper Body Explore exercises/ }).click();

@@ -2,8 +2,11 @@ import { ActiveWorkoutLogger } from './ActiveWorkoutLogger';
 import { WorkoutSummary } from './WorkoutSummary';
 import { MobilePage } from '../../components/layout/MobilePage';
 import { Textarea } from '../../components/ui/FormControl';
-import { useEffect, useRef, useState } from 'react';
-import { Link, useLoaderData, useRevalidator } from 'react-router-dom';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { Link, useBlocker, useLoaderData, useRevalidator } from 'react-router-dom';
+import { WorkoutSaveContext } from './WorkoutSaveContext';
+import { WorkoutSaveQueue } from './workoutSaveQueue';
+import { Button } from '../../components/ui/Button';
 
 import type { SetCompletionUndo } from '../../lib/storage/repositories/workoutRepository';
 import { WorkoutExerciseCard } from './WorkoutExerciseCard';
@@ -21,15 +24,57 @@ import {
 export function WorkoutSessionPage() {
   const { workout } = useLoaderData<{ workout: HydratedWorkoutGraph }>();
   const revalidator = useRevalidator();
+  const [saves] = useState(() => new WorkoutSaveQueue());
+  useSyncExternalStore(saves.subscribe, saves.snapshot);
+  const blocker = useBlocker(() => saves.unsettled);
   const [now, setNow] = useState(Date.now());
   const [busy, setBusy] = useState(false);
   const operationInFlight = useRef(false);
   const [undo, setUndo] = useState<SetCompletionUndo | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
+  const [showOverview, setShowOverview] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
   const refresh = async () => {
     await revalidator.revalidate();
   };
+  useEffect(() => {
+    if (blocker.state !== 'blocked') return;
+    let cancelled = false;
+    void saves
+      .flush()
+      .then(() => {
+        if (!cancelled) blocker.proceed();
+      })
+      .catch(() => {
+        if (!cancelled) {
+          blocker.reset();
+          setPageError('Save your changes before leaving. Retry the save below.');
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [blocker, saves]);
+  useEffect(() => {
+    const beforeUnload = (event: BeforeUnloadEvent) => {
+      if (saves.unsettled) {
+        event.preventDefault();
+        event.returnValue = '';
+      }
+    };
+    const onVisible = () => {
+      setNow(Date.now());
+      if (document.visibilityState === 'visible' && !saves.unsettled) void revalidator.revalidate();
+    };
+    window.addEventListener('beforeunload', beforeUnload);
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      window.removeEventListener('beforeunload', beforeUnload);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+  }, [saves, revalidator]);
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 1_000);
     return () => window.clearInterval(timer);
@@ -40,8 +85,10 @@ export function WorkoutSessionPage() {
     setBusy(true);
     setPageError(null);
     try {
-      await action();
-      await refresh();
+      await saves.perform(async () => {
+        await action();
+        await refresh();
+      });
     } catch (nextError) {
       setPageError(
         nextError instanceof Error ? nextError.message : 'The change could not be saved.',
@@ -61,7 +108,7 @@ export function WorkoutSessionPage() {
           key={entry.exercise.id}
           entry={entry}
           sessionId={session.id}
-          mutable={mutable}
+          mutable={mutable && !busy && session.status !== 'paused'}
           current={session.currentExerciseId === entry.exercise.id}
           hidden={collapsed.has(entry.exercise.id)}
           busy={busy}
@@ -69,7 +116,12 @@ export function WorkoutSessionPage() {
           canMoveDown={index < workout.exercises.length - 1}
           refresh={refresh}
           onCompleted={setUndo}
-          onCurrent={() => void run(() => setCurrentWorkoutExercise(session.id, entry.exercise.id))}
+          onCurrent={() =>
+            void run(async () => {
+              await setCurrentWorkoutExercise(session.id, entry.exercise.id);
+              setShowOverview(false);
+            })
+          }
           onCollapse={() =>
             setCollapsed((current) => {
               const changed = new Set(current);
@@ -98,24 +150,49 @@ export function WorkoutSessionPage() {
   );
   if (mutable)
     return (
-      <ActiveWorkoutLogger
-        workout={workout}
-        now={now}
-        busy={busy}
-        run={run}
-        refresh={refresh}
-        onCompleted={setUndo}
-        undo={undo}
-        error={pageError}
-        overview={overview}
-        onUndo={() => {
-          if (undo)
-            void run(async () => {
-              await undoWorkoutCompletion(undo);
-              setUndo(null);
-            });
-        }}
-      />
+      <WorkoutSaveContext.Provider value={saves}>
+        {saves.error ? (
+          <div role="alert" className="rounded-xl border border-red-300 p-3 text-sm text-red-300">
+            {saves.error}
+            <Button
+              disabled={busy || saves.pending > 0}
+              onClick={() =>
+                void saves
+                  .retry()
+                  .then(refresh)
+                  .then(() => setPageError(null))
+                  .catch((failure: Error) => setPageError(failure.message))
+              }
+            >
+              Retry save
+            </Button>
+          </div>
+        ) : null}
+        <ActiveWorkoutLogger
+          workout={workout}
+          now={now}
+          busy={busy}
+          run={run}
+          refresh={refresh}
+          onCompleted={setUndo}
+          undo={undo}
+          error={pageError}
+          overview={overview}
+          showOverview={showOverview}
+          setShowOverview={setShowOverview}
+          onUndo={() => {
+            if (undo)
+              void run(async () => {
+                await undoWorkoutCompletion(undo);
+                const entry = workout.exercises.find((item) =>
+                  item.sets.some((set) => set.id === undo.setId),
+                );
+                if (entry) await setCurrentWorkoutExercise(session.id, entry.exercise.id);
+                setUndo(null);
+              });
+          }}
+        />
+      </WorkoutSaveContext.Provider>
     );
 
   if (session.status === 'completed') return <WorkoutSummary workout={workout} />;
