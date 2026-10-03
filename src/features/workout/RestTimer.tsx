@@ -7,7 +7,8 @@ import { useWorkoutSetDrafts } from './useWorkoutSetDrafts';
 import type { HydratedWorkoutExercise } from './workoutService';
 import type { SetCompletionUndo } from '../../lib/storage/repositories/workoutRepository';
 
-// Display refreshes are supplied by the session. Persisted timestamps own the clock.
+const LABELS = { weight: 'Weight', reps: 'Reps', rir: 'RIR' } as const;
+
 export function RestTimer({
   remaining,
   onEnd,
@@ -36,22 +37,39 @@ export function RestTimer({
     .filter((set) => set.completed)
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
   const values = current ? editor.read(current) : null;
+
+  const total = Math.max(1, duration);
+  const progress = Math.min(1, remaining / total);
+  const isDone = remaining === 0;
+  const ending = !isDone && remaining <= 10;
+  const setLabel = nextSet != null ? `Set ${nextSet}` : 'next set';
+
   return (
     <section className="grid gap-4" aria-label="Rest timer">
+      {/* Completion receipt: slim chip, not a hero */}
       {completed && entry ? (
-        <div className="grid justify-items-center gap-2 text-center">
-          <span className="flex size-12 items-center justify-center rounded-full bg-mint text-app">
-            <Check size={28} aria-hidden="true" />
+        <p className="mx-auto flex max-w-full items-center gap-2 rounded-full bg-mint/10 px-3 py-1.5 text-sm text-secondary">
+          <Check size={16} className="shrink-0 text-mint" aria-hidden="true" />
+          <span className="truncate">
+            <span className="font-semibold text-primary">Set {completed.setNumber} done</span>
+            {' · '}
+            {completed.weight ?? '—'} kg × {completed.reps ?? '—'}
+            {completed.rir == null ? '' : ` · RIR ${completed.rir}`}
           </span>
-          <h2 className="text-xl font-bold">Set {completed.setNumber} complete!</h2>
-          <p className="text-sm text-secondary">
-            {entry.exercise.exerciseName} · {completed.weight ?? '—'} kg · {completed.reps ?? '—'}{' '}
-            reps{completed.rir === null ? '' : ` · RIR ${completed.rir}`}
-          </p>
-        </div>
+        </p>
       ) : null}
-      <div className="workout-rest-large-ring">
-        <svg viewBox="0 0 100 100" className="size-full -rotate-90" aria-hidden="true">
+
+      {/* Timer ring is the hero */}
+      <div className="workout-rest-large-ring relative">
+        <svg
+          viewBox="0 0 100 100"
+          className="size-full -rotate-90"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={total}
+          aria-valuenow={remaining}
+          aria-label="Rest remaining"
+        >
           <circle
             cx="50"
             cy="50"
@@ -70,36 +88,51 @@ export function RestTimer({
             strokeWidth="5"
             strokeLinecap="round"
             strokeDasharray={Math.PI * 90}
-            strokeDashoffset={Math.PI * 90 * (1 - Math.min(1, remaining / Math.max(1, duration)))}
-            className="text-mint transition-[stroke-dashoffset] duration-500 motion-reduce:transition-none"
+            strokeDashoffset={Math.PI * 90 * (1 - progress)}
+            className={`transition-[stroke-dashoffset] duration-500 motion-reduce:transition-none ${ending ? 'text-amber' : 'text-mint'
+              }`}
           />
         </svg>
-        <div className="absolute inset-0 grid content-center justify-items-center gap-3 text-center">
-          <span className="text-sm tracking-wide text-secondary">
-            {remaining === 0 ? 'REST COMPLETE' : 'REST'}
+
+        <div className="absolute inset-0 grid content-center justify-items-center gap-1 text-center">
+          <span className="text-xs font-semibold uppercase tracking-widest text-secondary">
+            {isDone ? 'Rest complete' : 'Rest'}
           </span>
-          <strong className="workout-rest-countdown" aria-label={`${remaining} seconds remaining`}>
-            {formatDuration(remaining).padStart(5, '0')}
+          <strong
+            role="timer"
+            aria-live="off"
+            className="workout-rest-countdown tabular-nums"
+          >
+            {formatDuration(remaining)}
           </strong>
-          <span className="flex items-center gap-2 text-secondary">
-            <Clock size={18} aria-hidden="true" /> {formatDuration(duration)}
+          {/* Context lives under the number instead of its own block */}
+          <span className="max-w-[12rem] truncate text-sm text-secondary">
+            {entry?.exercise.exerciseName ?? 'Next'} · {setLabel}
+            {entry ? ` of ${entry.sets.length}` : ''}
           </span>
-          {remaining === 0 ? (
-            <p role="status" className="text-sm text-mint">
-              Ready for Set {nextSet}
-            </p>
+          {onAdd ? (
+            <span className="flex items-center gap-1.5 text-xs text-secondary">
+              <Clock size={14} aria-hidden="true" /> of {formatDuration(duration)}
+            </span>
           ) : null}
         </div>
       </div>
+
+      {/* Single polite announcement at the milestone */}
+      <p className="sr-only" role="status">
+        {isDone ? `Rest complete. Ready for ${setLabel}.` : ''}
+      </p>
+
+      {/* Next-set preview: compact, and it's the only place "next" info appears */}
       {current && entry ? (
         <section
-          className="rounded-2xl border border-border bg-surface/60"
-          aria-label="Next set preview"
+          className="overflow-hidden rounded-2xl border border-border bg-surface/60"
+          aria-label="Next set"
         >
-          <div className="flex items-center justify-between border-b border-border px-4 py-2">
-            <div>
-              <p className="text-sm text-secondary">Next</p>
-              <h3 className="text-lg font-bold">
+          <div className="flex items-center justify-between px-4 py-2.5">
+            <div className="min-w-0">
+              <p className="text-xs uppercase tracking-wide text-secondary">Up next</p>
+              <h3 className="truncate text-base font-semibold">
                 Set {current.setNumber} of {entry.sets.length}
               </h3>
             </div>
@@ -107,14 +140,15 @@ export function RestTimer({
               variant="ghost"
               disabled={disabled}
               aria-expanded={editing}
-              onClick={() => setEditing(!editing)}
+              onClick={() => setEditing((v) => !v)}
             >
-              <Pencil size={18} aria-hidden="true" />
-              {editing ? 'Done editing' : 'Edit'}
+              <Pencil size={16} aria-hidden="true" />
+              {editing ? 'Done' : 'Edit'}
             </Button>
           </div>
+
           {editing && refresh && onCompleted ? (
-            <div className="p-2">
+            <div className="border-t border-border p-2">
               <SetLogger
                 sets={entry.sets}
                 previous={entry.previous?.sets ?? []}
@@ -125,51 +159,48 @@ export function RestTimer({
               />
             </div>
           ) : (
-            <dl className="grid grid-cols-3 py-3 text-center">
+            <dl className="grid grid-cols-3 gap-2 border-t border-border px-4 py-3">
               {(['weight', 'reps', 'rir'] as const).map((field) => (
-                <div key={field} className="border-r border-border last:border-0">
-                  <dd className="text-xl font-bold">
-                    {values?.[field] || '—'}
-                    {field === 'weight' ? ' kg' : ''}
-                  </dd>
-                  <dt className="text-sm text-secondary">
-                    {field === 'rir' ? 'RIR' : field === 'reps' ? 'Reps' : 'Weight'}
+                <div key={field} className="flex flex-col-reverse items-center gap-0.5">
+                  <dt className="text-xs uppercase tracking-wide text-secondary">
+                    {LABELS[field]}
                   </dt>
+                  <dd className="text-lg font-bold tabular-nums">
+                    {values?.[field] ?? '—'}
+                    {field === 'weight' && values?.weight != null ? ' kg' : ''}
+                  </dd>
                 </div>
               ))}
             </dl>
           )}
         </section>
       ) : (
-        <p className="text-sm text-secondary">Next: Set {nextSet}</p>
+        <p className="text-sm text-secondary">Up next: {setLabel}</p>
       )}
-      <div className="grid grid-cols-2 gap-3">
-        {onAdd ? (
-          <Button size="large" disabled={disabled} aria-label="Add 30 Seconds" onClick={onAdd}>
-            <PlusCircle size={20} aria-hidden="true" />
-            +30 sec
-          </Button>
-        ) : null}
+
+      {/* Actions: one primary, one secondary, one escape hatch */}
+      <div className="grid gap-2">
         <Button
+          variant="primary"
           size="large"
+          className="workout-primary"
           disabled={disabled}
-          aria-label={onAdd ? 'Skip Rest Timer' : 'End rest'}
           onClick={onEnd}
         >
-          <SkipForward size={20} aria-hidden="true" />
-          Skip Rest
+          <ArrowRight size={22} aria-hidden="true" />
+          {isDone ? `Start ${setLabel}` : `Start ${setLabel} now`}
         </Button>
+        <div className={onAdd ? 'grid grid-cols-2 gap-2' : ''}>
+          {onAdd ? (
+            <Button size="large" disabled={disabled} onClick={onAdd}>
+              <PlusCircle size={20} aria-hidden="true" /> +30 sec
+            </Button>
+          ) : null}
+          <Button variant="ghost" size="large" disabled={disabled} onClick={onEnd}>
+            <SkipForward size={20} aria-hidden="true" /> Skip rest
+          </Button>
+        </div>
       </div>
-      <Button
-        variant="primary"
-        size="large"
-        className="workout-primary"
-        disabled={disabled}
-        onClick={onEnd}
-      >
-        <ArrowRight size={22} aria-hidden="true" />
-        Start Set {nextSet}
-      </Button>
     </section>
   );
 }
