@@ -15,6 +15,7 @@ import { database, type LiftwiseDatabase } from '../database';
 import { RelationshipError } from '../errors';
 import { createEntityId, createTimestamp, requireRecord } from './shared';
 import { previousSetFor } from '../../../domain/workoutPrefill';
+import { localDateKey } from '../../../domain/localCalendar';
 
 export interface CreateWorkoutSessionInput {
   programId?: string | null;
@@ -987,6 +988,7 @@ export class WorkoutRepository {
       name: input.name ?? null,
       status: 'active',
       startedAt: input.startedAt,
+      scheduledDate: localDateKey(new Date(input.startedAt)),
       endedAt: null,
       pausedAt: null,
       pausedDurationSeconds: 0,

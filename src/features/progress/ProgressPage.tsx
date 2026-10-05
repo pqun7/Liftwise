@@ -1,4 +1,5 @@
 import { number } from './format';
+import { weekdayNames } from '../../domain/localCalendar';
 import {
   ChartNoAxesColumnIncreasing,
   ChevronRight,
@@ -77,7 +78,7 @@ export function ProgressPage() {
       <Card padding="none" className="progress-activity">
         <Link to="/progress/history" className="progress-activity-heading">
           <div>
-            <h2 className="text-base font-bold">Weekly Activity</h2>
+            <h2 className="text-base font-bold">Weekday Activity</h2>
             <p className="text-xs text-secondary">
               Completed workouts by weekday · selected period
             </p>
@@ -89,12 +90,7 @@ export function ProgressPage() {
           viewBox="0 0 330 112"
           preserveAspectRatio="none"
           role="img"
-          aria-label={activity
-            .map(
-              (n, i) =>
-                `${['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][i]}: ${n} workouts`,
-            )
-            .join(', ')}
+          aria-label={activity.map((n, i) => `${weekdayNames[i]}: ${n} workouts`).join(', ')}
         >
           <defs>
             <linearGradient id="activity-mint" x2="0" y2="1">
@@ -133,7 +129,7 @@ export function ProgressPage() {
                 fill="var(--text-secondary)"
                 fontSize="12"
               >
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i]}
+                {weekdayNames[i]?.slice(0, 3)}
               </text>
             </g>
           ))}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Weekday } from '../../domain/localCalendar';
 import { useLoaderData, useNavigate } from 'react-router-dom';
 import type { Exercise } from '../../domain/entities';
 import type { ProgramGraph } from '../../lib/storage/repositories/programRepository';
@@ -13,7 +14,9 @@ export function TrainingDaysPage() {
   const navigate = useNavigate();
   const [custom, setCustom] = useState(graph.days.length > 0);
   const [selected, setSelected] = useState<number[]>(
-    graph.days.length ? graph.days.map(({ day }, index) => day.weekday ?? index) : [0, 2, 4],
+    graph.days.length
+      ? graph.days.map(({ day }, index) => day.weekday ?? index)
+      : [Weekday.MONDAY, Weekday.WEDNESDAY, Weekday.FRIDAY],
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);

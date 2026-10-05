@@ -64,7 +64,7 @@ it('derives next workout across rest days, completion, empty days and Sunday rol
     await repo.addExercise({ programDayId: day.id, exerciseId: exercise.id, targetSets: 3 });
   const graph = (await repo.get(program.id))!;
   const now = new Date(2026, 9, 4, 12);
-  expect(nextProgramWorkout(graph, [], now)?.day.id).toBe(sunday.id);
+  expect(nextProgramWorkout(graph, [], now)?.day.id).toBe(monday.id);
   const completed = [
     {
       status: 'completed',

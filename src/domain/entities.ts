@@ -117,6 +117,8 @@ export const workoutSessionStatuses = ['active', 'paused', 'completed', 'discard
 export type WorkoutSessionStatus = (typeof workoutSessionStatuses)[number];
 
 export interface WorkoutSession extends TimestampedEntity {
+  /** Local calendar date captured on creation, independent of timestamp or reopening date. */
+  scheduledDate?: string | undefined;
   id: string;
   programId: string | null;
   programDayId: string | null;

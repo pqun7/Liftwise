@@ -75,7 +75,9 @@ test('completed history, PRs, charts, measurements and CSV stay usable offline',
   ).toBeGreaterThanOrEqual(16);
   await page.getByLabel('Waist (cm)', { exact: true }).fill('85');
   await page.getByRole('button', { name: 'Add Measurement', exact: true }).click();
-  await expect(page.getByRole('status')).toHaveText('Measurement saved on this device.');
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Measurement saved on this device.' }),
+  ).toHaveText('Measurement saved on this device.');
   await page.getByText('Saved measurements (1)', { exact: true }).click();
   await expect(page.getByRole('region', { name: 'Body measurements' })).toContainText(
     'Waist (cm): 85',

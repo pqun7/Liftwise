@@ -1,4 +1,5 @@
 import { MobilePage } from '../../components/layout/MobilePage';
+import { dateFromKey } from '../../domain/localCalendar';
 
 import { useState } from 'react';
 
@@ -50,20 +51,15 @@ export function HomePage() {
 
   const navigate = useNavigate();
 
-  const selected = data.week.some(({ key }) => key === selection)
-    ? selection!
-    : data.today;
+  const selected = data.week.some(({ key }) => key === selection) ? selection! : data.today;
 
   const state = homeState(data, selected);
 
   const selectedWorkouts = data.weekHistory.filter(
-    ({ session }) =>
-      localDateKey(new Date(session.endedAt ?? session.startedAt)) === selected,
+    ({ session }) => localDateKey(new Date(session.endedAt ?? session.startedAt)) === selected,
   );
 
-  const upcoming = data.nextDays
-    .filter(({ day }) => day.id !== data.active?.session.programDayId)
-    .slice(0, 2);
+  const upcoming = data.calendar.upcoming.slice(0, 2);
 
   const start = async () => {
     if (busy || !data.suggestion) return;
@@ -72,9 +68,7 @@ export function HomePage() {
     setError(null);
 
     try {
-      await navigate(
-        `/workout/${await startPlannedWorkout(data.suggestion.day.id)}`,
-      );
+      await navigate(`/workout/${await startPlannedWorkout(data.suggestion.day.id)}`);
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -87,21 +81,11 @@ export function HomePage() {
   };
 
   return (
-    <MobilePage
-      className="home-page grid gap-4"
-      data-home-state={state}
-    >
-      <HomeHeader
-        greeting={data.greeting}
-        active={state === 'in-progress'}
-      />
+    <MobilePage className="home-page grid gap-4" data-home-state={state}>
+      <HomeHeader greeting={data.greeting} active={state === 'in-progress'} />
 
       {state !== 'in-progress' ? (
-        <WeekSelector
-          days={data.week}
-          selected={selected}
-          onSelect={setSelection}
-        />
+        <WeekSelector days={data.week} selected={selected} onSelect={setSelection} />
       ) : null}
 
       {error ? (
@@ -114,7 +98,11 @@ export function HomePage() {
         <ActiveWorkoutCard workout={data.active} />
       ) : (
         <WorkoutHero
-          data={data}
+          data={
+            selected === data.today
+              ? data
+              : { ...data, suggestion: data.calendar.getScheduledWorkout(selected) }
+          }
           scheduled={state === 'scheduled'}
           isToday={selected === data.today}
           busy={busy}
@@ -122,42 +110,41 @@ export function HomePage() {
         />
       )}
 
-      {data.active ? (
+      {selected === data.today ? (
         <section className="home-section">
           <SectionHeader title="Today" />
-
-          <WorkoutListItem
-            title={data.active.session.name ?? 'Quick Workout'}
-            metadata={`${countLabel(
-              data.active.exercises.length,
-              'exercise',
-            )} · ${countLabel(
-              workoutCompletion(data.active).totalSets,
-              'set',
-            )}`}
-            status={
-              data.active.session.status === 'paused'
-                ? 'Paused'
-                : 'In progress'
-            }
-            to={`/workout/${data.active.session.id}`}
-          />
+          {data.calendar.scheduledToday || (!data.calendar.dated && data.suggestion) ? (
+            <WorkoutListItem
+              title={(data.calendar.scheduledToday ?? data.suggestion)!.day.name}
+              metadata={programDayMetadata((data.calendar.scheduledToday ?? data.suggestion)!)}
+              status={data.calendar.dated ? 'Scheduled today' : 'Next in program'}
+              to={`/plan/${(data.calendar.scheduledToday ?? data.suggestion)!.day.programId}/days/${(data.calendar.scheduledToday ?? data.suggestion)!.day.id}`}
+            />
+          ) : (
+            <p className="home-muted">
+              {data.calendar.dated ? 'Rest Day' : 'No scheduled workout'}
+            </p>
+          )}
         </section>
       ) : null}
 
       {state === 'scheduled' ? <QuickActions /> : null}
 
-      {state === 'in-progress' && upcoming.length ? (
+      {upcoming.length ? (
         <section className="home-section">
           <SectionHeader title="Up next" to="/plan" />
 
-          {upcoming.map((entry) => (
+          {upcoming.map(({ entry, date }) => (
             <WorkoutListItem
               key={entry.day.id}
               title={entry.day.name}
               metadata={programDayMetadata(entry)}
               to={`/plan/${entry.day.programId}/days/${entry.day.id}`}
-              status="Program order"
+              status={
+                date
+                  ? dateFromKey(date).toLocaleDateString(undefined, { weekday: 'long' })
+                  : 'Program order'
+              }
             />
           ))}
         </section>
@@ -168,13 +155,15 @@ export function HomePage() {
           <SectionHeader title="Your Programs" to="/plan" />
 
           {data.programs.length ? (
-            data.programs.slice(0, 2).map((graph) => (
-              <ProgramCard
-                key={graph.program.id}
-                graph={graph}
-                active={graph.program.id === data.activeProgramId}
-              />
-            ))
+            data.programs
+              .slice(0, 2)
+              .map((graph) => (
+                <ProgramCard
+                  key={graph.program.id}
+                  graph={graph}
+                  active={graph.program.id === data.activeProgramId}
+                />
+              ))
           ) : (
             <div className="home-surface home-empty">
               <p>A clear plan starts here.</p>
@@ -191,26 +180,22 @@ export function HomePage() {
       {selected !== data.today ? (
         <section className="home-section">
           <SectionHeader
-            title={
-              data.week.find(({ key }) => key === selected)
-                ?.accessibleDate ?? 'Selected day'
-            }
+            title={data.week.find(({ key }) => key === selected)?.accessibleDate ?? 'Selected day'}
           />
 
           <p className="home-muted">
             {selectedWorkouts.length
               ? 'Completed workouts on this date'
-              : 'No workouts recorded or scheduled for this date.'}
+              : data.calendar.getScheduledWorkout(selected)
+                ? 'Scheduled workout on this date'
+                : 'No workouts recorded for this date.'}
           </p>
 
           {selectedWorkouts.map((workout) => (
             <WorkoutListItem
               key={workout.session.id}
               title={workout.session.name ?? 'Workout'}
-              metadata={countLabel(
-                workoutCompletion(workout).completedSets,
-                'completed set',
-              )}
+              metadata={countLabel(workoutCompletion(workout).completedSets, 'completed set')}
               completed
               to={`/workout/${workout.session.id}`}
             />
@@ -222,11 +207,7 @@ export function HomePage() {
       <WeeklyProgress data={data} />
 
       {state === 'in-progress' ? (
-        <WeekSelector
-          days={data.week}
-          selected={selected}
-          onSelect={setSelection}
-        />
+        <WeekSelector days={data.week} selected={selected} onSelect={setSelection} />
       ) : null}
 
       {state === 'scheduled' ? <InsightCard data={data} /> : null}

@@ -1,4 +1,6 @@
 import type { Exercise, Program, ProgramDay, ProgramExercise } from '../../domain/entities';
+import { sessionCalendarDate } from '../../domain/trainingCalendar';
+import { workoutCompletion } from '../home/homeData';
 import { getHomeData } from '../home/homeService';
 import { deriveWorkoutLanding, type WorkoutLandingState } from './workoutLanding';
 import { initializeRepdbCatalog } from '../../data/providers/repdb/initialize';
@@ -41,6 +43,7 @@ export interface WorkoutListSummary {
 }
 
 export interface WorkoutRecoverySummary {
+  scheduledDate?: string;
   id: string;
   name: string;
   startedAt: string;
@@ -60,13 +63,14 @@ export interface HydratedWorkoutGraph {
 }
 
 function recoverySummary(graph: WorkoutGraph): WorkoutRecoverySummary {
-  const sets = graph.exercises.flatMap(({ sets }) => sets);
+  const completion = workoutCompletion(graph);
   return {
     id: graph.session.id,
     name: graph.session.name ?? 'Quick Workout',
     startedAt: graph.session.startedAt,
-    completedSets: sets.filter(({ completed }) => completed).length,
-    totalSets: sets.length,
+    scheduledDate: sessionCalendarDate(graph.session),
+    completedSets: completion.completedSets,
+    totalSets: completion.totalSets,
     status: graph.session.status as 'active' | 'paused',
   };
 }
@@ -91,20 +95,22 @@ export async function getWorkoutLanding(
     };
   };
   const previews = await Promise.all(
-    home.nextDays.map(async ({ day, exercises: prescriptions }) => ({
-      day,
-      entries: await Promise.all(
-        prescriptions.map(async (prescription) => ({
-          prescription,
-          exercise: (await catalog.get(prescription.exerciseId)) ?? null,
-          previous:
-            (await history.getPreviousCompletedExercise(
-              prescription.exerciseId,
-              now.toISOString(),
-            )) ?? null,
-        })),
-      ),
-    })),
+    (activeGraph?.days.filter(({ exercises }) => exercises.length > 0) ?? []).map(
+      async ({ day, exercises: prescriptions }) => ({
+        day,
+        entries: await Promise.all(
+          prescriptions.map(async (prescription) => ({
+            prescription,
+            exercise: (await catalog.get(prescription.exerciseId)) ?? null,
+            previous:
+              (await history.getPreviousCompletedExercise(
+                prescription.exerciseId,
+                now.toISOString(),
+              )) ?? null,
+          })),
+        ),
+      }),
+    ),
   );
   return {
     state: derived.state,

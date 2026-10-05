@@ -1,39 +1,35 @@
-import { useEffect, useRef, useState } from 'react';
-import { Link, useLoaderData, useNavigate, useRevalidator } from 'react-router-dom';
+import { useRef, useState } from 'react';
+import { Link, useLoaderData, useNavigate } from 'react-router-dom';
 import { CalendarDays, Clock3, Dumbbell, Pencil, Play } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { buttonClasses } from '../../components/ui/controlStyles';
 import { startPlannedWorkout } from '../workout/workoutService';
 import { weekdays } from './builderService';
-import { estimatedProgramMinutes, nextProgramWorkout } from './programDisplay';
+import { estimatedProgramMinutes } from './programDisplay';
+import { trainingCalendar } from '../../domain/trainingCalendar';
 import { WeeklySchedule } from './WeeklySchedule';
 import type { ProgramListData } from './programService';
 
 export function PlanPage() {
-  const { programs, graphs, activeProgramId, completed = [] } = useLoaderData<ProgramListData>();
+  const {
+    programs,
+    graphs,
+    activeProgramId,
+    completed = [],
+    now,
+    unfinished,
+  } = useLoaderData<ProgramListData>();
   const navigate = useNavigate();
-  const revalidator = useRevalidator();
   const pending = useRef(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const refresh = () => {
-      setNow(new Date());
-      void revalidator.revalidate();
-    };
-    const timer = window.setInterval(refresh, 60_000);
-    window.addEventListener('focus', refresh);
-    return () => {
-      clearInterval(timer);
-      window.removeEventListener('focus', refresh);
-    };
-  }, [revalidator]);
   const active = graphs.find(
     ({ program }) => program.id === activeProgramId && !program.draft && !program.archived,
   );
-  const next = active ? nextProgramWorkout(active, completed, now) : null;
+  const calendar = trainingCalendar(active, completed, new Date(now));
+  const next = calendar.next?.entry ?? null;
+  const startable = calendar.startableToday ?? next;
   const minutes = next ? estimatedProgramMinutes(next.exercises) : null;
   const total = active?.days.reduce((sum, entry) => sum + entry.exercises.length, 0) ?? 0;
   const estimates = active?.days.map(({ exercises }) => estimatedProgramMinutes(exercises)) ?? [];
@@ -68,7 +64,7 @@ export function PlanPage() {
               <div className="plan-next">
                 <p className="flex items-center gap-2 text-xs text-secondary">
                   <CalendarDays size={14} />
-                  Next workout
+                  Next scheduled workout
                 </p>
                 <div className="flex items-center gap-3 mt-3">
                   <span className="plan-detail-icon text-mint">
@@ -99,13 +95,18 @@ export function PlanPage() {
               <Button
                 variant="primary"
                 className="w-full min-h-14"
-                disabled={busy || !next}
+                disabled={busy || (!startable && !unfinished)}
                 onClick={() => {
-                  if (!next || pending.current) return;
+                  if (pending.current) return;
+                  if (unfinished) {
+                    void navigate(`/workout/${unfinished.id}`);
+                    return;
+                  }
+                  if (!startable) return;
                   pending.current = true;
                   setBusy(true);
                   setError(null);
-                  void startPlannedWorkout(next.day.id)
+                  void startPlannedWorkout(startable.day.id)
                     .then((id) => navigate(`/workout/${id}`))
                     .catch((failure: unknown) => {
                       setError(
@@ -121,7 +122,13 @@ export function PlanPage() {
                 }}
               >
                 <Play size={16} fill="currentColor" />
-                {busy ? 'Starting…' : 'Start Workout'}
+                {busy
+                  ? 'Starting…'
+                  : unfinished
+                    ? `Resume ${unfinished.name ?? 'Workout'}`
+                    : startable === next
+                      ? 'Start next workout early'
+                      : 'Start today’s workout'}
               </Button>
               <Link
                 className={buttonClasses('outline', '!text-primary !border-border')}

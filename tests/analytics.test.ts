@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { localDateKey } from '../src/domain/localCalendar';
 import {
   detectPrs,
   estimated1RM,
@@ -203,16 +204,19 @@ describe('deterministic analytics', () => {
     });
   });
   it('handles calendar ranges and week boundaries with timestamp-derived duration', () => {
-    const now = new Date('2026-03-31T12:00:00.000Z');
-    expect(rangeStart('1M', now)).toBe('2026-02-28T12:00:00.000Z');
-    expect(rangeStart('3M', now)).toBe('2025-12-31T12:00:00.000Z');
-    expect(rangeStart('6M', now)).toBe('2025-09-30T12:00:00.000Z');
-    expect(rangeStart('1Y', now)).toBe('2025-03-31T12:00:00.000Z');
+    const now = new Date(2026, 2, 31, 12);
+    expect(localDateKey(new Date(rangeStart('1M', now)))).toBe('2026-02-28');
+    expect(localDateKey(new Date(rangeStart('3M', now)))).toBe('2025-12-31');
+    expect(localDateKey(new Date(rangeStart('6M', now)))).toBe('2025-09-30');
+    expect(localDateKey(new Date(rangeStart('1Y', now)))).toBe('2025-03-31');
     expect(rangeStart('ALL', now)).toMatch(/^0000/);
     const summary = weeklySummary(
       [
         graph('a', [set()]),
-        graph('b', [set()], { startedAt: '2026-09-20T10:00:00.000Z' }),
+        graph('b', [set()], {
+          startedAt: '2026-09-20T10:00:00.000Z',
+          endedAt: '2026-09-20T11:00:00.000Z',
+        }),
         graph('c', [set()], { status: 'active' }),
       ],
       new Date('2026-10-02T12:00:00.000Z'),
@@ -248,6 +252,10 @@ describe('progress overview derivation', () => {
   });
   it('uses the same rolling seven-day boundary for all progress calculations', () => {
     expect(calendarDays('2026-09-26T12:34:56.000Z', '2026-10-03T12:34:56.000Z')).toBe(8);
-    expect(rangeStart('7D', new Date('2026-10-03T12:34:56.000Z'))).toBe('2026-09-26T12:34:56.000Z');
+    const now = new Date(2026, 9, 3, 12);
+    const start = rangeStart('7D', now);
+    expect(localDateKey(new Date(start))).toBe('2026-09-27');
+    expect(new Date(start).getHours()).toBe(0);
+    expect(calendarDays(start, now.toISOString())).toBe(7);
   });
 });

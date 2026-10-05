@@ -1,4 +1,5 @@
 import { estimatedProgramMinutes } from '../plan/programDisplay';
+import { dateFromKey, localDateKey, weekdayNames } from '../../domain/localCalendar';
 import { useRef, useState } from 'react';
 import { Link, useLoaderData, useNavigate } from 'react-router-dom';
 import { ArrowRight, Check, ChevronRight, Play, ShieldCheck } from 'lucide-react';
@@ -99,7 +100,11 @@ export function WorkoutPage() {
         titleId="workout-title"
         eyebrow="Workout"
         title="Start training"
-        description="Your next session, ready when you are."
+        description={
+          data.unfinished
+            ? 'Resume your saved session.'
+            : 'Your training schedule and saved sessions.'
+        }
       />
       {error ? (
         <p
@@ -172,6 +177,14 @@ export function WorkoutPage() {
           </Link>
         )}
       </WorkoutLandingHero>
+      {data.unfinished ? (
+        <p className="text-sm text-secondary">
+          Active session · Started{' '}
+          {dateFromKey(
+            data.unfinished.scheduledDate ?? localDateKey(new Date(data.unfinished.startedAt)),
+          ).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
+        </p>
+      ) : null}
 
       {selected && !data.unfinished ? <WorkoutPreview entries={selected.entries} /> : null}
       {!data.unfinished ? (
@@ -195,7 +208,7 @@ export function WorkoutPage() {
                 <p className="text-sm text-secondary">
                   Next: {next.day.name}
                   {next.day.weekday != null
-                    ? ` · ${['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][next.day.weekday]}`
+                    ? ` · ${weekdayNames[next.day.weekday]}`
                     : ' · next in your program'}
                 </p>
               ) : null}

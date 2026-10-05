@@ -7,35 +7,36 @@ import {
   type CreateProgramInput,
 } from '../../lib/storage/repositories/programRepository';
 
-export const weekdays = [
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
-  'Sunday',
-];
+export { weekdayNames as weekdays } from '../../domain/localCalendar';
+import { weekdayNames as weekdays } from '../../domain/localCalendar';
+import { Weekday } from '../../domain/localCalendar';
 export const splitTemplates = [
   {
     id: 'ppl',
     name: 'Push Pull Legs',
     hint: '6 days · Experienced / Higher frequency',
-    days: [0, 1, 2, 3, 4, 5],
+    days: [
+      Weekday.MONDAY,
+      Weekday.TUESDAY,
+      Weekday.WEDNESDAY,
+      Weekday.THURSDAY,
+      Weekday.FRIDAY,
+      Weekday.SATURDAY,
+    ],
     names: ['Push Day', 'Pull Day', 'Legs Day'],
   },
   {
     id: 'upper-lower',
     name: 'Upper Lower',
     hint: '4 days · Balanced',
-    days: [0, 1, 3, 4],
+    days: [Weekday.MONDAY, Weekday.TUESDAY, Weekday.THURSDAY, Weekday.FRIDAY],
     names: ['Upper A', 'Lower A', 'Upper B', 'Lower B'],
   },
   {
     id: 'full-body',
     name: 'Full Body',
     hint: '3 days · Simple',
-    days: [0, 2, 4],
+    days: [Weekday.MONDAY, Weekday.WEDNESDAY, Weekday.FRIDAY],
     names: ['Full Body A', 'Full Body B', 'Full Body C'],
   },
   { id: 'custom', name: 'Custom', hint: 'Create from scratch', days: [], names: [] },

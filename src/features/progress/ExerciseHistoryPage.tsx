@@ -33,7 +33,9 @@ export function ExerciseHistoryPage() {
   const allPoints = exercisePoints(workouts, exerciseId),
     start = rangeStart(range, new Date(now));
   const filtered = workouts.filter(
-    ({ session }) => session.startedAt >= start && session.startedAt <= now,
+    ({ session }) =>
+      (session.endedAt ?? session.startedAt) >= start &&
+      (session.endedAt ?? session.startedAt) <= now,
   );
   const points = allPoints.filter((point) => point.date >= start && point.date <= now);
   const summary = exerciseSummary(filtered, exerciseId);

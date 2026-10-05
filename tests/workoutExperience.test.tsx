@@ -254,7 +254,7 @@ describe('canonical workout V2 journey', () => {
     expect(completeWorkoutSet).toHaveBeenCalledOnce();
     expect(screen.queryByRole('button', { name: 'Complete set' })).toBeNull();
     const before = (await repo.get(session.id))!.session.restEndsAt!;
-    fireEvent.click(screen.getByRole('button', { name: 'Add 30 Seconds' }));
+    fireEvent.click(screen.getByRole('button', { name: '+30 sec' }));
     await waitFor(async () =>
       expect(
         Date.parse((await repo.get(session.id))!.session.restEndsAt!) - Date.parse(before),
@@ -263,8 +263,8 @@ describe('canonical workout V2 journey', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Edit' })).toBeEnabled());
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
     fireEvent.change(screen.getByLabelText('Set 2 weight'), { target: { value: '22.5' } });
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Start Set 2' })).toBeEnabled());
-    fireEvent.click(screen.getByRole('button', { name: 'Start Set 2' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: /Start Set 2/ })).toBeEnabled());
+    fireEvent.click(screen.getByRole('button', { name: /Start Set 2/ }));
     await screen.findByRole('button', { name: 'Complete set' }, { timeout: 5000 });
     expect(screen.getByLabelText('Set 2 weight')).toHaveValue('22.5');
     expect((await repo.get(session.id))!.session.restEndsAt).toBeNull();
@@ -277,8 +277,8 @@ describe('canonical workout V2 journey', () => {
     const undo = await repo.completeSet(sets[0]!.id, {}, true);
     await repo.startRest(session.id, 120, new Date(Date.now() - 200000));
     await renderSession(repo, session.id);
-    expect(screen.getByText('REST COMPLETE')).toBeInTheDocument();
-    expect(screen.getByText('00:00')).toBeInTheDocument();
+    expect(screen.getByText('Rest complete')).toBeInTheDocument();
+    expect(screen.getByText('0:00')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Complete set' })).toBeNull();
     // Restore the exact completion timer before exercising existing undo semantics.
     await repo.clearRest(session.id);

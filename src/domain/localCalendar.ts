@@ -1,5 +1,36 @@
 import type { DateRange } from './analytics';
 
+// Persisted domain indexes are Monday-first. Only this module converts JavaScript weekdays.
+export const Weekday = {
+  MONDAY: 0,
+  TUESDAY: 1,
+  WEDNESDAY: 2,
+  THURSDAY: 3,
+  FRIDAY: 4,
+  SATURDAY: 5,
+  SUNDAY: 6,
+} as const;
+export const weekdayNames = [
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+  'Sunday',
+];
+export function weekdayOf(date: Date): number {
+  return [
+    Weekday.SUNDAY,
+    Weekday.MONDAY,
+    Weekday.TUESDAY,
+    Weekday.WEDNESDAY,
+    Weekday.THURSDAY,
+    Weekday.FRIDAY,
+    Weekday.SATURDAY,
+  ][date.getDay()]!;
+}
+
 // Local calendar dates, never UTC day slices or elapsed 24-hour increments.
 export function localDateKey(date: Date): string {
   return `${String(date.getFullYear()).padStart(4, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -22,7 +53,7 @@ export function addLocalCalendarDays(key: string, days: number): string {
 export function weekStart(now: Date): Date {
   const monday = new Date(now);
   monday.setHours(0, 0, 0, 0);
-  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+  monday.setDate(monday.getDate() - weekdayOf(now));
   return monday;
 }
 

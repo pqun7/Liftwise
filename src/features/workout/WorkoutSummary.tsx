@@ -31,7 +31,7 @@ export function WorkoutSummary({
             <Check size={28} aria-hidden="true" />
           </span>
           <h1 id="session-title">Workout complete</h1>
-          <p className="text-secondary">Great work. Today's workout is saved.</p>
+          <p className="text-secondary">Great work. Your workout is saved.</p>
         </header>
         <div className="rounded-2xl border border-border bg-surface p-4">
           <h2 className="type-section-title">{workout.session.name ?? 'Quick Workout'}</h2>

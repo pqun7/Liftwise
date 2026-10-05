@@ -64,8 +64,8 @@ test('reference plan editor keeps weekday integrity, context, targets and overvi
   await page.screenshot({ path: testInfo.outputPath('reference-editor.png'), fullPage: true });
   await page.getByRole('link', { name: 'Back to Programs' }).click();
   await expect(page.getByRole('heading', { name: 'My Training Plan' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Start Workout', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: /Start (today’s|next) workout/ })).toBeEnabled();
   await page.screenshot({ path: testInfo.outputPath('reference-overview.png'), fullPage: true });
-  await page.getByRole('button', { name: 'Start Workout', exact: true }).click();
+  await page.getByRole('button', { name: /Start (today’s|next) workout/ }).click();
   await expect(page.getByRole('link', { name: 'Leave workout, keep session saved' })).toBeVisible();
 });

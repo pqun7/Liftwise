@@ -1,3 +1,4 @@
+import { Weekday } from '../../domain/localCalendar';
 import type { ProgramExercisePrescriptionInput } from '../../lib/storage/repositories/programRepository';
 
 export const targetDefaults = {
@@ -61,7 +62,7 @@ export const programTemplates = [
     description: 'Whole-body sessions on non-consecutive days. Simple, editable starting targets.',
     days: [
       {
-        weekday: 0,
+        weekday: Weekday.MONDAY,
         name: 'Full Body A',
         exercises: [
           squat(),
@@ -72,7 +73,7 @@ export const programTemplates = [
         ],
       },
       {
-        weekday: 2,
+        weekday: Weekday.WEDNESDAY,
         name: 'Full Body B',
         exercises: [
           legPress(),
@@ -84,7 +85,7 @@ export const programTemplates = [
         ],
       },
       {
-        weekday: 4,
+        weekday: Weekday.FRIDAY,
         name: 'Full Body C',
         exercises: [split(), incline(), supportedRow(), curl(), lateral(), calves()],
       },
@@ -99,12 +100,12 @@ export const programTemplates = [
     description: 'Two upper and two lower sessions with recovery between similar sessions.',
     days: [
       {
-        weekday: 0,
+        weekday: Weekday.MONDAY,
         name: 'Upper A',
         exercises: [bench(), row(), press(), pulldown(), biceps(), triceps()],
       },
       {
-        weekday: 1,
+        weekday: Weekday.TUESDAY,
         name: 'Lower A',
         exercises: [
           squat(),
@@ -115,12 +116,12 @@ export const programTemplates = [
         ],
       },
       {
-        weekday: 3,
+        weekday: Weekday.THURSDAY,
         name: 'Upper B',
         exercises: [incline(), supportedRow(), pulldown(), lateral(), biceps(), extension()],
       },
       {
-        weekday: 4,
+        weekday: Weekday.FRIDAY,
         name: 'Lower B',
         exercises: [
           legPress(),
@@ -142,12 +143,12 @@ export const programTemplates = [
       'Push, pull and legs twice weekly. Higher frequency is optional, not universally better.',
     days: [
       {
-        weekday: 0,
+        weekday: Weekday.MONDAY,
         name: 'Push A',
         exercises: [bench(), press(), incline(), lateral(), triceps()],
       },
       {
-        weekday: 1,
+        weekday: Weekday.TUESDAY,
         name: 'Pull A',
         exercises: [
           pulldown(),
@@ -158,7 +159,7 @@ export const programTemplates = [
         ],
       },
       {
-        weekday: 2,
+        weekday: Weekday.WEDNESDAY,
         name: 'Legs A',
         exercises: [
           squat(),
@@ -169,7 +170,7 @@ export const programTemplates = [
         ],
       },
       {
-        weekday: 3,
+        weekday: Weekday.THURSDAY,
         name: 'Push B',
         exercises: [
           entry('incline-bench-press', 'compound'),
@@ -180,7 +181,7 @@ export const programTemplates = [
         ],
       },
       {
-        weekday: 4,
+        weekday: Weekday.FRIDAY,
         name: 'Pull B',
         exercises: [
           supportedRow(),
@@ -191,7 +192,7 @@ export const programTemplates = [
         ],
       },
       {
-        weekday: 5,
+        weekday: Weekday.SATURDAY,
         name: 'Legs B',
         exercises: [
           legPress(),

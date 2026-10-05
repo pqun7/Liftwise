@@ -61,11 +61,19 @@ export class ProgressRepository {
       async () => {
         const sessions = await this.db.workoutSessions
           .where('[status+startedAt]')
-          .between(['completed', from], ['completed', until], true, true)
+          .between(['completed', ''], ['completed', until], true, true)
           .reverse()
           .toArray();
         const repo = new WorkoutRepository(this.db);
-        const graphs = await Promise.all(sessions.map((session) => repo.get(session.id)));
+        const graphs = await Promise.all(
+          sessions
+            .filter(
+              (session) =>
+                (session.endedAt ?? session.startedAt) >= from &&
+                (session.endedAt ?? session.startedAt) <= until,
+            )
+            .map((session) => repo.get(session.id)),
+        );
         return graphs.filter((graph): graph is AnalyticsWorkout => graph !== undefined);
       },
     );

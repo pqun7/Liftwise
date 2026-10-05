@@ -168,10 +168,10 @@ describe('focused workout logger', () => {
     const add = vi.fn();
     const skip = vi.fn();
     render(<RestTimer remaining={85} duration={180} nextSet={3} onAdd={add} onEnd={skip} />);
-    expect(screen.getByText('01:25')).toBeInTheDocument();
-    expect(screen.getByText('Next: Set 3')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Add 30 Seconds' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Skip Rest Timer' }));
+    expect(screen.getByText('1:25')).toBeInTheDocument();
+    expect(screen.getByText('Up next: Set 3')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '+30 sec' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Skip rest' }));
     expect(add).toHaveBeenCalledOnce();
     expect(skip).toHaveBeenCalledOnce();
   });

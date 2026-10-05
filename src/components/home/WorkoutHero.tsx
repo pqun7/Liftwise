@@ -5,7 +5,7 @@ import { ArrowRight, Dumbbell, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import bench from '../../assets/images/workout-bench.webp';
 import rest from '../../assets/images/rest-day.webp';
-import { programDayMetadata, type HomeData } from '../../features/home/homeData';
+import { localDateKey, programDayMetadata, type HomeData } from '../../features/home/homeData';
 
 export function WorkoutHero({
   data,
@@ -21,6 +21,13 @@ export function WorkoutHero({
   isToday: boolean;
 }) {
   const day = scheduled ? data.suggestion : null;
+  const completed =
+    isToday && !day
+      ? data.weekHistory.find(
+          ({ session }) =>
+            localDateKey(new Date(session.endedAt ?? session.startedAt)) === data.today,
+        )
+      : null;
   return (
     <Card
       as="article"
@@ -39,7 +46,17 @@ export function WorkoutHero({
       />
       <div className="home-hero-content">
         <div className="home-hero-heading">
-          <p className="home-kicker">{day ? "Today's workout" : 'Time to recharge'}</p>
+          <p className="home-kicker">
+            {day
+              ? data.calendar.dated
+                ? isToday
+                  ? "Today's workout"
+                  : 'Selected date’s workout'
+                : 'Next in your program'
+              : completed
+                ? 'Completed today'
+                : 'Time to recharge'}
+          </p>
           {day && data.activeProgramId ? (
             <Link className="home-text-link" to={`/plan/${data.activeProgramId}`}>
               View Plan
@@ -47,19 +64,42 @@ export function WorkoutHero({
           ) : null}
         </div>
         <h2 id="home-hero-title">
-          {day ? day.day.name : isToday ? 'No workout today' : 'No workout scheduled'}
+          {day
+            ? day.day.name
+            : completed
+              ? 'Training complete'
+              : isToday
+                ? 'No workout today'
+                : 'No workout scheduled'}
         </h2>
         <p className="home-hero-meta">
-          {day ? programDayMetadata(day) : 'Take a rest day or start an optional workout.'}
+          {day
+            ? programDayMetadata(day)
+            : completed
+              ? `${completed.session.name ?? 'Workout'} · Saved locally`
+              : 'Take a rest day or start an optional workout.'}
         </p>
         {day ? (
           <div className="home-tags">
-            <span>Next in your program</span>
+            <span>
+              {data.calendar.dated
+                ? isToday
+                  ? 'Scheduled today'
+                  : 'Scheduled on selected date'
+                : 'Next in your program'}
+            </span>
             <span>Train at your pace</span>
           </div>
         ) : null}
         <div className="home-hero-actions">
-          {day ? (
+          {day && !isToday ? (
+            <Link
+              className={buttonClasses('primary', 'flex-1', 'large')}
+              to={`/plan/${day.day.programId}/days/${day.day.id}`}
+            >
+              View Scheduled Workout
+            </Link>
+          ) : day ? (
             <Button
               type="button"
               variant="primary"
@@ -71,6 +111,13 @@ export function WorkoutHero({
               <Play size={19} fill="currentColor" aria-hidden="true" />
               {busy ? 'Starting…' : 'Start Workout'}
             </Button>
+          ) : completed ? (
+            <Link
+              className={buttonClasses('primary', 'flex-1', 'large')}
+              to={`/workout/${completed.session.id}`}
+            >
+              View Completed Workout
+            </Link>
           ) : (
             <Link
               className={buttonClasses('primary', 'flex-1', 'large')}

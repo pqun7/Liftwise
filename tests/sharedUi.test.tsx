@@ -89,10 +89,10 @@ describe('shared UI contracts', () => {
   it('renders externally derived timer values and delegates actions', () => {
     const end = vi.fn();
     const { rerender } = render(<RestTimer remaining={90} onEnd={end} />);
-    expect(screen.getByText('01:30')).toBeInTheDocument();
+    expect(screen.getByText('1:30')).toBeInTheDocument();
     rerender(<RestTimer remaining={0} onEnd={end} />);
-    expect(screen.getByText('00:00')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'End rest' }));
+    expect(screen.getByText('0:00')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Start next set' }));
     expect(end).toHaveBeenCalledOnce();
   });
 });

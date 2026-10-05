@@ -161,8 +161,8 @@ test('all core training, charts, backup and CSV flows work with network disabled
       await page.getByLabel(`Set ${number} weight`, { exact: true }).fill('100');
       await page.getByLabel(`Set ${number} reps`, { exact: true }).fill('8');
       await page.getByRole('button', { name: 'Complete set', exact: true }).first().click();
-      await expect(page.getByRole('heading', { name: `Set ${number} complete!` })).toBeVisible();
-      if (number === 1) await page.getByRole('button', { name: 'Start Set 2' }).click();
+      await expect(page.getByText(`Set ${number} done`, { exact: false })).toBeVisible();
+      if (number === 1) await page.getByRole('button', { name: /Start Set 2/ }).click();
     }
     await auditLayout(page);
     if (browserName === 'webkit') {
@@ -181,8 +181,8 @@ test('all core training, charts, backup and CSV flows work with network disabled
       await expect(page.locator('[data-home-state=in-progress]')).toBeVisible();
       await page.getByRole('link', { name: 'Continue Workout', exact: true }).click();
     }
-    await expect(page.getByRole('heading', { name: 'Set 2 complete!' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Skip Rest Timer' })).toBeVisible();
+    await expect(page.getByText(/Set 2 done/)).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Skip rest' })).toBeVisible();
     await page.getByLabel('Workout menu', { exact: true }).click();
     await expect(page.getByLabel('Keep screen awake while training')).toBeChecked();
     await page.getByLabel('Workout menu', { exact: true }).click();

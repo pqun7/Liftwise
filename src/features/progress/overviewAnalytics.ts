@@ -1,5 +1,5 @@
 import { completionDate } from '../../domain/streak';
-import { dateFromKey } from '../../domain/localCalendar';
+import { dateFromKey, localDateKey, weekdayOf } from '../../domain/localCalendar';
 import { setMetrics, type AnalyticsWorkout } from '../../domain/analytics';
 import { workoutElapsedSeconds } from '../../domain/workoutTime';
 
@@ -26,7 +26,7 @@ export function trainingDays(workouts: readonly AnalyticsWorkout[]) {
   return new Set(
     workouts
       .filter(({ session }) => session.status === 'completed')
-      .map(({ session }) => new Date(session.startedAt).toDateString()),
+      .map(({ session }) => localDateKey(new Date(session.endedAt ?? session.startedAt))),
   ).size;
 }
 // Count local calendar dates touched by the rolling period, including partial end days.
@@ -41,7 +41,7 @@ export function weekdayActivity(workouts: readonly AnalyticsWorkout[], now = new
   const counts = Array<number>(7).fill(0);
   for (const { session } of workouts) {
     const date = completionDate(session, now);
-    if (date) counts[(dateFromKey(date).getDay() + 6) % 7]!++;
+    if (date) counts[weekdayOf(dateFromKey(date))]!++;
   }
   return counts;
 }

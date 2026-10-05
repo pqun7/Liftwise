@@ -1,5 +1,6 @@
 import { useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { WorkoutSaveContext } from './WorkoutSaveContext';
+import { workoutCompletion } from '../home/homeData';
 import { ArrowLeft, ArrowRight, Ellipsis, Check } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
@@ -104,9 +105,8 @@ export function ActiveWorkoutLogger({
   const emptyExercises = workout.exercises.filter(
     (item) => !item.exercise.skipped && !item.sets.length,
   ).length;
-  const completedSets = workout.exercises
-    .flatMap((item) => item.sets)
-    .filter((set) => set.completed).length;
+  const completion = workoutCompletion(workout);
+  const completedSets = completion.completedSets;
   const finish = () => {
     menu.current?.removeAttribute('open');
     if (incompleteSets || emptyExercises) setReviewFinish(true);
@@ -164,9 +164,7 @@ export function ActiveWorkoutLogger({
             {entry
               ? `${index + 1} of ${workout.exercises.length} exercises`
               : 'Add your first exercise'}
-            {entry
-              ? ` · ${completedSets}/${workout.exercises.flatMap((item) => item.sets).length} sets`
-              : ''}
+            {entry ? ` · ${completedSets}/${completion.totalSets} sets` : ''}
           </p>
         </div>
         <details ref={menu} className="relative">
@@ -263,8 +261,12 @@ export function ActiveWorkoutLogger({
             {emptyExercises ? ` · ${emptyExercises} exercises have no sets` : ''}.
           </p>
           <p className="text-sm text-secondary">
-            Your {completedSets} completed sets will be kept. Unfinished sets will not count toward
-            performance.
+            Your{' '}
+            {
+              workout.exercises.flatMap(({ sets }) => sets).filter(({ completed }) => completed)
+                .length
+            }{' '}
+            completed sets will be kept. Unfinished sets will not count toward performance.
           </p>
           <Button
             variant="primary"

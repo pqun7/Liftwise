@@ -1,4 +1,5 @@
 import { localDateKey, weekStart } from '../../domain/localCalendar';
+import { sessionCalendarDate, trainingCalendar } from '../../domain/trainingCalendar';
 export { localDateKey, weekStart } from '../../domain/localCalendar';
 import { estimatedProgramMinutes } from '../plan/programDisplay';
 import { weeklySummary } from '../../domain/analytics';
@@ -30,6 +31,7 @@ export interface HomeData {
   activeProgramId: string | null;
   lastProgramDayId: string | null;
   suggestion: ProgramGraph['days'][number] | null;
+  calendar: ReturnType<typeof trainingCalendar>;
   nextDays: ProgramGraph['days'];
   active: WorkoutGraph | null;
   recent: WorkoutGraph[];
@@ -61,15 +63,15 @@ export function deriveHomeData(
     ({ program }) => program.id === records.activeProgramId && !program.archived && !program.draft,
   );
   const days = activeProgram?.days.filter(({ exercises }) => exercises.length > 0) ?? [];
-  const lastIndex = days.findIndex(({ day }) => day.id === records.lastProgramDayId);
-  const nextIndex = days.length ? (lastIndex + 1) % days.length : 0;
-  const nextDays = days.some(({ day }) => day.weekday != null)
-    ? [...days].sort((a, b) => {
-        const distance = (weekday: number | null | undefined) =>
-          weekday == null ? 8 : (weekday - ((now.getDay() + 6) % 7) + 7) % 7;
-        return distance(a.day.weekday) - distance(b.day.weekday);
-      })
-    : [...days.slice(nextIndex), ...days.slice(0, nextIndex)];
+  const calendar = trainingCalendar(
+    activeProgram,
+    [...records.history, ...records.recent, ...(records.active ? [records.active] : [])].map(
+      ({ session }) => session,
+    ),
+    now,
+    records.lastProgramDayId,
+  );
+  const nextDays = calendar.upcoming.map(({ entry }) => entry);
   const trainedToday = weekHistory.some(
     ({ session }) => localDateKey(new Date(session.endedAt ?? session.startedAt)) === today,
   );
@@ -82,7 +84,7 @@ export function deriveHomeData(
     workoutsByDay.set(key, [...(workoutsByDay.get(key) ?? []), workout]);
   }
   if (records.active) {
-    const key = localDateKey(new Date(records.active.session.startedAt));
+    const key = sessionCalendarDate(records.active.session);
     workoutsByDay.set(key, [...(workoutsByDay.get(key) ?? []), records.active]);
   }
   const dayEffort = (workouts: WorkoutGraph[]) =>
@@ -130,11 +132,8 @@ export function deriveHomeData(
           : 'Good evening,',
     week,
     weekHistory,
-    suggestion: !trainedToday
-      ? days.some(({ day }) => day.weekday != null)
-        ? (days.find(({ day }) => day.weekday === (now.getDay() + 6) % 7) ?? null)
-        : (nextDays[0] ?? null)
-      : null,
+    calendar,
+    suggestion: calendar.dated || !trainedToday ? calendar.startableToday : null,
     nextDays,
     summary: weeklySummary(records.history, now),
     previousSummary: weeklySummary(records.history, previousSunday),
@@ -143,7 +142,11 @@ export function deriveHomeData(
 
 export function homeState(data: HomeData, selectedDate: string): HomeState {
   if (data.active) return 'in-progress';
-  return selectedDate === data.today && data.suggestion ? 'scheduled' : 'rest-day';
+  return (
+    selectedDate === data.today ? data.suggestion : data.calendar.getScheduledWorkout(selectedDate)
+  )
+    ? 'scheduled'
+    : 'rest-day';
 }
 
 export function workoutCompletion(workout: WorkoutGraph) {

@@ -42,6 +42,8 @@ describe('persisted streak data and route rendering', () => {
     reopened.close();
   });
   it('loads overview history once, updates the badge after completion and keeps global stats across periods', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 9, 8, 18));
     const db = createTestDatabase('streak-route');
     const workouts = new WorkoutRepository(db);
     const history = vi

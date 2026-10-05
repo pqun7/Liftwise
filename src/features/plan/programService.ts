@@ -15,6 +15,8 @@ const programs = new ProgramRepository(database);
 const exercises = new ExerciseRepository(database);
 
 export interface ProgramListData {
+  now: string;
+  unfinished: import('../../domain/entities').WorkoutSession | null;
   programs: Program[];
   activeProgramId: string | null;
   graphs: ProgramGraph[];
@@ -37,6 +39,9 @@ export async function listPrograms(): Promise<ProgramListData> {
   const graphs = await Promise.all(items.map((item) => programs.get(item.id)));
   const completed = await database.workoutSessions.where('status').equals('completed').toArray();
   return {
+    now: new Date().toISOString(),
+    unfinished:
+      (await database.workoutSessions.where('status').anyOf('active', 'paused').first()) ?? null,
     programs: items,
     activeProgramId,
     completed,

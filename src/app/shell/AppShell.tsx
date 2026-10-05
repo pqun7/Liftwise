@@ -17,7 +17,7 @@ import { ProgressSkeleton } from '../../features/progress/ProgressUI';
 
 export function AppShell() {
   const pathname = useLocation().pathname;
-  useCalendarRevalidation(!pathname.startsWith('/workout') && !pathname.startsWith('/plan'));
+  useCalendarRevalidation(!/^\/workout\/[^/]+/.test(pathname) && !/^\/plan\/.+/.test(pathname));
   const streak = useRouteStreak();
   const navigation = useNavigation();
   const home = pathname === '/';

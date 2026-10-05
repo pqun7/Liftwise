@@ -1,10 +1,12 @@
 import '@testing-library/jest-dom/vitest';
 import 'fake-indexeddb/auto';
 
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
 
 window.scrollTo = vi.fn();
+// Async IndexedDB writes and lazy routes can exceed one second on release/CI runners.
+configure({ asyncUtilTimeout: 5_000 });
 
 afterEach(() => {
   cleanup();

@@ -78,29 +78,29 @@ test('focused logger preserves decimal sets, rest, prefill, recovery and canonic
   await complete.dblclick();
   const rest = page.getByRole('region', { name: 'Rest timer' });
   await expect(rest).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Set 1 complete!' })).toBeVisible();
+  await expect(page.getByText(/Set 1 done/)).toBeVisible();
   await expect(logger).toHaveCount(0);
-  await expect(page.getByRole('region', { name: 'Next set preview' })).toContainText('65 kg');
+  await expect(page.getByRole('region', { name: 'Next set' })).toContainText('65 kg');
   await page.getByRole('button', { name: 'Undo completion' }).click();
   await expect(logger.getByRole('heading', { name: 'Set 1 of 3' })).toBeVisible();
   await complete.click();
   await expect(rest).toBeVisible();
   await page.getByLabel('Workout menu', { exact: true }).click();
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Start Set 2', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: /Start Set 2/, exact: true })).toBeDisabled();
   await page.getByRole('button', { name: 'Resume Workout', exact: true }).click();
-  await page.getByRole('button', { name: 'Add 30 Seconds' }).click();
-  await expect(page.getByText('3:30', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: '+30 sec' }).click();
+  await expect(page.getByText('of 3:30', { exact: true })).toBeVisible();
   await page.reload();
   await expect(rest).toBeVisible();
-  await expect(page.getByText('3:30', { exact: true })).toBeVisible();
+  await expect(page.getByText('of 3:30', { exact: true })).toBeVisible();
   for (const width of [320, 360, 375, 390, 430, 768, 1280]) {
     await page.setViewportSize({ width, height: 844 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
     const action = await page
-      .getByRole('button', { name: 'Start Set 2', exact: true })
+      .getByRole('button', { name: /Start Set 2/, exact: true })
       .boundingBox();
     expect(action!.y + action!.height).toBeLessThanOrEqual(844);
     await page.screenshot({ path: testInfo.outputPath(`rest-${width}.png`) });
@@ -108,9 +108,9 @@ test('focused logger preserves decimal sets, rest, prefill, recovery and canonic
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'Edit', exact: true }).click();
   await page.getByLabel('Set 2 weight', { exact: true }).fill('67.5');
-  await page.getByRole('button', { name: 'Done editing' }).click();
-  await expect(page.getByRole('region', { name: 'Next set preview' })).toContainText('67.5 kg');
-  await page.getByRole('button', { name: 'Skip Rest Timer' }).click();
+  await page.getByRole('button', { name: 'Done', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Next set' })).toContainText('67.5 kg');
+  await page.getByRole('button', { name: 'Skip rest' }).click();
   await expect(rest).toHaveCount(0);
   await page.reload();
   await expect(logger.getByLabel('Set 2 weight', { exact: true })).toHaveValue('67.5');
@@ -119,10 +119,10 @@ test('focused logger preserves decimal sets, rest, prefill, recovery and canonic
   await expect(rest).toBeVisible();
   await page.clock.install();
   await page.clock.fastForward(181000);
-  await expect(page.getByText('REST COMPLETE', { exact: true })).toBeVisible();
+  await expect(page.getByText('Rest complete', { exact: true })).toBeVisible();
   await expect(logger).toHaveCount(0);
   await page.reload();
-  await expect(page.getByText('REST COMPLETE', { exact: true })).toBeVisible();
+  await expect(page.getByText('Rest complete', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Start Set 3', exact: true }).click();
   await complete.click();
   await expect(page.getByRole('region', { name: 'Exercise complete' })).toBeVisible();

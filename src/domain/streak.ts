@@ -1,5 +1,11 @@
 import type { Program, ProgramDay, WorkoutSession } from './entities';
-import { addLocalCalendarDays, dateFromKey, localDateKey, weekStart } from './localCalendar';
+import {
+  addLocalCalendarDays,
+  dateFromKey,
+  localDateKey,
+  weekStart,
+  weekdayOf,
+} from './localCalendar';
 
 type Completion = Pick<WorkoutSession, 'status' | 'startedAt' | 'endedAt'>;
 export type StreakDayStatus = 'completed' | 'missed' | 'rest' | 'today' | 'future' | 'not-tracked';
@@ -70,7 +76,7 @@ export function calculateStreakStats(
     trainingWeekdays?.filter((day) => Number.isInteger(day) && day >= 0 && day <= 6),
   );
   const isRest = (date: string) =>
-    scheduled.size > 0 && !scheduled.has((dateFromKey(date).getDay() + 6) % 7);
+    scheduled.size > 0 && !scheduled.has(weekdayOf(dateFromKey(date)));
   const dates = [
     ...new Set(
       sessions.flatMap((session) => {

@@ -1,6 +1,7 @@
 import type { ProgramExercise } from '../../domain/entities';
 import type { ProgramGraph } from '../../lib/storage/repositories/programRepository';
 import type { WorkoutSession } from '../../domain/entities';
+import { trainingCalendar } from '../../domain/trainingCalendar';
 
 export function chronologicalDays(days: ProgramGraph['days']) {
   return [...days].sort(
@@ -8,33 +9,10 @@ export function chronologicalDays(days: ProgramGraph['days']) {
   );
 }
 
-/** Uses the device's local calendar, including DST and week rollover. */
+/** Strictly future for dated plans; completion rotation for undated plans. */
 export function nextProgramWorkout(graph: ProgramGraph, completed: WorkoutSession[], now: Date) {
-  const eligible = graph.days.filter(({ exercises }) => exercises.length > 0);
-  if (!eligible.some(({ day }) => day.weekday != null)) {
-    const ordered = [...eligible].sort((a, b) => a.day.order - b.day.order);
-    const last = completed
-      .filter((session) => session.status === 'completed' && session.programId === graph.program.id)
-      .sort((a, b) => (b.endedAt ?? b.startedAt).localeCompare(a.endedAt ?? a.startedAt))[0];
-    const index = ordered.findIndex(({ day }) => day.id === last?.programDayId);
-    return ordered[(index + 1) % Math.max(1, ordered.length)] ?? null;
-  }
-  const today = (now.getDay() + 6) % 7;
-  const sameDate = (date: Date) => date.toDateString() === now.toDateString();
-  const distance = (entry: ProgramGraph['days'][number]) => {
-    if (entry.day.weekday == null) return 8;
-    const offset = (entry.day.weekday - today + 7) % 7;
-    const done = completed.some(
-      (session) =>
-        session.status === 'completed' &&
-        session.programDayId === entry.day.id &&
-        sameDate(new Date(session.endedAt ?? session.startedAt)),
-    );
-    return offset === 0 && done ? 7 : offset;
-  };
-  return (
-    [...eligible].sort((a, b) => distance(a) - distance(b) || a.day.order - b.day.order)[0] ?? null
-  );
+  const calendar = trainingCalendar(graph, completed, now);
+  return calendar.next?.entry ?? null;
 }
 
 export function compactPrescription(item: ProgramExercise) {

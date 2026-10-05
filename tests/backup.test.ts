@@ -148,6 +148,7 @@ describe('Liftwise backup and restore', () => {
       workoutSessions: current.data.workoutSessions.map((session) => {
         const legacy: Record<string, unknown> = { ...session };
         for (const key of [
+          'scheduledDate',
           'pausedAt',
           'pausedDurationSeconds',
           'currentExerciseId',

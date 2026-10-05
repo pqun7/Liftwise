@@ -24,15 +24,22 @@ export function WorkoutHistoryPage() {
     .filter(({ session }) => filter === 'All' || (session.name ?? 'Workout') === filter)
     .sort((a, b) =>
       order === 'newest'
-        ? b.session.startedAt.localeCompare(a.session.startedAt)
-        : a.session.startedAt.localeCompare(b.session.startedAt),
+        ? (b.session.endedAt ?? b.session.startedAt).localeCompare(
+            a.session.endedAt ?? a.session.startedAt,
+          )
+        : (a.session.endedAt ?? a.session.startedAt).localeCompare(
+            b.session.endedAt ?? b.session.startedAt,
+          ),
     );
   const groups = new Map<string, typeof workouts>();
   for (const graph of filtered) {
-    const month = new Date(graph.session.startedAt).toLocaleDateString(undefined, {
-      month: 'long',
-      year: 'numeric',
-    });
+    const month = new Date(graph.session.endedAt ?? graph.session.startedAt).toLocaleDateString(
+      undefined,
+      {
+        month: 'long',
+        year: 'numeric',
+      },
+    );
     const group = groups.get(month) ?? [];
     group.push(graph);
     groups.set(month, group);
@@ -106,7 +113,9 @@ export function WorkoutHistoryPage() {
                         {graph.session.name ?? 'Workout'}
                       </h3>
                       <p className="mt-1! type-caption text-secondary">
-                        {new Date(graph.session.startedAt).toLocaleDateString(undefined, {
+                        {new Date(
+                          graph.session.endedAt ?? graph.session.startedAt,
+                        ).toLocaleDateString(undefined, {
                           weekday: 'short',
                           month: 'short',
                           day: 'numeric',

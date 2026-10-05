@@ -36,7 +36,7 @@ describe('progress storage, export and compatibility', () => {
         reps: 8,
         completed: true,
       });
-      await repo.finish(session.id);
+      await repo.finish(session.id, new Date(Date.parse(date) + 3_600_000));
     }
     await repo.createSession();
     const progress = new ProgressRepository(db);

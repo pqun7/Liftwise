@@ -1,5 +1,6 @@
 import type { WorkoutExercise, WorkoutSession, WorkoutSet } from './entities';
 import { workoutElapsedSeconds } from './workoutTime';
+import { dateFromKey, localPeriodStart, weekStart } from './localCalendar';
 
 export interface AnalyticsWorkout {
   session: WorkoutSession;
@@ -28,15 +29,8 @@ export const ranges = ['7D', '1M', '3M', '6M', '1Y', 'ALL'] as const;
 export type DateRange = (typeof ranges)[number];
 export function rangeStart(range: DateRange, now = new Date()): string {
   if (range === 'ALL') return '0000-01-01T00:00:00.000Z';
-  if (range === '7D') return new Date(now.getTime() - 7 * 86400000).toISOString();
-  const result = new Date(now);
-  const day = result.getUTCDate();
-  result.setUTCDate(1);
-  result.setUTCMonth(result.getUTCMonth() - { '1M': 1, '3M': 3, '6M': 6, '1Y': 12 }[range]);
-  const lastDay = new Date(
-    Date.UTC(result.getUTCFullYear(), result.getUTCMonth() + 1, 0),
-  ).getUTCDate();
-  result.setUTCDate(Math.min(day, lastDay));
+  const result = dateFromKey(localPeriodStart(range, now));
+  result.setHours(0, 0, 0, 0);
   return result.toISOString();
 }
 export function qualifiedSet(set: WorkoutSet): boolean {
@@ -89,8 +83,9 @@ export function completedChronologically(
     .filter(({ session }) => session.status === 'completed')
     .sort(
       (a, b) =>
-        a.session.startedAt.localeCompare(b.session.startedAt) ||
-        a.session.id.localeCompare(b.session.id),
+        (a.session.endedAt ?? a.session.startedAt).localeCompare(
+          b.session.endedAt ?? b.session.startedAt,
+        ) || a.session.id.localeCompare(b.session.id),
     );
 }
 export function exercisePoints(workouts: readonly AnalyticsWorkout[], exerciseId: string) {
@@ -101,7 +96,7 @@ export function exercisePoints(workouts: readonly AnalyticsWorkout[], exerciseId
     return [
       {
         sessionId: graph.session.id,
-        date: graph.session.startedAt,
+        date: graph.session.endedAt ?? graph.session.startedAt,
         name: entries[0]!.exercise.exerciseName,
         sets,
         ...setMetrics(sets),
@@ -214,7 +209,7 @@ export function detectPrs(workouts: readonly AnalyticsWorkout[]): PrEvent[] {
             sessionId: graph.session.id,
             exerciseId,
             name: group.name,
-            date: graph.session.startedAt,
+            date: graph.session.endedAt ?? graph.session.startedAt,
             type: candidate.type,
             value: candidate.value,
             previous,
@@ -227,14 +222,12 @@ export function detectPrs(workouts: readonly AnalyticsWorkout[]): PrEvent[] {
   return events;
 }
 export function weeklySummary(workouts: readonly AnalyticsWorkout[], now = new Date()) {
-  const monday = new Date(now);
-  monday.setHours(0, 0, 0, 0);
-  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+  const monday = weekStart(now);
   const graphs = workouts.filter(
     ({ session }) =>
       session.status === 'completed' &&
-      Date.parse(session.startedAt) >= monday.getTime() &&
-      Date.parse(session.startedAt) <= now.getTime(),
+      Date.parse(session.endedAt ?? session.startedAt) >= monday.getTime() &&
+      Date.parse(session.endedAt ?? session.startedAt) <= now.getTime(),
   );
   const values = setMetrics(
     graphs.flatMap((graph) => graph.exercises.flatMap((entry) => entry.sets)),

@@ -27,7 +27,7 @@ export async function getHomeData(db: LiftwiseDatabase = database, now = new Dat
       db.catalogMetadata,
     ],
     async () => {
-      const [items, activeProgramId, active, history, latest, catalog] = await Promise.all([
+      const [items, activeProgramId, active, history, completed, catalog] = await Promise.all([
         programs.list(),
         programs.getActiveId(),
         workouts.getUnfinished(),
@@ -36,21 +36,16 @@ export async function getHomeData(db: LiftwiseDatabase = database, now = new Dat
           .where('[status+startedAt]')
           .between(['completed', ''], ['completed', now.toISOString()], true, true)
           .reverse()
-          .limit(3)
           .toArray(),
         db.catalogMetadata.get('repdb'),
       ]);
-      const [graphs, recent, lastPlanned] = await Promise.all([
+      const latest = completed
+        .filter((session) => Date.parse(session.endedAt ?? session.startedAt) <= now.getTime())
+        .sort((a, b) => (b.endedAt ?? b.startedAt).localeCompare(a.endedAt ?? a.startedAt));
+      const lastPlanned = latest.find((session) => session.programId === activeProgramId);
+      const [graphs, recent] = await Promise.all([
         Promise.all(items.filter(({ archived }) => !archived).map(({ id }) => programs.get(id))),
-        Promise.all(latest.map(({ id }) => workouts.get(id))),
-        activeProgramId
-          ? db.workoutSessions
-              .where('[status+startedAt]')
-              .between(['completed', ''], ['completed', now.toISOString()], true, true)
-              .reverse()
-              .filter((session) => session.programId === activeProgramId)
-              .first()
-          : undefined,
+        Promise.all(latest.slice(0, 3).map(({ id }) => workouts.get(id))),
       ]);
       const activeGraph = graphs.find((graph) => graph?.program.id === activeProgramId);
       const streak = await new ProgressRepository(db).streak(

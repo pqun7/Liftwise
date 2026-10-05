@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 import dumbbells from '../../assets/images/dumbbells.webp';
 import { countLabel, workoutCompletion } from '../../features/home/homeData';
 import type { WorkoutGraph } from '../../lib/storage/repositories/workoutRepository';
+import { sessionCalendarDate } from '../../domain/trainingCalendar';
+import { dateFromKey } from '../../domain/localCalendar';
 
 export function ActiveWorkoutCard({ workout }: { workout: WorkoutGraph }) {
   const completion = workoutCompletion(workout);
@@ -33,7 +35,15 @@ export function ActiveWorkoutCard({ workout }: { workout: WorkoutGraph }) {
           {status}
         </p>
         <p className="sr-only">Unfinished workout found</p>
-        <h2 id="home-active-title">{workout.session.name ?? 'Quick Workout'}</h2>
+        <h2 id="home-active-title">Resume {workout.session.name ?? 'Quick Workout'}</h2>
+        <p className="home-hero-meta">
+          Active session · Started{' '}
+          {dateFromKey(sessionCalendarDate(workout.session)).toLocaleDateString(undefined, {
+            weekday: 'long',
+            month: 'short',
+            day: 'numeric',
+          })}
+        </p>
         <p className="home-hero-meta">
           {completion.completedExercises} of {countLabel(completion.exercises, 'exercise')} ·{' '}
           {countLabel(completion.remainingSets, 'set')} left

@@ -38,7 +38,7 @@ test('Workout keeps one thumb action clear of navigation across mobile widths', 
     await logger.getByRole('button', { name: 'Complete set', exact: true }).click();
     if (number < 3) {
       await expect(page.getByRole('region', { name: 'Rest timer' })).toBeVisible();
-      await page.getByRole('button', { name: `Start Set ${number + 1}`, exact: true }).click();
+      await page.getByRole('button', { name: `Start Set ${number + 1} now`, exact: true }).click();
     } else await expect(page.getByRole('region', { name: 'Exercise complete' })).toBeVisible();
   }
   await page.getByRole('button', { name: 'Next Exercise' }).click();
