@@ -6,25 +6,43 @@ export function UnsavedChanges({
   saving,
   onDiscard,
   committedNavigation,
+  pendingSave,
 }: {
   dirty: boolean;
   saving: boolean;
   onDiscard?: () => void;
   committedNavigation?: RefObject<boolean>;
+  pendingSave?: { unsettled: boolean; flush: () => Promise<void> };
 }) {
   // A successful save may navigate before React commits the saving/dirty state.
-  const blocker = useBlocker(() => dirty && !saving && !committedNavigation?.current);
+  const blocker = useBlocker(
+    () => ((dirty && !saving) || Boolean(pendingSave?.unsettled)) && !committedNavigation?.current,
+  );
   const dialog = useRef<HTMLDialogElement>(null);
   useBeforeUnload((event) => {
-    if (dirty && !saving && !committedNavigation?.current) {
+    if ((dirty || pendingSave?.unsettled) && !committedNavigation?.current) {
       event.preventDefault();
       event.returnValue = '';
     }
   });
   useEffect(() => {
+    if (blocker.state === 'blocked' && !dirty && pendingSave) {
+      let current = true;
+      void pendingSave
+        .flush()
+        .then(() => {
+          if (current) blocker.proceed();
+        })
+        .catch(() => {
+          if (current) blocker.reset();
+        });
+      return () => {
+        current = false;
+      };
+    }
     if (blocker.state === 'blocked') dialog.current?.showModal();
     else dialog.current?.close();
-  }, [blocker.state]);
+  }, [blocker, dirty, pendingSave]);
   return (
     <dialog
       ref={dialog}
@@ -53,8 +71,16 @@ export function UnsavedChanges({
           onClick={() => {
             dialog.current?.close();
             if (blocker.state === 'blocked') {
-              onDiscard?.();
-              blocker.proceed();
+              const proceed = () => {
+                onDiscard?.();
+                blocker.proceed();
+              };
+              if (pendingSave?.unsettled)
+                void pendingSave
+                  .flush()
+                  .then(proceed)
+                  .catch(() => blocker.reset());
+              else proceed();
             }
           }}
         >

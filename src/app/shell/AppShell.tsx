@@ -23,6 +23,12 @@ export function AppShell() {
   const home = pathname === '/';
   const plan = pathname === '/plan' || pathname.startsWith('/plan/');
   const progress = pathname === '/progress' || pathname.startsWith('/progress/');
+  const creating = useMatches().some(({ data }) =>
+    Boolean(
+      (data as { graph?: { program?: { draft?: boolean } } } | undefined)?.graph?.program?.draft,
+    ),
+  );
+  const builder = pathname === '/plan/new' || /\/build\//.test(pathname) || creating;
   const focused = useMatches().some(({ data }) => {
     const status = (data as { workout?: { session?: { status?: string } } } | undefined)?.workout
       ?.session?.status;
@@ -68,7 +74,7 @@ export function AppShell() {
         </Suspense>
       </main>
 
-      {!focused ? <BottomNavigation /> : null}
+      {!focused && !builder ? <BottomNavigation /> : null}
 
       <ScrollRestoration />
     </div>

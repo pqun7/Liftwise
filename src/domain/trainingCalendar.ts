@@ -45,7 +45,7 @@ export function trainingCalendar(
     (session) =>
       session.status === 'completed' &&
       session.programDayId === scheduledToday?.day.id &&
-      localDateKey(new Date(session.endedAt ?? session.startedAt)) === today &&
+      sessionCalendarDate(session) === today &&
       Date.parse(session.endedAt ?? session.startedAt) <= now.getTime(),
   );
   return {

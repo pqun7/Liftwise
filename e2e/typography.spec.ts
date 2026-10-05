@@ -45,7 +45,7 @@ async function review(page: Page, info: TestInfo, screen: string, branded = fals
       expect(await logo.evaluate((el) => (el as HTMLImageElement).naturalWidth)).toBe(617);
       const box = await logo.boundingBox();
       expect(box!.width / box!.height).toBeCloseTo(617 / 230, 2);
-      expect(box!.width).toBeCloseTo(104, 0);
+      await expect.poll(async () => (await logo.boundingBox())!.width).toBeCloseTo(152, 0);
     } else await expect(page.locator('.app-wordmark')).toHaveCount(0);
     await page.screenshot({ path: info.outputPath(`${screen}-${width}.png`), fullPage: true });
   }
@@ -223,7 +223,7 @@ test('one local font family, original wordmark, long names, stable numbers and w
     [...fontRequests].every((url) => /\/assets\/Manrope-(400|500|600|700|800)-/.test(url)),
   ).toBe(true);
   await page.goto(`/plan/${ids.programId}`);
-  await expect(page.getByRole('heading', { name: 'Edit Program', exact: true })).toBeVisible({
+  await expect(page.getByRole('heading', { name: programName, exact: true })).toBeVisible({
     timeout: 20_000,
   });
   await review(page, info, 'program');

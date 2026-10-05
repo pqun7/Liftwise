@@ -8,11 +8,12 @@ test('Workout keeps one thumb action clear of navigation across mobile widths', 
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/plan/new');
   await page.getByLabel('Program name').fill('Workout quality');
-  await page.getByRole('button', { name: 'Next: Choose Days' }).click();
+  await page.getByRole('button', { name: 'Next: Schedule' }).click();
   await page.getByRole('button', { name: /Upper.*Lower/ }).click();
-  await page.getByRole('button', { name: 'Use This Template' }).click();
+  await page.getByRole('button', { name: 'Next: Exercises' }).click();
+  await page.getByRole('button', { name: 'Next: Review', exact: true }).click();
   await page.getByRole('button', { name: 'Save Program', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Saved', exact: true })).toBeVisible();
+  await expect(page.getByText('✓ Saved', { exact: true })).toBeVisible();
   await page.goto('/workout');
   await page.getByRole('button', { name: 'Upper A', exact: true }).click();
   const start = page.getByRole('button', { name: 'Start Workout', exact: true });

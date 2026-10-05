@@ -8,7 +8,7 @@ import {
   useSearchParams,
 } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
-import type { Exercise } from '../../domain/entities';
+import type { Exercise, Program } from '../../domain/entities';
 import type { ProgramGraph } from '../../lib/storage/repositories/programRepository';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
@@ -18,7 +18,10 @@ import { ProgramWorkoutDay } from './ProgramWorkoutDay';
 import { WeeklySchedule } from './WeeklySchedule';
 import { chronologicalDays, compactPrescription } from './programDisplay';
 import { UnsavedChanges } from './UnsavedChanges';
-import { programBuilder, weekdays } from './builderService';
+import { weekdays } from './builderService';
+import { BuilderHeader } from './BuilderChrome';
+import { useProgramAutosave } from './useProgramAutosave';
+import { SegmentedSelector } from './BuilderChrome';
 import {
   createProgramDay,
   deleteProgram,
@@ -29,6 +32,11 @@ import {
 } from './programService';
 
 export function ProgramDetailPage() {
+  const { graph } = useLoaderData<{ graph: ProgramGraph }>();
+  return <ProgramEditor key={graph.program.id} />;
+}
+
+function ProgramEditor() {
   const { graph, activeProgramId, catalog } = useLoaderData<{
     graph: ProgramGraph;
     activeProgramId: string | null;
@@ -45,6 +53,9 @@ export function ProgramDetailPage() {
         ? 'Preview'
         : 'Schedule';
   const revalidator = useRevalidator();
+  const autosave = useProgramAutosave(() => {
+    void revalidator.revalidate();
+  });
   const pending = useRef(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,12 +69,16 @@ export function ProgramDetailPage() {
   const [info, setInfo] = useState(false);
   const [name, setName] = useState(program.name);
   const [description, setDescription] = useState(program.description ?? '');
+  const [goal, setGoal] = useState<NonNullable<Program['goal']>>(program.goal ?? 'general');
+  const [level, setLevel] = useState<NonNullable<Program['level']>>(
+    program.level ?? 'intermediate',
+  );
   const catalogById = useMemo(
     () => new Map(catalog.map((exercise) => [exercise.id, exercise])),
     [catalog],
   );
   const canLeave = () => {
-    if (busy) return false;
+    if (busy || autosave.unsettled) return false;
     if (!dirty) return true;
     if (!window.confirm('Discard changes? Choose Cancel to keep editing.')) return false;
     setDirty(false);
@@ -77,6 +92,7 @@ export function ProgramDetailPage() {
     setBusy(true);
     setError(null);
     try {
+      await autosave.flush();
       await action();
       await revalidator.revalidate();
       return true;
@@ -114,29 +130,53 @@ export function ProgramDetailPage() {
   };
   const count = days.reduce((total, day) => total + day.exercises.length, 0);
   return (
-    <section className="plan-experience grid gap-4 pb-28" aria-labelledby="program-title">
+    <section
+      className={`plan-experience grid gap-4 pb-28 ${program.draft ? 'builder-editor' : ''}`}
+      aria-labelledby="program-title"
+    >
       <UnsavedChanges
         dirty={dirty}
         saving={false}
+        pendingSave={autosave}
         onDiscard={() => {
           setDirty(false);
           setInfo(false);
           setEditRevision((value) => value + 1);
         }}
       />
-      <header className="plan-editor-header">
-        <Link to="/plan" aria-label="Back to Programs">
-          <ChevronLeft size={22} />
-        </Link>
-        <h1 id="program-title">Edit Program</h1>
-        <button
-          aria-label="Program options"
-          disabled={busy}
-          onClick={() => void setParams({ tab: 'settings' })}
-        >
-          <MoreHorizontal size={20} />
-        </button>
-      </header>
+      {program.draft ? (
+        <BuilderHeader
+          title="Exercises"
+          back="/plan"
+          backLabel="Back to Programs"
+          step={2}
+          programId={program.id}
+        />
+      ) : (
+        <header className="plan-editor-header">
+          <Link to="/plan" aria-label="Back to Programs">
+            <ChevronLeft size={22} />
+          </Link>
+          <div>
+            <h1 id="program-title">{program.name}</h1>
+            <p className="text-xs text-secondary capitalize">
+              {days.length} days · {program.goal ?? 'General'}
+            </p>
+          </div>
+          <button
+            aria-label="Program options"
+            disabled={busy}
+            onClick={() => void setParams({ tab: 'settings' })}
+          >
+            <MoreHorizontal size={20} />
+          </button>
+        </header>
+      )}
+      {program.draft ? (
+        <h1 id="program-title" className="sr-only">
+          {program.name} exercises
+        </h1>
+      ) : null}
       <div className="plan-tabs" role="group" aria-label="Editor view">
         {(['Schedule', 'Settings', 'Preview'] as const).map((label) => (
           <button
@@ -152,9 +192,14 @@ export function ProgramDetailPage() {
           </button>
         ))}
       </div>
-      {error ? (
-        <p role="alert" className="rounded-xl bg-surface-2 p-3 text-sm text-secondary">
-          {error}
+      {error || autosave.error ? (
+        <p
+          id="program-save-error"
+          role="alert"
+          className="rounded-xl bg-surface-2 p-3 text-sm text-secondary"
+        >
+          {error ?? autosave.error}
+          {autosave.error ? <Button onClick={autosave.retry}>Retry save</Button> : null}
         </p>
       ) : null}
       {tab === 'Schedule' ? (
@@ -187,39 +232,53 @@ export function ProgramDetailPage() {
                 className="grid gap-3 pt-3"
                 onSubmit={(event) => {
                   event.preventDefault();
-                  void run(() =>
-                    updateProgram(program.id, { name, description: description.trim() || null }),
-                  ).then((ok) => {
-                    if (ok) {
-                      setInfo(false);
-                      setDirty(false);
-                    }
-                  });
+                  void autosave
+                    .flush()
+                    .then(() => setInfo(false))
+                    .catch(() => {});
                 }}
               >
                 <label className="grid gap-1 text-sm">
                   Program name
                   <Input
                     required
+                    disabled={busy}
+                    maxLength={120}
+                    aria-invalid={!name.trim()}
+                    aria-describedby={autosave.error ? 'program-save-error' : undefined}
                     value={name}
                     onChange={(event) => {
-                      setName(event.target.value);
-                      setDirty(true);
+                      const value = event.target.value;
+                      setName(value);
+                      autosave.save('name', () =>
+                        value.trim()
+                          ? updateProgram(program.id, { name: value })
+                          : Promise.reject(new Error('Enter a program name.')),
+                      );
                     }}
                   />
                 </label>
                 <label className="grid gap-1 text-sm">
                   Description or notes
                   <Textarea
+                    disabled={busy}
+                    maxLength={2000}
                     value={description}
                     onChange={(event) => {
-                      setDescription(event.target.value);
-                      setDirty(true);
+                      const value = event.target.value;
+                      setDescription(value);
+                      autosave.save('description', () =>
+                        updateProgram(program.id, { description: value.trim() || null }),
+                      );
                     }}
                   />
                 </label>
-                <Button type="submit" disabled={busy} variant="primary">
-                  {busy ? 'Saving…' : 'Save program info'}
+                <Button
+                  type="submit"
+                  disabled={autosave.pending || Boolean(autosave.error)}
+                  variant="primary"
+                >
+                  Done editing
                 </Button>
               </form>
             ) : null}
@@ -288,7 +347,8 @@ export function ProgramDetailPage() {
           </Button>
           {days.length >= 7 ? (
             <p className="text-xs text-secondary">
-              All seven training-day slots are used. Change or delete a day to free a slot.
+              All 7 days are already part of this weekly schedule. Change or delete a day to free a
+              slot. Additional sessions can still be logged separately.
             </p>
           ) : null}
           {adding ? (
@@ -354,6 +414,24 @@ export function ProgramDetailPage() {
         <Card className="grid gap-3">
           <h2 className="font-bold">Program settings</h2>
           <h3 className="text-sm font-semibold">{program.name}</h3>
+          <SegmentedSelector
+            legend="Goal"
+            options={['strength', 'hypertrophy', 'general'] as const}
+            value={goal}
+            onChange={(value) => {
+              setGoal(value);
+              autosave.save('goal', () => updateProgram(program.id, { goal: value }));
+            }}
+          />
+          <SegmentedSelector
+            legend="Training experience"
+            options={['beginner', 'intermediate', 'advanced'] as const}
+            value={level}
+            onChange={(value) => {
+              setLevel(value);
+              autosave.save('level', () => updateProgram(program.id, { level: value }));
+            }}
+          />
           {activeProgramId === program.id ? <p className="text-xs text-secondary">Active</p> : null}
           <Link className={buttonClasses('secondary')} to={`/plan/${program.id}/edit`}>
             Edit program details
@@ -431,18 +509,22 @@ export function ProgramDetailPage() {
       <div className="plan-save-bar">
         <Button
           variant="primary"
-          disabled={busy || !program.draft || !days.length || dirty}
+          disabled={busy || autosave.unsettled || dirty || (program.draft && !days.length)}
           className="w-full min-h-12"
-          onClick={() => void run(() => programBuilder.finish(program.id))}
+          onClick={() =>
+            void navigate(program.draft ? `/plan/${program.id}/build/review` : '/plan')
+          }
         >
-          {busy ? 'Saving…' : program.draft ? 'Save Program' : 'Saved'}
+          {busy || autosave.pending ? 'Saving…' : program.draft ? 'Next: Review' : 'Done'}
         </Button>
         <p role="status">
-          {error
-            ? 'Could not save. Try again.'
-            : dirty
-              ? 'Unsaved edits · finish editing to save'
-              : 'Changes are saved locally as you edit.'}
+          {error || autosave.error
+            ? 'Save failed — Retry'
+            : busy || autosave.pending
+              ? 'Saving…'
+              : dirty
+                ? 'Unsaved edits · finish editing to save'
+                : '✓ Saved'}
         </p>
       </div>
     </section>

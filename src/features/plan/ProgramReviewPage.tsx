@@ -1,7 +1,7 @@
 import { MobilePage } from '../../components/layout/MobilePage';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, useLoaderData, useNavigate } from 'react-router-dom';
 import type { ProgramGraph } from '../../lib/storage/repositories/programRepository';
 import { BuilderHeader, BuilderFooter } from './BuilderChrome';
@@ -15,14 +15,18 @@ export function ProgramReviewPage() {
   const first = graph.days[0]?.day;
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
+  const pending = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const save = async () => {
+    if (pending.current) return;
+    pending.current = true;
     setBusy(true);
     setError(null);
     try {
       await programBuilder.finish(graph.program.id);
       await navigate(`/plan/${graph.program.id}`, { replace: true });
     } catch {
+      pending.current = false;
       setError('The program could not be finalized. Your saved draft is still available.');
     } finally {
       setBusy(false);
