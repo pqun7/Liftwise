@@ -16,7 +16,7 @@ export function HomeHeader({ greeting, active }: { greeting: string; active: boo
         <div className="home-greeting">
           <p>{greeting}</p>
           <h1>
-            Welcome to Liftwise <span aria-hidden="true">👋</span>
+            Welcome to Liftwise
           </h1>
         </div>
       )}

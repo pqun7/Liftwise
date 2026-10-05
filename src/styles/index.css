@@ -15,6 +15,7 @@
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'Manrope';
   src: url('../assets/fonts/Manrope-500.woff2') format('woff2');
@@ -22,6 +23,7 @@
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'Manrope';
   src: url('../assets/fonts/Manrope-600.woff2') format('woff2');
@@ -29,6 +31,7 @@
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'Manrope';
   src: url('../assets/fonts/Manrope-700.woff2') format('woff2');
@@ -36,6 +39,7 @@
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'Manrope';
   src: url('../assets/fonts/Manrope-800.woff2') format('woff2');
@@ -59,6 +63,7 @@
   --color-muted: var(--text-muted);
   --color-border: var(--border-default);
 }
+
 @layer base {
   :root {
     --app-bg: #03110f;
@@ -117,21 +122,25 @@
     font-variant-numeric: tabular-nums;
     background: var(--app-bg);
   }
+
   html,
   body {
     background: var(--app-bg);
   }
+
   body {
     font-size: var(--type-size-body);
     line-height: var(--type-leading-body);
     font-weight: var(--fw-regular);
   }
+
   button,
   input,
   textarea,
   select {
     font: inherit;
   }
+
   button,
   .primary-action,
   .secondary-action,
@@ -143,28 +152,33 @@
     font-weight: var(--fw-semibold);
     line-height: var(--type-leading-heading);
   }
+
   input,
   textarea,
   select {
     font-size: max(1rem, 16px);
     font-weight: var(--fw-regular);
   }
+
   h1 {
     font-size: var(--type-size-page);
     line-height: var(--type-leading-heading);
     font-weight: var(--fw-bold);
     letter-spacing: var(--type-tracking-tight);
   }
+
   h2 {
     font-size: var(--type-size-section);
     line-height: var(--type-leading-heading);
     font-weight: var(--fw-bold);
   }
+
   h3 {
     font-size: var(--type-size-card);
     line-height: var(--type-leading-heading);
     font-weight: var(--fw-semibold);
   }
+
   :focus-visible {
     outline-color: var(--mint);
   }
@@ -258,7 +272,7 @@
 
 .app-wordmark {
   display: block;
-  width: 6.5rem;
+  width: 9.5rem;
   height: auto;
   max-width: 100%;
   flex-shrink: 0;
