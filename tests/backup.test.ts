@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { APP_VERSION } from '../src/app/version';
 
 import { BackupService } from '../src/features/dataSafety/backupService';
 import { sha256, withoutChecksum } from '../src/lib/backup/checksum';
@@ -90,7 +91,7 @@ describe('Liftwise backup and restore', () => {
       application: 'liftwise',
       backupVersion: 2,
       schemaVersion: 6,
-      appVersion: '1.0.0',
+      appVersion: APP_VERSION,
       createdAt: '2026-10-01T12:00:00.000Z',
     });
     expect(backup.checksum).toMatch(/^[0-9a-f]{64}$/);

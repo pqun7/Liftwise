@@ -11,7 +11,7 @@
 ## Compatibility and verification
 
 - Application and package version: 1.1.0; no separate native build number. Database schema, historical migrations, backup versions, exercise IDs, fonts and dependencies are unchanged.
-- 211 unit/integration tests across 34 files cover existing compatibility and new ordered saves, retry, real database reopening, template rollback, eight weekly sessions and programs with up to seven days and 100 exercises per day.
+- 212 unit/integration tests across 35 files cover existing compatibility and new ordered saves, retry, real database reopening, template rollback, eight weekly sessions, programs with up to seven days and 100 exercises per day, and consistent package/application version metadata.
 - Final local gate (2026-10-05): formatter, lint, typecheck, unit/integration tests and deployment build passed. The complete browser suite passed 51 tests with three existing intentional skips in 5.9 minutes. Workbox precaches 69 entries (4142.48 KiB); initial JavaScript is 631.27 kB (194.38 kB gzip).
 - Browser coverage uses production builds in WebKit with iPhone emulation and Chrome. It includes creation/review, templates, editing, reload/resume, backup/restore, offline caching, calendar/timezones, typography, 200% text, 320–430px layouts and 44px weekday targets. Existing intentional project-specific skips remain.
 - Run the complete formatter, lint, typecheck, test, deployment build and browser gates before merging. The existing GitHub Actions workflow uploads `production-build`; the Git-integrated Vercel project publishes `main`. Confirm the resulting deployment commit and live application version before reporting publication.

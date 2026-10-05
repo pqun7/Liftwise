@@ -5,6 +5,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
 import { routeObjects } from '../src/app/router';
+import { APP_VERSION } from '../src/app/version';
 import { AppRouteError } from '../src/app/shell/AppRouteError';
 
 vi.mock('virtual:pwa-register/react', () => ({
@@ -71,7 +72,7 @@ describe('Liftwise app shell', () => {
     expect(
       await screen.findByRole('heading', { name: /make liftwise yours/i }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Liftwise v1.0.0' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: `Liftwise v${APP_VERSION}` })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Open Data Safety' })).toHaveAttribute(
       'href',
       '/settings/data-safety',
