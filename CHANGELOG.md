@@ -12,6 +12,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Program editor with ordered autosave, truthful Saving/Saved/error status, failed-save retry and navigation protection. Seven-day limits, explicit replacement confirmation and existing exercise management remain enforced.
 - Empty-program and empty-workout recovery, scheduled/rest/completed/resume states, correct next-workout dates and restored recent history. Sessions crossing midnight retain their assigned date.
 - Regression fixes for deferred weekday/move dropdowns and narrow Progress headers; mobile touch targets and safe-area spacing preserved.
+- Vercel SPA fallback allows direct app links and fresh-browser reloads instead of returning deployment 404 pages.
 - Added autosave, schedule/history, transactional template, scale/reopen and browser regression coverage. No schema, backup format, dependency or font changes.
 
 ### Program-first workflow

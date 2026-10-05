@@ -7,6 +7,7 @@
 - Workout entry distinguishes scheduled, rest, completed, active, no-program and empty-day states. Empty days open exercise management; starting and resuming use the existing session engine. Recent history is visible again.
 - Completed sessions use their assigned date across midnight. Extra sessions, repeated Sunday workouts and reopening never rewrite the weekly program.
 - Deferred editor selections are captured before awaiting autosave. Progress metric-grid styles no longer squeeze its header at narrow widths.
+- Vercel now falls back to the app entry point for client routes. Fresh direct links such as `/settings`, `/plan` and `/workout` work without a previously cached service worker.
 
 ## Compatibility and verification
 
