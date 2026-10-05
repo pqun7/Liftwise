@@ -138,13 +138,14 @@ export function ProgramWorkoutDay({
                   aria-label={`Weekday for ${day.name}`}
                   disabled={busy}
                   value={day.weekday ?? ''}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    const value = event.target.value;
                     void run(() =>
                       updateProgramDay(day.id, {
-                        weekday: event.target.value === '' ? null : Number(event.target.value),
+                        weekday: value === '' ? null : Number(value),
                       }),
-                    )
-                  }
+                    );
+                  }}
                 >
                   <option value="">Unscheduled</option>
                   {weekdays.map((weekday, index) => {
@@ -266,11 +267,12 @@ export function ProgramWorkoutDay({
                               disabled={busy}
                               value=""
                               onChange={(event) => {
-                                if (event.target.value && canLeave())
+                                const destination = event.target.value;
+                                if (destination && canLeave())
                                   void run(() =>
                                     transferPrescription(
                                       prescription.id,
-                                      event.target.value,
+                                      destination,
                                       operation === 1,
                                     ),
                                   );

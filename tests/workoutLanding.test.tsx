@@ -146,10 +146,26 @@ it('does not write when start fails and permits retry without losing programs', 
   expect(await db.programs.get(program.id)).toBeDefined();
 });
 
+it('offers exercise editing for an empty scheduled day without starting an empty session', async () => {
+  const { db, programs, day } = await fixture();
+  const graph = (await programs.get(day.programId))!;
+  await programs.deleteExercise(graph.days[0]!.exercises[0]!.id);
+  const data = await getWorkoutLanding(db, now);
+  expect(data).toMatchObject({ state: 'empty-workout', todayDayId: day.id });
+  await renderLanding(data);
+  expect(screen.getByText("This workout doesn't have any exercises yet.")).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Add Exercises' })).toHaveAttribute(
+    'href',
+    `/plan/${day.programId}/days/${day.id}/exercises`,
+  );
+  expect(screen.queryByRole('button', { name: 'Start Workout' })).toBeNull();
+  expect(await db.workoutSessions.count()).toBe(0);
+});
+
 it('renders a calm rest day and keeps optional training an explicit choice', async () => {
   const { db } = await fixture();
   await renderLanding(await getWorkoutLanding(db, new Date(2026, 9, 8, 12)));
-  expect(screen.getByRole('heading', { name: 'No workout today' })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Rest day' })).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Start Workout' })).toBeNull();
   expect(screen.getByText('Next: Push · Wednesday')).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Push' }));

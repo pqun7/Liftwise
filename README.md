@@ -12,9 +12,9 @@ It helps you organize exercises and training programs while keeping your persona
 - Works offline after the required files are loaded
 - Installable on the iPhone Home Screen
 
-> **Release preparation:** v1.0.0 (physical-iPhone acceptance and gym-soak sign-off pending; not yet signed off as stable)
+> **Version:** v1.1.0 — Program Builder and Workout redesign. Physical-iPhone acceptance and gym-soak testing remain unverified.
 
-See [v1.0 release notes](docs/RELEASE_NOTES_v1.0.0.md) for verification scope and outstanding device acceptance.
+See [v1.1 release notes](docs/RELEASE_NOTES_v1.1.0.md) for verification scope and device limitations.
 
 ---
 
@@ -26,7 +26,7 @@ See [v1.0 release notes](docs/RELEASE_NOTES_v1.0.0.md) for verification scope an
 - Select dates to inspect this week's real completed sessions; view weekly progress, recent workouts and your programs.
 - Use the compact, photo-backed mobile layout offline. More in the bottom navigation opens Settings.
 
-Program days may record intended weekdays. Home still shows next-in-program suggestions rather than a date-aware calendar schedule, fabricated workout goals or duration estimates.
+Scheduled programs follow their assigned weekdays. Programs without weekdays retain next-in-program rotation. Completed sessions keep their assigned calendar date, including workouts that cross midnight.
 
 ### Exercise Library
 

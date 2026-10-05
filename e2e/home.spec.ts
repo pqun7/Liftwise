@@ -82,7 +82,7 @@ test('Home adapts to local program, active workout and rest states with cached p
   const notToday = days.locator('button:not([aria-pressed=true])').first();
   await notToday.click();
   await expect(page.locator('[data-home-state=rest-day]')).toBeVisible();
-  await expect(page.getByText('No workouts recorded or scheduled for this date.')).toBeVisible();
+  await expect(page.getByText('No workouts recorded for this date.')).toBeVisible();
   await today.click();
   await expect(page.locator('[data-home-state=scheduled]')).toBeVisible();
   await page.setViewportSize({ width: 1024, height: 900 });

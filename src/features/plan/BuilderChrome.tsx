@@ -4,19 +4,21 @@ import { Check, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
 
-const labels = ['Basic Info', 'Days', 'Exercises', 'Review'];
+const labels = ['Basics', 'Schedule', 'Exercises', 'Review'];
 export function BuilderHeader({
   title,
   back,
   step,
   programId,
   exercisesPath,
+  backLabel = 'Back',
 }: {
   title: string;
   back: string;
   step?: number;
   programId?: string;
   exercisesPath?: string;
+  backLabel?: string;
 }) {
   const paths = programId
     ? [
@@ -29,7 +31,7 @@ export function BuilderHeader({
   return (
     <>
       <header className="builder-header">
-        <Link to={back} aria-label="Back" className={iconButtonClasses()}>
+        <Link to={back} aria-label={backLabel} className={iconButtonClasses()}>
           <ArrowLeft size={20} aria-hidden="true" />
         </Link>
         <h1>{title}</h1>

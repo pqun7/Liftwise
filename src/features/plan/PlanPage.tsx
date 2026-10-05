@@ -10,6 +10,7 @@ import { estimatedProgramMinutes } from './programDisplay';
 import { trainingCalendar } from '../../domain/trainingCalendar';
 import { WeeklySchedule } from './WeeklySchedule';
 import type { ProgramListData } from './programService';
+import dumbbells from '../../assets/images/dumbbells.webp';
 
 export function PlanPage() {
   const {
@@ -185,16 +186,24 @@ export function PlanPage() {
           </Card>
         </>
       ) : (
-        <Card className="grid gap-3">
-          <h2 className="text-lg font-bold">Build your training week</h2>
+        <Card className="plan-empty grid gap-4">
+          {!programs.length ? <img src={dumbbells} alt="" className="plan-empty-image" /> : null}
+          <h2 className="text-lg font-bold">
+            {programs.length ? 'Choose your training program' : 'Build your training week'}
+          </h2>
           <p className="text-sm text-secondary">
             {programs.length
               ? 'Choose a program and set it active to see your next workout.'
-              : 'Create your first plan. Your programs stay on this device.'}
+              : 'Create your first plan with guided templates. Fully editable and saved on this device.'}
           </p>
           <Link className={buttonClasses('primary')} to="/plan/new">
             Create program
           </Link>
+          {!programs.length ? (
+            <p className="text-xs text-secondary">
+              Templates · Fully editable · Stored on this device
+            </p>
+          ) : null}
         </Card>
       )}
       {programs

@@ -1,4 +1,64 @@
 /* Program Builder uses the existing mobile shell, Home tokens and navigation. */
+.plan-empty-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 18px;
+  mask-image: linear-gradient(black 70%, transparent);
+}
+.schedule-template {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-height: 92px;
+  padding: 16px;
+  text-align: left;
+  color: var(--home-text);
+  background: var(--home-surface);
+  border: 1px solid var(--home-border);
+  border-radius: 18px;
+}
+.schedule-template > svg {
+  flex-shrink: 0;
+}
+.schedule-template > span:first-of-type {
+  flex: 1;
+  min-width: 150px;
+}
+.schedule-template strong,
+.schedule-template small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.schedule-template small {
+  color: var(--home-secondary);
+  margin-top: 4px;
+  font-size: 13px;
+}
+.schedule-template[aria-pressed='true'] {
+  border-color: var(--home-mint);
+  background: rgb(73 224 180 / 7%);
+}
+.schedule-template[aria-pressed='true'] > svg {
+  color: var(--home-mint);
+}
+.schedule-recommended {
+  color: var(--home-mint);
+  font-size: 12px;
+}
+.schedule-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(44px, 1fr));
+  gap: 4px;
+  overflow-x: auto;
+  padding-block: 3px;
+  min-width: 0;
+  scroll-padding-inline: 3px;
+}
+.builder-editor .plan-save-bar {
+  bottom: calc(16px + var(--safe-bottom));
+}
 .builder-card.builder-days-card {
   padding: 12px;
 }

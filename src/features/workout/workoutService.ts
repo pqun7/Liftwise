@@ -20,6 +20,8 @@ export interface WorkoutLandingData {
   state: WorkoutLandingState;
   todayDayId: string | null;
   nextDayId: string | null;
+  nextDate?: string | null;
+  todayDate?: string;
   completedToday: WorkoutListSummary | null;
   previews: { day: ProgramDay; entries: WorkoutPreviewEntry[] }[];
   unfinished: WorkoutRecoverySummary | null;
@@ -83,7 +85,9 @@ export async function getWorkoutLanding(
   const derived = deriveWorkoutLanding(home, now);
   const catalog = new ExerciseRepository(db);
   const history = new WorkoutRepository(db);
-  const activeGraph = home.programs.find(({ program }) => program.id === home.activeProgramId);
+  const activeGraph = home.programs.find(
+    ({ program }) => program.id === home.activeProgramId && !program.draft && !program.archived,
+  );
   const summarize = (graph: WorkoutGraph): WorkoutListSummary => {
     const sets = graph.exercises.flatMap(({ sets }) => sets);
     return {
@@ -95,27 +99,27 @@ export async function getWorkoutLanding(
     };
   };
   const previews = await Promise.all(
-    (activeGraph?.days.filter(({ exercises }) => exercises.length > 0) ?? []).map(
-      async ({ day, exercises: prescriptions }) => ({
-        day,
-        entries: await Promise.all(
-          prescriptions.map(async (prescription) => ({
-            prescription,
-            exercise: (await catalog.get(prescription.exerciseId)) ?? null,
-            previous:
-              (await history.getPreviousCompletedExercise(
-                prescription.exerciseId,
-                now.toISOString(),
-              )) ?? null,
-          })),
-        ),
-      }),
-    ),
+    (activeGraph?.days ?? []).map(async ({ day, exercises: prescriptions }) => ({
+      day,
+      entries: await Promise.all(
+        prescriptions.map(async (prescription) => ({
+          prescription,
+          exercise: (await catalog.get(prescription.exerciseId)) ?? null,
+          previous:
+            (await history.getPreviousCompletedExercise(
+              prescription.exerciseId,
+              now.toISOString(),
+            )) ?? null,
+        })),
+      ),
+    })),
   );
   return {
     state: derived.state,
     todayDayId: derived.todayDayId,
     nextDayId: derived.nextDayId,
+    nextDate: derived.nextDate,
+    todayDate: home.today,
     completedToday: derived.completedToday ? summarize(derived.completedToday) : null,
     previews,
     unfinished: home.active ? recoverySummary(home.active) : null,

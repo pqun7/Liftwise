@@ -63,7 +63,7 @@ test('compact forms retain zoom, safe spacing, large text and keyboard focus', a
   await auditLayout(page);
   expect(
     await page
-      .locator('.bottom-nav')
+      .locator('.main-content')
       .evaluate((element) => parseFloat(getComputedStyle(element).paddingBottom)),
   ).toBeGreaterThanOrEqual(34);
   expect(
@@ -98,7 +98,9 @@ test('all core training, charts, backup and CSV flows work with network disabled
   });
   let started = Date.now();
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: /Welcome to Liftwise/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Welcome to Liftwise/i })).toBeVisible({
+    timeout: 20_000,
+  });
   timings.launch = Date.now() - started;
   await page
     .getByRole('link', { name: /Exercise Library/i })

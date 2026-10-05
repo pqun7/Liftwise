@@ -110,9 +110,21 @@ export class ProgramBuilderService {
     );
   }
 
-  async applyTemplate(programId: string, templateId: ProgramTemplateId, replace = false) {
+  async applyTemplate(
+    programId: string,
+    templateId: ProgramTemplateId,
+    replace = false,
+    selected?: number[],
+  ) {
     const template = programTemplates.find((item) => item.id === templateId);
     if (!template) throw new Error('Unknown template.');
+    const ordered = daysInput
+      .parse(selected ?? template.days.map(({ weekday }) => weekday))
+      .sort((a, b) => a - b);
+    const sources = ordered.map((weekday, index) => ({
+      ...template.days[index % template.days.length]!,
+      weekday,
+    }));
     return this.db.transaction(
       'rw',
       [
@@ -130,7 +142,7 @@ export class ProgramBuilderService {
         if (graph.days.length && !replace)
           throw new Error('Confirm replacement of existing days first.');
         // Validate ALL catalog references before removing any user prescriptions.
-        for (const day of template.days)
+        for (const day of sources)
           for (const exercise of day.exercises) {
             if (!(await this.db.exercises.get(exercise.exerciseId)))
               throw new Error(
@@ -138,7 +150,7 @@ export class ProgramBuilderService {
               );
           }
         for (const { day } of graph.days) await this.programs.deleteDay(day.id);
-        for (const source of template.days) {
+        for (const source of sources) {
           const day = await this.programs.addDay({
             programId,
             name: source.name,

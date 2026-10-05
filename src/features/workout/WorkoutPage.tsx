@@ -1,5 +1,10 @@
 import { estimatedProgramMinutes } from '../plan/programDisplay';
-import { dateFromKey, localDateKey, weekdayNames } from '../../domain/localCalendar';
+import {
+  addLocalCalendarDays,
+  dateFromKey,
+  localDateKey,
+  weekdayNames,
+} from '../../domain/localCalendar';
 import { useRef, useState } from 'react';
 import { Link, useLoaderData, useNavigate } from 'react-router-dom';
 import { ArrowRight, Check, ChevronRight, Play, ShieldCheck } from 'lucide-react';
@@ -24,7 +29,12 @@ export function WorkoutPage() {
   const selected = data.previews.find(
     ({ day }) => day.id === (selectedId ?? (data.state === 'scheduled' ? data.todayDayId : null)),
   );
-  const state = selected && !data.unfinished ? 'scheduled' : data.state;
+  const state =
+    selected && !data.unfinished
+      ? selected.entries.length
+        ? 'scheduled'
+        : 'empty-workout'
+      : data.state;
   const next = data.previews.find(({ day }) => day.id === data.nextDayId);
   const sets =
     selected?.entries.reduce((sum, { prescription }) => sum + (prescription.targetSets ?? 0), 0) ??
@@ -64,8 +74,10 @@ export function WorkoutPage() {
         : state === 'completed-today'
           ? 'Training complete'
           : state === 'rest-day'
-            ? 'No workout today'
-            : 'Your training starts here';
+            ? 'Rest day'
+            : state === 'empty-workout'
+              ? 'Add exercises to your workout'
+              : 'No active training program';
   const description =
     state === 'in-progress'
       ? `${data.unfinished!.completedSets} of ${data.unfinished!.totalSets} sets completed · ${data.unfinished!.status === 'paused' ? 'Paused' : 'In progress'}`
@@ -75,7 +87,9 @@ export function WorkoutPage() {
           ? `${data.completedToday!.name} · ${data.completedToday!.completedSets} completed sets. Your workout is saved locally.`
           : state === 'rest-day'
             ? 'Take time to recover. Your next planned workout is below.'
-            : 'Create a program and choose training days to get started.';
+            : state === 'empty-workout'
+              ? "This workout doesn't have any exercises yet."
+              : 'Create a program and choose training days to get started.';
 
   const pinned = state === 'scheduled' && selected!.entries.length > 5;
   const plannedAction = (
@@ -170,9 +184,19 @@ export function WorkoutPage() {
         ) : (
           <Link
             className={buttonClasses('primary', 'min-h-14', 'large')}
-            to={state === 'no-program' ? '/plan/new' : `/plan/${data.activeProgram?.id}`}
+            to={
+              state === 'no-program'
+                ? '/plan/new'
+                : state === 'empty-workout'
+                  ? `/plan/${data.activeProgram?.id}/days/${selected?.day.id ?? data.todayDayId}/exercises`
+                  : `/plan/${data.activeProgram?.id}`
+            }
           >
-            {state === 'no-program' ? 'Create Program' : 'View Program'}
+            {state === 'no-program'
+              ? 'Create Program'
+              : state === 'empty-workout'
+                ? 'Add Exercises'
+                : 'View Program'}
             <ArrowRight size={18} aria-hidden="true" />
           </Link>
         )}
@@ -208,7 +232,7 @@ export function WorkoutPage() {
                 <p className="text-sm text-secondary">
                   Next: {next.day.name}
                   {next.day.weekday != null
-                    ? ` · ${weekdayNames[next.day.weekday]}`
+                    ? ` · ${data.todayDate && data.nextDate === addLocalCalendarDays(data.todayDate, 1) ? 'Tomorrow' : weekdayNames[next.day.weekday]}`
                     : ' · next in your program'}
                 </p>
               ) : null}
@@ -239,7 +263,6 @@ export function WorkoutPage() {
           </Link>
         </>
       ) : null}
-      {/* 
       {data.recent.length ? (
         <section aria-labelledby="history-title" className="grid gap-2">
           <SectionHeader
@@ -270,7 +293,7 @@ export function WorkoutPage() {
             </Card>
           ))}
         </section>
-      ) : null} */}
+      ) : null}
       <p className="flex items-center justify-center gap-2 text-xs text-muted">
         <ShieldCheck size={16} aria-hidden="true" />
         Saved on this device · works offline

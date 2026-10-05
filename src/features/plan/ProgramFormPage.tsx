@@ -23,6 +23,7 @@ export function ProgramFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' }>)
   const program = mode === 'edit' ? loaderData?.graph.program : undefined;
   const navigate = useNavigate();
   const committedNavigation = useRef(false);
+  const pending = useRef(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const {
     register,
@@ -40,6 +41,8 @@ export function ProgramFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' }>)
     },
   });
   const submit = handleSubmit(async (values) => {
+    if (pending.current) return;
+    pending.current = true;
     setSaveError(null);
     try {
       const input = {
@@ -53,6 +56,7 @@ export function ProgramFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' }>)
       committedNavigation.current = true;
       await navigate(`/plan/${saved.id}/build/days`, { replace: true });
     } catch {
+      pending.current = false;
       committedNavigation.current = false;
       setSaveError('The program could not be saved. Your existing data is unchanged.');
     }
@@ -77,18 +81,26 @@ export function ProgramFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' }>)
             <span>Program name</span>
             <Input
               autoComplete="off"
+              enterKeyHint="next"
+              aria-invalid={Boolean(errors.name)}
+              aria-describedby={errors.name ? 'program-name-error' : undefined}
               maxLength={120}
               {...register('name', {
                 validate: (value) => value.trim().length > 0 || 'Enter a program name.',
               })}
             />
-            {errors.name ? <small role="alert">{errors.name.message}</small> : null}
+            {errors.name ? (
+              <small id="program-name-error" role="alert">
+                {errors.name.message}
+              </small>
+            ) : null}
           </label>
           <label>
             <span>Description (optional)</span>
             <Textarea
               aria-label="Description or notes"
               maxLength={2000}
+              placeholder="Build strength, improve muscle mass, or get in better shape…"
               {...register('description')}
               rows={3}
             />
@@ -100,7 +112,7 @@ export function ProgramFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' }>)
             onChange={(value) => setValue('goal', value, { shouldDirty: true })}
           />
           <SegmentedSelector
-            legend="Level"
+            legend="Training experience"
             options={['beginner', 'intermediate', 'advanced']}
             value={watch('level')}
             onChange={(value) => setValue('level', value, { shouldDirty: true })}
@@ -118,7 +130,7 @@ export function ProgramFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' }>)
             type="submit"
             disabled={isSubmitting}
           >
-            <NextLabel>{isSubmitting ? 'Saving…' : 'Next: Choose Days'}</NextLabel>
+            <NextLabel>{isSubmitting ? 'Saving…' : 'Next: Schedule'}</NextLabel>
           </Button>
         </BuilderFooter>
       </form>

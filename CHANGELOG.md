@@ -4,6 +4,16 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-05
+
+### Program Builder and Workout redesign
+
+- Consistent Basics, Schedule, Exercises and Review steps with focused navigation, real split templates on selected weekdays, validation and preserved drafts.
+- Program editor with ordered autosave, truthful Saving/Saved/error status, failed-save retry and navigation protection. Seven-day limits, explicit replacement confirmation and existing exercise management remain enforced.
+- Empty-program and empty-workout recovery, scheduled/rest/completed/resume states, correct next-workout dates and restored recent history. Sessions crossing midnight retain their assigned date.
+- Regression fixes for deferred weekday/move dropdowns and narrow Progress headers; mobile touch targets and safe-area spacing preserved.
+- Added autosave, schedule/history, transactional template, scale/reopen and browser regression coverage. No schema, backup format, dependency or font changes.
+
 ### Program-first workflow
 
 - Real Full Body 3-day, Upper/Lower 4-day and PPL 6-day templates with preview, confirmed transactional replacement and editable evidence-informed targets.

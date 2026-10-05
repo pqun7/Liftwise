@@ -6,7 +6,7 @@ test('shared controls and navigation stay coherent at mobile widths', async ({
   test.setTimeout(90_000);
   const screens = [
     { route: '/', action: 'Create Program', role: 'link' as const },
-    { route: '/plan/new', action: 'Next: Choose Days', role: 'button' as const },
+    { route: '/plan/new', action: 'Next: Schedule', role: 'button' as const },
     { route: '/workout', action: 'Create Program', role: 'link' as const },
     { route: '/progress/measurements', action: 'Add measurement', role: 'button' as const },
   ];
@@ -18,7 +18,9 @@ test('shared controls and navigation stay coherent at mobile widths', async ({
       'background-color',
       route === '/' ? 'rgb(10, 29, 25)' : 'rgb(72, 240, 187)',
     );
-    await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toHaveCount(1);
+    await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toHaveCount(
+      route === '/plan/new' ? 0 : 1,
+    );
     for (const width of [320, 375, 390, 393, 402, 430]) {
       await page.setViewportSize({ width, height: 844 });
       await expect
