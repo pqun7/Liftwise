@@ -12,7 +12,6 @@ import {
 } from 'react-router-dom';
 
 import { BottomNavigation } from '../../components/layout/BottomNavigation';
-import { ActiveWorkoutBanner } from '../../features/workout/ActiveWorkoutBanner';
 import { UpdatePrompt } from './UpdatePrompt';
 import { ProgressSkeleton } from '../../features/progress/ProgressUI';
 
@@ -56,7 +55,6 @@ export function AppShell() {
         tabIndex={-1}
       >
         <UpdatePrompt />
-        {!home && !focused && pathname !== '/workout' ? <ActiveWorkoutBanner /> : null}
         <Suspense
           fallback={progress ? <ProgressSkeleton /> : <p role="status">Opening local screen…</p>}
         >

@@ -32,6 +32,7 @@ export function ActiveWorkoutCard({ workout }: { workout: WorkoutGraph }) {
           <span aria-hidden="true" />
           {status}
         </p>
+        <p className="sr-only">Unfinished workout found</p>
         <h2 id="home-active-title">{workout.session.name ?? 'Quick Workout'}</h2>
         <p className="home-hero-meta">
           {completion.completedExercises} of {countLabel(completion.exercises, 'exercise')} ·{' '}

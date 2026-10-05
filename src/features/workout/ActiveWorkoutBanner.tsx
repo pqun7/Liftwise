@@ -42,6 +42,7 @@ export function ActiveWorkoutBanner() {
   return (
     <aside className="recovery-banner" aria-labelledby="unfinished-workout-title">
       <div>
+        <p className="section-kicker">Unfinished workout found</p>
         <h2 id="unfinished-workout-title">{summary.name}</h2>
         <p>
           Started {minutesSince(summary.startedAt)} minutes ago · {summary.completedSets} /{' '}
