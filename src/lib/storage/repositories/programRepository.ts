@@ -11,6 +11,7 @@ import { createEntityId, createTimestamp, parseMany, requireRecord } from './sha
 const ACTIVE_PROGRAM_KEY = 'activeProgramId';
 
 export interface CreateProgramInput {
+  scheduleType?: Program['scheduleType'];
   name: string;
   description?: string | null;
   goal?: Program['goal'];
@@ -20,6 +21,7 @@ export interface CreateProgramInput {
 }
 
 export interface UpdateProgramInput {
+  scheduleType?: Program['scheduleType'];
   name?: string;
   description?: string | null;
   archived?: boolean;
@@ -30,6 +32,7 @@ export interface UpdateProgramInput {
 }
 
 export interface CreateProgramDayInput {
+  kind?: ProgramDay['kind'];
   programId: string;
   name: string;
   order?: number;
@@ -39,6 +42,7 @@ export interface CreateProgramDayInput {
 }
 
 export interface UpdateProgramDayInput {
+  kind?: ProgramDay['kind'];
   name?: string;
   notes?: string | null;
   weekday?: number | null;
@@ -228,6 +232,7 @@ export class ProgramRepository {
         .toArray();
       const timestamp = createTimestamp();
       const day = programDaySchema.parse({
+        kind: input.kind,
         weekday: input.weekday,
         defaultRestSeconds: input.defaultRestSeconds,
         id: createEntityId(),
@@ -238,7 +243,7 @@ export class ProgramRepository {
         createdAt: timestamp,
         updatedAt: timestamp,
       });
-      if (existing.length >= 7)
+      if (program.scheduleType !== 'cycle' && existing.length >= 7)
         throw new Error('A program can contain at most seven training days.');
       if (day.weekday != null && existing.some((item) => item.weekday === day.weekday))
         throw new Error('This weekday already has a training day.');
@@ -285,7 +290,12 @@ export class ProgramRepository {
           .equals(source.programId)
           .toArray();
         const timestamp = createTimestamp();
-        if (siblings.length >= 7)
+        const program = requireRecord(
+          await this.db.programs.get(source.programId),
+          'Program',
+          source.programId,
+        );
+        if (program.scheduleType !== 'cycle' && siblings.length >= 7)
           throw new Error('A program can contain at most seven training days.');
         if (weekday != null && siblings.some((item) => item.weekday === weekday))
           throw new Error('This weekday already has a training day.');
@@ -351,6 +361,7 @@ export class ProgramRepository {
           'ProgramDay',
           input.programDayId,
         );
+        if (day.kind === 'recovery') throw new Error('Choose a workout day to add exercises.');
         requireRecord(await this.db.exercises.get(input.exerciseId), 'Exercise', input.exerciseId);
         const existing = await this.db.programExercises
           .where('programDayId')
@@ -434,6 +445,7 @@ export class ProgramRepository {
           'ProgramDay',
           destinationDayId,
         );
+        if (to.kind === 'recovery') throw new Error('Choose a workout day for exercises.');
         if (from.programId !== to.programId) throw new Error('Choose a day in the same program.');
         if (from.id === to.id) throw new Error('Choose another day.');
         const destination = await this.db.programExercises

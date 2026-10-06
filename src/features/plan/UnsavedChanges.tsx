@@ -7,16 +7,21 @@ export function UnsavedChanges({
   onDiscard,
   committedNavigation,
   pendingSave,
+  allowSamePath = false,
 }: {
   dirty: boolean;
   saving: boolean;
   onDiscard?: () => void;
   committedNavigation?: RefObject<boolean>;
   pendingSave?: { unsettled: boolean; flush: () => Promise<void> };
+  allowSamePath?: boolean;
 }) {
   // A successful save may navigate before React commits the saving/dirty state.
   const blocker = useBlocker(
-    () => ((dirty && !saving) || Boolean(pendingSave?.unsettled)) && !committedNavigation?.current,
+    ({ currentLocation, nextLocation }) =>
+      !(allowSamePath && currentLocation.pathname === nextLocation.pathname) &&
+      ((dirty && !saving) || Boolean(pendingSave?.unsettled)) &&
+      !committedNavigation?.current,
   );
   const dialog = useRef<HTMLDialogElement>(null);
   useBeforeUnload((event) => {

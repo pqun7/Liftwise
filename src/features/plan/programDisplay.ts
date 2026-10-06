@@ -26,7 +26,9 @@ export function compactPrescription(item: ProgramExercise) {
 }
 
 /** Planning estimate only: 45s per set, prescribed inter-set rests and 60s transitions. */
-export function estimatedProgramMinutes(exercises: readonly ProgramExercise[]): number | null {
+export function estimatedProgramMinutes(
+  exercises: readonly Pick<ProgramExercise, 'targetSets' | 'restSeconds'>[],
+): number | null {
   if (
     !exercises.length ||
     exercises.some((item) => item.targetSets == null || item.restSeconds == null)

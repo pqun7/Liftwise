@@ -90,6 +90,7 @@ export const setActiveProgram = (id: string) => programs.setActive(id);
 export const createProgramDay = (programId: string, input: UpdateProgramDayInput) =>
   programs.addDay({
     programId,
+    kind: input.kind,
     name: input.name ?? '',
     notes: input.notes ?? null,
     defaultRestSeconds: input.defaultRestSeconds ?? null,

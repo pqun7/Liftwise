@@ -1,10 +1,9 @@
-import { SegmentedControl } from '../../components/ui/SegmentedControl';
+import { Dumbbell, ChartNoAxesColumnIncreasing, Target, UserRound, Crown } from 'lucide-react';
 import { iconButtonClasses } from '../../components/ui/controlStyles';
 import { Check, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
-
-const labels = ['Basics', 'Schedule', 'Exercises', 'Review'];
+const labels = ['Basics', 'Program', 'Schedule', 'Exercises', 'Review'];
 export function BuilderHeader({
   title,
   back,
@@ -23,8 +22,9 @@ export function BuilderHeader({
   const paths = programId
     ? [
         `/plan/${programId}/edit`,
-        `/plan/${programId}/build/days`,
-        exercisesPath ?? `/plan/${programId}`,
+        `/plan/${programId}/build/days?stage=program`,
+        `/plan/${programId}/build/days?stage=schedule`,
+        exercisesPath ?? `/plan/${programId}/build/days?stage=schedule`,
         `/plan/${programId}/build/review`,
       ]
     : [];
@@ -34,7 +34,9 @@ export function BuilderHeader({
         <Link to={back} aria-label={backLabel} className={iconButtonClasses()}>
           <ArrowLeft size={20} aria-hidden="true" />
         </Link>
-        <h1>{title}</h1>
+        <h1>
+          {step !== undefined ? (title === 'Edit Program' ? title : 'Create Program') : title}
+        </h1>
         <span />
       </header>
       {step !== undefined ? (
@@ -79,4 +81,47 @@ export function NextLabel({ children }: { children: ReactNode }) {
     </>
   );
 }
-export const SegmentedSelector = SegmentedControl;
+export function SegmentedSelector<T extends string>({
+  legend,
+  options,
+  value,
+  onChange,
+}: {
+  legend: string;
+  options: readonly T[];
+  value: T;
+  onChange: (value: T) => void;
+}) {
+  const icons = {
+    strength: Dumbbell,
+    hypertrophy: ChartNoAxesColumnIncreasing,
+    general: Target,
+    beginner: UserRound,
+    intermediate: ChartNoAxesColumnIncreasing,
+    advanced: Crown,
+  };
+  return (
+    <fieldset className="builder-segment">
+      <legend>{legend}</legend>
+      <div>
+        {options.map((option) => {
+          const Icon = icons[option as keyof typeof icons] ?? Target;
+          return (
+            <label key={option} className={value === option ? 'is-selected' : ''}>
+              <input
+                type="radio"
+                name={legend}
+                value={option}
+                checked={value === option}
+                onChange={() => onChange(option)}
+              />
+              <Icon size={26} />
+              <span>{option}</span>
+              {value === option && <Check className="choice-check" size={16} />}
+            </label>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}

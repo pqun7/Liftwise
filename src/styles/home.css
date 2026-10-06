@@ -67,6 +67,13 @@
   margin-top: 17px;
 }
 
+.home-page .home-current-day {
+  margin-top: 8px;
+  color: var(--home-secondary);
+  font-size: var(--type-size-card);
+  line-height: var(--type-leading-heading);
+}
+
 .home-greeting > p,
 .home-subtitle {
   color: var(--home-secondary);

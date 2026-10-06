@@ -79,6 +79,7 @@ export interface CatalogMetadata {
 }
 
 export interface Program extends TimestampedEntity {
+  scheduleType?: 'weekly' | 'cycle' | undefined;
   id: string;
   name: string;
   description: string | null;
@@ -90,6 +91,7 @@ export interface Program extends TimestampedEntity {
 }
 
 export interface ProgramDay extends TimestampedEntity {
+  kind?: 'workout' | 'recovery' | undefined;
   id: string;
   programId: string;
   name: string;

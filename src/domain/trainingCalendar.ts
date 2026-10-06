@@ -15,7 +15,7 @@ export function trainingCalendar(
   const today = localDateKey(now);
   const days =
     graph && !graph.program.archived && !graph.program.draft
-      ? graph.days.filter(({ exercises }) => exercises.length > 0)
+      ? graph.days.filter(({ day, exercises }) => day.kind !== 'recovery' && exercises.length > 0)
       : [];
   const dated = days.some(({ day }) => day.weekday != null);
   const last = sessions

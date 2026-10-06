@@ -55,8 +55,17 @@ export class ProgramBuilderService {
     this.programs = new ProgramRepository(db);
   }
 
-  saveBasics(input: CreateProgramInput, id?: string) {
-    return id ? this.programs.update(id, input) : this.programs.create({ ...input, draft: true });
+  async saveBasics(input: CreateProgramInput, id?: string) {
+    return this.db.transaction(
+      'rw',
+      [this.db.programs, this.db.programDays, this.db.programExercises, this.db.appSettings],
+      async () => {
+        if (id && input.scheduleType) await this.setScheduleType(id, input.scheduleType);
+        return id
+          ? this.programs.update(id, input)
+          : this.programs.create({ ...input, draft: true });
+      },
+    );
   }
 
   async chooseDays(
@@ -154,7 +163,7 @@ export class ProgramBuilderService {
           const day = await this.programs.addDay({
             programId,
             name: source.name,
-            weekday: source.weekday,
+            weekday: graph.program.scheduleType === 'cycle' ? null : source.weekday,
             defaultRestSeconds: 150,
           });
           for (const prescription of source.exercises)
@@ -166,20 +175,110 @@ export class ProgramBuilderService {
     );
   }
 
-  async finish(programId: string) {
+  async useCustomTemplate(programId: string, selected?: number[], replace = false) {
+    if (selected) daysInput.parse(selected);
+    return this.db.transaction(
+      'rw',
+      [
+        this.db.programs,
+        this.db.programDays,
+        this.db.programExercises,
+        this.db.workoutExercises,
+        this.db.workoutSessions,
+        this.db.appSettings,
+      ],
+      async () => {
+        const graph = await this.programs.get(programId);
+        if (!graph) throw new Error('Program not found.');
+        if (graph.days.length && !replace)
+          throw new Error('Confirm replacement of existing days first.');
+        // An explicitly selected blank template must never inherit preset targets.
+        // Delete through the existing repository so workout history keeps its snapshots.
+        for (const { day } of graph.days) await this.programs.deleteDay(day.id);
+        if (graph.program.scheduleType === 'cycle') {
+          await this.programs.update(programId, { splitTemplate: 'custom' });
+          return this.programs.get(programId);
+        }
+        return this.chooseDays(programId, selected ?? [0, 2, 4], 'custom');
+      },
+    );
+  }
+
+  async addCycleWorkout(
+    programId: string,
+    name: string,
+    source?: { templateId: ProgramTemplateId; index: number },
+  ) {
+    return this.db.transaction(
+      'rw',
+      [this.db.programs, this.db.programDays, this.db.programExercises, this.db.exercises],
+      async () => {
+        const graph = await this.programs.get(programId);
+        if (graph?.program.scheduleType !== 'cycle')
+          throw new Error('Choose Flexible Cycle to add cycle days.');
+        const templateDay = source
+          ? programTemplates.find((item) => item.id === source.templateId)?.days[source.index]
+          : undefined;
+        if (source && !templateDay) throw new Error('Choose an available workout template.');
+        for (const target of templateDay?.exercises ?? [])
+          if (!(await this.db.exercises.get(target.exerciseId)))
+            throw new Error('Template exercise unavailable. Choose a blank workout.');
+        const day = await this.programs.addDay({
+          programId,
+          name,
+          kind: 'workout',
+          weekday: null,
+          defaultRestSeconds: 150,
+        });
+        for (const target of templateDay?.exercises ?? [])
+          await this.programs.addExercise({ programDayId: day.id, ...target });
+        return day;
+      },
+    );
+  }
+
+  async setScheduleType(programId: string, scheduleType: 'weekly' | 'cycle') {
     return this.db.transaction(
       'rw',
       [this.db.programs, this.db.programDays, this.db.programExercises, this.db.appSettings],
       async () => {
         const graph = await this.programs.get(programId);
-        if (!graph?.days.length) throw new Error('Add at least one training day before saving.');
+        if (!graph) throw new Error('Program not found.');
+        if (
+          scheduleType === 'weekly' &&
+          (graph.days.length > 7 || graph.days.some(({ day }) => day.kind === 'recovery'))
+        )
+          throw new Error(
+            'Keep Flexible Cycle for this program, or remove recovery / extra days first.',
+          );
+        await this.programs.update(programId, { scheduleType });
+        if (scheduleType === 'cycle') {
+          for (const { day } of graph.days)
+            await this.programs.updateDay(day.id, { weekday: null });
+        }
+      },
+    );
+  }
+
+  async finish(programId: string, activate?: boolean) {
+    return this.db.transaction(
+      'rw',
+      [this.db.programs, this.db.programDays, this.db.programExercises, this.db.appSettings],
+      async () => {
+        const graph = await this.programs.get(programId);
+        if (!graph?.days.some(({ day }) => day.kind !== 'recovery'))
+          throw new Error('Add at least one training day before saving.');
         const scheduled = graph.days.flatMap(({ day }) =>
           day.weekday == null ? [] : [day.weekday],
         );
-        if (graph.days.length > 7 || new Set(scheduled).size !== scheduled.length)
+        if (
+          graph.program.scheduleType !== 'cycle' &&
+          (graph.days.length > 7 || new Set(scheduled).size !== scheduled.length)
+        )
           throw new Error('Use at most seven training days with unique weekdays before saving.');
         const saved = await this.programs.update(programId, { draft: false });
-        if (!(await this.programs.getActiveId())) await this.programs.setActive(programId);
+        if (activate === true || (activate === undefined && !(await this.programs.getActiveId())))
+          await this.programs.setActive(programId);
         return saved;
       },
     );

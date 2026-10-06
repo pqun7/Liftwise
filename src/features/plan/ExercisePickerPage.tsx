@@ -93,7 +93,13 @@ export function ExercisePickerPage() {
   const base = `/plan/${day.program.id}/days/${day.day.id}/exercises/add`;
   return (
     <section className="builder-page" aria-labelledby="picker-title">
-      <BuilderHeader title="Add Exercise" back={returnTo} />
+      <BuilderHeader
+        title={day.program.draft ? 'Create Program' : 'Edit Program'}
+        back={returnTo}
+        step={3}
+        programId={day.program.id}
+        exercisesPath={returnTo}
+      />
       <Link className="back-link" to={returnTo}>
         ← {day.day.name}
       </Link>
@@ -101,11 +107,13 @@ export function ExercisePickerPage() {
         <p className="section-kicker">Add exercise</p>
         <h1 id="picker-title">Add to {day.day.name}</h1>
         <p>
-          {day.day.weekday == null
-            ? 'Unscheduled'
-            : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][
-                day.day.weekday
-              ]}{' '}
+          {day.program.scheduleType === 'cycle'
+            ? 'Flexible Cycle'
+            : day.day.weekday == null
+              ? 'Unscheduled'
+              : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][
+                  day.day.weekday
+                ]}{' '}
           · Targets are prefilled and editable.
         </p>
         {error ? <p role="alert">{error}</p> : null}

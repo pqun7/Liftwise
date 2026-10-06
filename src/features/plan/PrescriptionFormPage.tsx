@@ -92,10 +92,30 @@ export function PrescriptionFormPage() {
   const numberRules = {
     min: { value: 0, message: 'Use zero or a positive number.' },
     valueAsNumber: false,
+    validate: (value: string) =>
+      value.trim() === '' || Number.isInteger(Number(value)) || 'Use a whole number.',
   };
+  const rirRules = { ...numberRules, max: { value: 10, message: 'Use RIR from 0 to 10.' } };
+  const fieldStatus = (name: keyof Values, label: string) => ({
+    'aria-label': label,
+    'aria-invalid': Boolean(errors[name]),
+    'aria-describedby': errors[name] ? `prescription-${name}-error` : undefined,
+  });
+  const feedback = (name: keyof Values) =>
+    errors[name] ? (
+      <small id={`prescription-${name}-error`} role="alert">
+        {errors[name]?.message}
+      </small>
+    ) : null;
   return (
     <section className="builder-page" aria-labelledby="prescription-title">
-      <BuilderHeader title="Prescription" back={returnTo} />
+      <BuilderHeader
+        title={program.draft ? 'Create Program' : 'Edit Program'}
+        back={returnTo}
+        step={3}
+        programId={program.id}
+        exercisesPath={returnTo}
+      />
       <UnsavedChanges
         dirty={isDirty}
         saving={isSubmitting}
@@ -123,22 +143,35 @@ export function PrescriptionFormPage() {
             type="number"
             inputMode="numeric"
             min="1"
+            {...fieldStatus('targetSets', 'Target sets')}
             {...register('targetSets', {
+              ...numberRules,
               required: 'Enter target sets.',
               min: { value: 1, message: 'Use at least one set.' },
             })}
           />
-          {errors.targetSets ? <small role="alert">{errors.targetSets.message}</small> : null}
+          {feedback('targetSets')}
         </label>
         <div className="field-pair">
           <label>
             <span>Minimum reps</span>
-            <Input type="number" inputMode="numeric" {...register('minReps', numberRules)} />
+            <Input
+              type="number"
+              inputMode="numeric"
+              {...fieldStatus('minReps', 'Minimum reps')}
+              {...register('minReps', numberRules)}
+            />
+            {feedback('minReps')}
           </label>
           <label>
             <span>Maximum reps</span>
-            <Input type="number" inputMode="numeric" {...register('maxReps', numberRules)} />
-            {errors.maxReps ? <small role="alert">{errors.maxReps.message}</small> : null}
+            <Input
+              type="number"
+              inputMode="numeric"
+              {...fieldStatus('maxReps', 'Maximum reps')}
+              {...register('maxReps', numberRules)}
+            />
+            {feedback('maxReps')}
           </label>
         </div>
         <div className="field-pair">
@@ -149,8 +182,10 @@ export function PrescriptionFormPage() {
               inputMode="numeric"
               min="0"
               max="10"
-              {...register('targetRirMin', { min: 0, max: 10 })}
+              {...fieldStatus('targetRirMin', 'Minimum RIR')}
+              {...register('targetRirMin', rirRules)}
             />
+            {feedback('targetRirMin')}
           </label>
           <label>
             <span>Maximum RIR</span>
@@ -159,9 +194,10 @@ export function PrescriptionFormPage() {
               inputMode="numeric"
               min="0"
               max="10"
-              {...register('targetRirMax', { min: 0, max: 10 })}
+              {...fieldStatus('targetRirMax', 'Maximum RIR')}
+              {...register('targetRirMax', rirRules)}
             />
-            {errors.targetRirMax ? <small role="alert">{errors.targetRirMax.message}</small> : null}
+            {feedback('targetRirMax')}
           </label>
         </div>
         <label>
@@ -172,8 +208,13 @@ export function PrescriptionFormPage() {
             min="0"
             max="3600"
             step="5"
-            {...register('restSeconds', { min: 0, max: 3600 })}
+            {...fieldStatus('restSeconds', 'Rest duration in seconds')}
+            {...register('restSeconds', {
+              ...numberRules,
+              max: { value: 3600, message: 'Use 0–3600 seconds.' },
+            })}
           />
+          {feedback('restSeconds')}
         </label>
         <label>
           <span>Exercise notes</span>

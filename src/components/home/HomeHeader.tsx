@@ -1,8 +1,17 @@
 import { StreakBadge } from '../ui/StreakBadge';
 import { AppWordmark } from '../ui/AppWordmark';
 import { useRouteStreak } from '../../features/progress/useRouteStreak';
+import { dateFromKey } from '../../domain/localCalendar';
 
-export function HomeHeader({ greeting, active }: { greeting: string; active: boolean }) {
+export function HomeHeader({
+  greeting,
+  active,
+  today,
+}: {
+  greeting: string;
+  active: boolean;
+  today: string;
+}) {
   const streak = useRouteStreak();
   return (
     <header className={`home-header${active ? ' home-header-active' : ''}`}>
@@ -10,6 +19,11 @@ export function HomeHeader({ greeting, active }: { greeting: string; active: boo
         <AppWordmark />
         <StreakBadge currentStreak={streak?.currentStreak ?? 0} />
       </div>
+      <p className="home-current-day">
+        <time dateTime={today}>
+          {dateFromKey(today).toLocaleDateString(undefined, { weekday: 'long' })}
+        </time>
+      </p>
       {active ? (
         <p className="home-subtitle">Your private training space</p>
       ) : (

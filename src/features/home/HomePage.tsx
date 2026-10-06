@@ -82,7 +82,7 @@ export function HomePage() {
 
   return (
     <MobilePage className="home-page grid gap-4" data-home-state={state}>
-      <HomeHeader greeting={data.greeting} active={state === 'in-progress'} />
+      <HomeHeader greeting={data.greeting} active={state === 'in-progress'} today={data.today} />
 
       {state !== 'in-progress' ? (
         <WeekSelector days={data.week} selected={selected} onSelect={setSelection} />

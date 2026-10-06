@@ -393,6 +393,7 @@ export class WorkoutRepository {
           day.programId,
         );
         if (program.draft) throw new Error('Save the program before starting a workout.');
+        if (day.kind === 'recovery') throw new Error('Recovery days do not contain workouts.');
         const prescriptions = await this.db.programExercises
           .where('programDayId')
           .equals(programDayId)

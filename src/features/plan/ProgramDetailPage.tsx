@@ -15,6 +15,8 @@ import { Card } from '../../components/ui/Card';
 import { Input, Select, Textarea } from '../../components/ui/FormControl';
 import { buttonClasses } from '../../components/ui/controlStyles';
 import { ProgramWorkoutDay } from './ProgramWorkoutDay';
+import { DayOverview, WeekPreview } from './PlanPrimitives';
+import { ProgramOptionsSheet } from './ProgramOptionsSheet';
 import { WeeklySchedule } from './WeeklySchedule';
 import { chronologicalDays, compactPrescription } from './programDisplay';
 import { UnsavedChanges } from './UnsavedChanges';
@@ -67,6 +69,8 @@ function ProgramEditor() {
   const [adding, setAdding] = useState<string | null>(null);
   const [weekday, setWeekday] = useState('');
   const [info, setInfo] = useState(false);
+  const [advanced, setAdvanced] = useState(false);
+  const [programOptions, setProgramOptions] = useState(false);
   const [name, setName] = useState(program.name);
   const [description, setDescription] = useState(program.description ?? '');
   const [goal, setGoal] = useState<NonNullable<Program['goal']>>(program.goal ?? 'general');
@@ -131,7 +135,7 @@ function ProgramEditor() {
   const count = days.reduce((total, day) => total + day.exercises.length, 0);
   return (
     <section
-      className={`plan-experience grid gap-4 pb-28 ${program.draft ? 'builder-editor' : ''}`}
+      className={`plan-experience builder-page program-details-page ${program.draft ? 'builder-editor' : ''}`}
       aria-labelledby="program-title"
     >
       <UnsavedChanges
@@ -149,7 +153,7 @@ function ProgramEditor() {
           title="Exercises"
           back="/plan"
           backLabel="Back to Programs"
-          step={2}
+          step={3}
           programId={program.id}
         />
       ) : (
@@ -165,12 +169,22 @@ function ProgramEditor() {
           </div>
           <button
             aria-label="Program options"
-            disabled={busy}
-            onClick={() => void setParams({ tab: 'settings' })}
+            disabled={busy || autosave.unsettled}
+            onClick={() => {
+              if (canLeave()) setProgramOptions(true);
+            }}
           >
             <MoreHorizontal size={20} />
           </button>
         </header>
+      )}
+      {programOptions && (
+        <ProgramOptionsSheet
+          graph={graph}
+          activeProgramId={activeProgramId}
+          close={() => setProgramOptions(false)}
+          changed={() => revalidator.revalidate()}
+        />
       )}
       {program.draft ? (
         <h1 id="program-title" className="sr-only">
@@ -283,131 +297,159 @@ function ProgramEditor() {
               </form>
             ) : null}
           </section>
-          <WeeklySchedule
-            graph={graph}
-            selectDay={selectDay}
-            edit={() => {
-              void navigate(`/plan/${program.id}/build/days`);
-            }}
-          />
-          <div className="plan-section-heading">
-            <h2>Training Days</h2>
-            <span className="text-xs text-secondary">Weekday order</span>
-          </div>
-          {!days.length ? (
-            <Card>
-              <h3 className="font-bold">Build your weekly schedule</h3>
-              <p className="text-sm text-secondary mt-2">
-                Add your first training day, then choose exercises.
-              </p>
-            </Card>
-          ) : null}
-          <div className="grid gap-2">
-            {chronologicalDays(days).map((entry) => (
-              <div key={entry.day.id} id={`day-${entry.day.id}`} className="scroll-mt-4">
-                <ProgramWorkoutDay
-                  key={`${entry.day.id}-${editRevision}`}
-                  entry={entry}
-                  graph={graph}
-                  catalog={catalogById}
-                  busy={busy}
-                  run={run}
-                  expanded={expanded === entry.day.id}
-                  toggle={() => {
-                    if (!canLeave()) return;
+          <section className="builder-card program-schedule-summary">
+            <header className="plan-section-heading">
+              <h2>{program.scheduleType === 'cycle' ? 'Cycle overview' : 'Weekly structure'}</h2>
+              <Link className="builder-add" to={`/plan/${program.id}/build/days`}>
+                Edit schedule
+              </Link>
+            </header>
+            <WeekPreview graph={graph} />
+            <DayOverview graph={graph} />
+          </section>
+          <Link className={buttonClasses('primary', 'w-full')} to={`/plan/${program.id}/edit`}>
+            Edit program
+          </Link>
+          {program.scheduleType !== 'cycle' && (
+            <button
+              className="builder-add"
+              aria-expanded={advanced}
+              onClick={() => {
+                if (canLeave()) setAdvanced(!advanced);
+              }}
+            >
+              {advanced ? 'Hide advanced exercise tools' : 'Advanced exercise tools'}
+            </button>
+          )}
+          {advanced ? (
+            <>
+              <WeeklySchedule
+                graph={graph}
+                selectDay={selectDay}
+                edit={() => {
+                  void navigate(`/plan/${program.id}/build/days`);
+                }}
+              />
+              <div className="plan-section-heading">
+                <h2>Training Days</h2>
+                <span className="text-xs text-secondary">Weekday order</span>
+              </div>
+              {!days.length ? (
+                <Card>
+                  <h3 className="font-bold">Build your weekly schedule</h3>
+                  <p className="text-sm text-secondary mt-2">
+                    Add your first training day, then choose exercises.
+                  </p>
+                </Card>
+              ) : null}
+              <div className="grid gap-2">
+                {chronologicalDays(days).map((entry) => (
+                  <div key={entry.day.id} id={`day-${entry.day.id}`} className="scroll-mt-4">
+                    <ProgramWorkoutDay
+                      key={`${entry.day.id}-${editRevision}`}
+                      entry={entry}
+                      graph={graph}
+                      catalog={catalogById}
+                      busy={busy}
+                      run={run}
+                      expanded={expanded === entry.day.id}
+                      toggle={() => {
+                        if (!canLeave()) return;
+                        setDirty(false);
+                        setInfo(false);
+                        setExpanded(expanded === entry.day.id ? null : entry.day.id);
+                      }}
+                      dirtyChange={setDirty}
+                      canLeave={canLeave}
+                      duplicate={() => {
+                        if (canLeave()) {
+                          setDirty(false);
+                          setAdding(entry.day.id);
+                          setWeekday('');
+                        }
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+              <Button
+                variant="outline"
+                disabled={busy || days.length >= 7}
+                onClick={() => {
+                  if (canLeave()) {
                     setDirty(false);
-                    setInfo(false);
-                    setExpanded(expanded === entry.day.id ? null : entry.day.id);
-                  }}
-                  dirtyChange={setDirty}
-                  canLeave={canLeave}
-                  duplicate={() => {
-                    if (canLeave()) {
-                      setDirty(false);
-                      setAdding(entry.day.id);
-                      setWeekday('');
-                    }
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-          <Button
-            variant="outline"
-            disabled={busy || days.length >= 7}
-            onClick={() => {
-              if (canLeave()) {
-                setDirty(false);
-                setAdding(adding ? null : 'new');
-                setWeekday('');
-              }
-            }}
-          >
-            + Add Training Day
-          </Button>
-          {days.length >= 7 ? (
-            <p className="text-xs text-secondary">
-              All 7 days are already part of this weekly schedule. Change or delete a day to free a
-              slot. Additional sessions can still be logged separately.
-            </p>
-          ) : null}
-          {adding ? (
-            <Card className="grid gap-3">
-              <h3 className="font-bold">
-                {adding === 'new' ? 'Add Training Day' : 'Duplicate day'}
-              </h3>
-              <label className="grid gap-1 text-sm">
-                Choose weekday
-                <Select value={weekday} onChange={(event) => setWeekday(event.target.value)}>
-                  <option value="">Select a day…</option>
-                  {weekdays.map((label, index) => {
-                    const used = days.some(({ day }) => day.weekday === index);
-                    return (
-                      <option key={label} value={index} disabled={used}>
-                        {label}
-                        {used ? ' · Already assigned' : ''}
-                      </option>
-                    );
-                  })}
-                </Select>
-              </label>
-              <div className="flex gap-2">
-                <Button
-                  variant="primary"
-                  disabled={busy || weekday === ''}
-                  onClick={() => {
-                    void run(async () => {
-                      const result =
-                        adding === 'new'
-                          ? await createProgramDay(program.id, {
-                              name: weekdays[Number(weekday)]!,
-                              weekday: Number(weekday),
-                              defaultRestSeconds: 150,
-                            })
-                          : (await duplicateProgramDay(adding, Number(weekday))).day;
-                      setExpanded(result.id);
-                      window.setTimeout(
-                        () =>
-                          document
-                            .getElementById(`day-${result.id}`)
-                            ?.scrollIntoView({ block: 'nearest' }),
-                        150,
-                      );
-                    }).then((ok) => {
-                      if (ok) {
-                        setAdding(null);
-                        setWeekday('');
-                      }
-                    });
-                  }}
-                >
-                  {busy ? 'Saving…' : adding === 'new' ? 'Add day' : 'Duplicate day'}
-                </Button>
-                <Button disabled={busy} onClick={() => setAdding(null)}>
-                  Cancel
-                </Button>
-              </div>
-            </Card>
+                    setAdding(adding ? null : 'new');
+                    setWeekday('');
+                  }
+                }}
+              >
+                + Add Training Day
+              </Button>
+              {days.length >= 7 ? (
+                <p className="text-xs text-secondary">
+                  All 7 days are already part of this weekly schedule. Change or delete a day to
+                  free a slot. Additional sessions can still be logged separately.
+                </p>
+              ) : null}
+              {adding ? (
+                <Card className="grid gap-3">
+                  <h3 className="font-bold">
+                    {adding === 'new' ? 'Add Training Day' : 'Duplicate day'}
+                  </h3>
+                  <label className="grid gap-1 text-sm">
+                    Choose weekday
+                    <Select value={weekday} onChange={(event) => setWeekday(event.target.value)}>
+                      <option value="">Select a day…</option>
+                      {weekdays.map((label, index) => {
+                        const used = days.some(({ day }) => day.weekday === index);
+                        return (
+                          <option key={label} value={index} disabled={used}>
+                            {label}
+                            {used ? ' · Already assigned' : ''}
+                          </option>
+                        );
+                      })}
+                    </Select>
+                  </label>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="primary"
+                      disabled={busy || weekday === ''}
+                      onClick={() => {
+                        void run(async () => {
+                          const result =
+                            adding === 'new'
+                              ? await createProgramDay(program.id, {
+                                  name: weekdays[Number(weekday)]!,
+                                  weekday: Number(weekday),
+                                  defaultRestSeconds: 150,
+                                })
+                              : (await duplicateProgramDay(adding, Number(weekday))).day;
+                          setExpanded(result.id);
+                          window.setTimeout(
+                            () =>
+                              document
+                                .getElementById(`day-${result.id}`)
+                                ?.scrollIntoView({ block: 'nearest' }),
+                            150,
+                          );
+                        }).then((ok) => {
+                          if (ok) {
+                            setAdding(null);
+                            setWeekday('');
+                          }
+                        });
+                      }}
+                    >
+                      {busy ? 'Saving…' : adding === 'new' ? 'Add day' : 'Duplicate day'}
+                    </Button>
+                    <Button disabled={busy} onClick={() => setAdding(null)}>
+                      Cancel
+                    </Button>
+                  </div>
+                </Card>
+              ) : null}
+            </>
           ) : null}
         </>
       ) : tab === 'Settings' ? (
@@ -454,7 +496,7 @@ function ProgramEditor() {
             onClick={() =>
               void run(async () => {
                 const copy = await duplicateProgram(program.id);
-                await navigate(`/plan/${copy.program.id}`);
+                await navigate(`/plan/${copy.program.id}/edit`);
               })
             }
           >
@@ -483,11 +525,19 @@ function ProgramEditor() {
           <p className="text-sm text-secondary">
             {days.length} training days · {count} exercises
           </p>
-          <WeeklySchedule graph={graph} />
+          <section className="builder-card program-schedule-summary">
+            <WeekPreview graph={graph} />
+            <DayOverview graph={graph} />
+          </section>
           {chronologicalDays(days).map(({ day, exercises }) => (
             <Card key={day.id}>
               <h3 className="font-semibold">
-                {day.weekday == null ? 'Unscheduled' : weekdays[day.weekday]} · {day.name}
+                {program.scheduleType === 'cycle'
+                  ? `Day ${days.findIndex((entry) => entry.day.id === day.id) + 1}`
+                  : day.weekday == null
+                    ? 'Unscheduled'
+                    : weekdays[day.weekday]}{' '}
+                · {day.name}
               </h3>
               <ul className="list-none p-0 m-0 mt-3 grid gap-3">
                 {exercises.map((item) => (
@@ -500,7 +550,9 @@ function ProgramEditor() {
                 ))}
               </ul>
               {!exercises.length ? (
-                <p className="text-sm text-secondary mt-2">No exercises yet</p>
+                <p className="text-sm text-secondary mt-2">
+                  {day.kind === 'recovery' ? 'Rest day' : 'No exercises yet'}
+                </p>
               ) : null}
             </Card>
           ))}

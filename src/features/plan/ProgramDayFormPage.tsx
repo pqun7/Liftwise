@@ -53,7 +53,10 @@ export function ProgramDayFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' 
     try {
       const input = {
         name: values.name,
-        weekday: values.weekday === '' ? null : Number(values.weekday),
+        weekday:
+          graph.program.scheduleType === 'cycle' || values.weekday === ''
+            ? null
+            : Number(values.weekday),
         notes: values.notes.trim() || null,
         defaultRestSeconds: values.defaultRestSeconds.trim()
           ? Number(values.defaultRestSeconds)
@@ -77,7 +80,13 @@ export function ProgramDayFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' 
   });
   return (
     <section className="builder-page" aria-labelledby="day-form-title">
-      <BuilderHeader title={day ? 'Day Settings' : 'Add Training Day'} back={returnTo} />
+      <BuilderHeader
+        title={graph.program.draft ? 'Create Program' : 'Edit Program'}
+        back={returnTo}
+        step={3}
+        programId={graph.program.id}
+        exercisesPath={returnTo}
+      />
       <UnsavedChanges
         dirty={isDirty}
         saving={isSubmitting}
@@ -96,34 +105,55 @@ export function ProgramDayFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' 
       >
         <label>
           <span>Day name</span>
-          <Input {...register('name', { required: 'Enter a day name.' })} placeholder="Push Day" />
-          {errors.name ? <small role="alert">{errors.name.message}</small> : null}
-        </label>
-        <label>
-          <span>Weekday</span>
-          <Select
-            aria-label="Weekday"
-            {...register('weekday', {
-              required: mode === 'create' ? 'Choose an available weekday.' : false,
+          <Input
+            aria-label="Day name"
+            aria-invalid={Boolean(errors.name)}
+            aria-describedby={errors.name ? 'day-name-error' : undefined}
+            {...register('name', {
+              validate: (value) => Boolean(value.trim()) || 'Enter a day name.',
             })}
-          >
-            <option value="">
-              {mode === 'create' ? 'Choose an available weekday' : 'Unscheduled'}
-            </option>
-            {weekdays.map((weekday, index) => {
-              const used = graph.days.some(
-                (entry) => entry.day.id !== day?.id && entry.day.weekday === index,
-              );
-              return (
-                <option key={weekday} value={index} disabled={used}>
-                  {weekday}
-                  {used ? ' · Already assigned' : ''}
-                </option>
-              );
-            })}
-          </Select>
-          {errors.weekday ? <small role="alert">{errors.weekday.message}</small> : null}
+            maxLength={120}
+            placeholder="Push Day"
+          />
+          {errors.name ? (
+            <small id="day-name-error" role="alert">
+              {errors.name.message}
+            </small>
+          ) : null}
         </label>
+        {graph.program.scheduleType !== 'cycle' && (
+          <label>
+            <span>Weekday</span>
+            <Select
+              aria-label="Weekday"
+              aria-invalid={Boolean(errors.weekday)}
+              aria-describedby={errors.weekday ? 'day-weekday-error' : undefined}
+              {...register('weekday', {
+                required: mode === 'create' ? 'Choose an available weekday.' : false,
+              })}
+            >
+              <option value="">
+                {mode === 'create' ? 'Choose an available weekday' : 'Unscheduled'}
+              </option>
+              {weekdays.map((weekday, index) => {
+                const used = graph.days.some(
+                  (entry) => entry.day.id !== day?.id && entry.day.weekday === index,
+                );
+                return (
+                  <option key={weekday} value={index} disabled={used}>
+                    {weekday}
+                    {used ? ' · Already assigned' : ''}
+                  </option>
+                );
+              })}
+            </Select>
+            {errors.weekday ? (
+              <small id="day-weekday-error" role="alert">
+                {errors.weekday.message}
+              </small>
+            ) : null}
+          </label>
+        )}
         <label>
           <span>Default rest in seconds</span>
           <Input
@@ -131,9 +161,21 @@ export function ProgramDayFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' 
             inputMode="numeric"
             min="0"
             max="3600"
-            {...register('defaultRestSeconds', { min: 0, max: 3600 })}
+            aria-label="Default rest in seconds"
+            aria-invalid={Boolean(errors.defaultRestSeconds)}
+            aria-describedby={errors.defaultRestSeconds ? 'day-rest-error' : undefined}
+            {...register('defaultRestSeconds', {
+              min: 0,
+              max: 3600,
+              validate: (value) =>
+                value.trim() === '' || Number.isInteger(Number(value)) || 'Use a whole number.',
+            })}
           />
-          {errors.defaultRestSeconds ? <small role="alert">Use 0–3600 seconds.</small> : null}
+          {errors.defaultRestSeconds ? (
+            <small id="day-rest-error" role="alert">
+              {errors.defaultRestSeconds.message || 'Use 0–3600 seconds.'}
+            </small>
+          ) : null}
           <small>Used for newly added prescriptions. Existing rest targets do not change.</small>
         </label>
         <label>
@@ -145,7 +187,7 @@ export function ProgramDayFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' 
             {saveError}
           </p>
         ) : null}
-        {mode === 'create' && graph.days.length >= 7 ? (
+        {mode === 'create' && graph.program.scheduleType !== 'cycle' && graph.days.length >= 7 ? (
           <p className="text-sm text-secondary">
             All seven training-day slots are used. Return to the editor to change or delete a day.
           </p>
@@ -154,7 +196,10 @@ export function ProgramDayFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' 
           variant="primary"
           className="w-full min-h-[54px]"
           type="submit"
-          disabled={isSubmitting || (mode === 'create' && graph.days.length >= 7)}
+          disabled={
+            isSubmitting ||
+            (mode === 'create' && graph.program.scheduleType !== 'cycle' && graph.days.length >= 7)
+          }
         >
           {isSubmitting ? 'Saving…' : day ? 'Save day' : 'Add day'}
         </Button>
