@@ -73,7 +73,10 @@ export function validateBackupRelationships(
     if (!programIds.has(day.programId)) {
       throw new BackupError('missing-reference', `Program day ${day.id} has no program.`);
     }
-    if (day.weekday != null) {
+    if (
+      day.weekday != null &&
+      data.programs.find((program) => program.id === day.programId)?.scheduleType !== 'cycle'
+    ) {
       const key = `${day.programId}:${day.weekday}`;
       if (scheduledDays.has(key))
         throw new BackupError('duplicate-id', 'A program has duplicate training weekdays.');

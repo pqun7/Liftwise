@@ -15,12 +15,18 @@ export type StreakDayStatus = 'completed' | 'missed' | 'rest' | 'today' | 'futur
 export function scheduledTrainingWeekdays(
   graph:
     | {
-        program: Pick<Program, 'archived' | 'draft'>;
+        program: Pick<Program, 'archived' | 'draft' | 'scheduleType'>;
         days: { day: Pick<ProgramDay, 'weekday'>; exercises: readonly unknown[] }[];
       }
     | undefined,
 ): number[] | null {
-  if (!graph || graph.program.archived || graph.program.draft) return null;
+  if (
+    !graph ||
+    graph.program.archived ||
+    graph.program.draft ||
+    graph.program.scheduleType === 'cycle'
+  )
+    return null;
   const weekdays = [
     ...new Set(
       graph.days.flatMap(({ day, exercises }) =>

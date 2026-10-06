@@ -79,6 +79,8 @@ export interface CatalogMetadata {
 }
 
 export interface Program extends TimestampedEntity {
+  /** Known modes are weekly/cycle; preserve future modes when reopening older clients. */
+  scheduleType?: string | undefined;
   id: string;
   name: string;
   description: string | null;

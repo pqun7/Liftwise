@@ -155,6 +155,7 @@ export const catalogMetadataSchema: z.ZodType<CatalogMetadata> = z
 
 export const programSchema: z.ZodType<Program> = z
   .object({
+    scheduleType: z.string().min(1).optional(),
     id: entityIdSchema,
     name: z.string().trim().min(1).max(120),
     description: z.string().trim().max(2_000).nullable(),
@@ -165,7 +166,9 @@ export const programSchema: z.ZodType<Program> = z
     draft: z.boolean().optional(),
     ...timestampFields,
   })
-  .strict();
+  // Retain additive metadata across repository writes and backup/restore.
+  // Validate known fields above, including the shape of scheduleType.
+  .catchall(z.json());
 
 export const programDaySchema: z.ZodType<ProgramDay> = z
   .object({
@@ -178,7 +181,7 @@ export const programDaySchema: z.ZodType<ProgramDay> = z
     defaultRestSeconds: z.number().int().min(0).max(3600).nullable().optional(),
     ...timestampFields,
   })
-  .strict();
+  .catchall(z.json());
 
 export const programExerciseSchema: z.ZodType<ProgramExercise> = z
   .object({

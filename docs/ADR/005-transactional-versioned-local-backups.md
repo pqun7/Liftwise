@@ -13,6 +13,14 @@ Liftwise exports a strongly versioned, Zod-validated JSON envelope containing on
 
 Backup-format migrations live in a dedicated registry outside React screens and outside database migrations. Known older formats migrate forward; unknown future formats are rejected. Missing provider references are reported and preserved. RepDB catalog rows and Cache Storage media never enter the backup.
 
+### Additive program metadata compatibility (2026-10-06)
+
+Program and program-day validators retain unknown JSON metadata while validating all known fields. This applies to repository reads, updates, duplication, export, and transactional restore. `scheduleType` is an optional nonempty string: `weekly` follows assigned weekdays, `cycle` rotates workouts by completion and permits more than seven days. Missing or future modes retain the existing weekday inference without overwriting the stored value. Cycle weekday metadata is preserved but does not establish calendar rest dates or weekday uniqueness during restore.
+
+No IndexedDB or backup version bump is required. Both the weekly-only release and the schedule redesign already write database version 6; an upgrade callback alone would not repair records arriving later through restore or another client. Adding defaults or deleting `scheduleType` would change legacy scheduling or lose information. Existing version 3-to-4 migrations still convert day numbers to order, and regression tests cover that upgrade and reopening version 6 data.
+
+This compatibility contract covers additive JSON fields on programs/days, not arbitrary changes to required fields or backup/database versions. Malformed known fields, missing references, and unsupported future backup versions remain explicit restore errors before deletion. Future schedule modes are preserved using weekday inference until a client implements their semantics. The weekly editor on `main` does not provide the newer branch's cycle/recovery editing interface.
+
 ## Alternatives considered
 
 - **Cloud backup:** conflicts with the current no-account, no-backend, privacy-first boundary.

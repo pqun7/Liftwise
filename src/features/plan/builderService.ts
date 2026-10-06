@@ -176,7 +176,10 @@ export class ProgramBuilderService {
         const scheduled = graph.days.flatMap(({ day }) =>
           day.weekday == null ? [] : [day.weekday],
         );
-        if (graph.days.length > 7 || new Set(scheduled).size !== scheduled.length)
+        if (
+          graph.program.scheduleType !== 'cycle' &&
+          (graph.days.length > 7 || new Set(scheduled).size !== scheduled.length)
+        )
           throw new Error('Use at most seven training days with unique weekdays before saving.');
         const saved = await this.programs.update(programId, { draft: false });
         if (!(await this.programs.getActiveId())) await this.programs.setActive(programId);

@@ -48,7 +48,8 @@ export class LiftwiseDatabase extends Dexie {
     this.version(3).stores(VERSION_3_STORES).upgrade(migrateVersion2ToVersion3);
     this.version(4).stores(VERSION_4_STORES).upgrade(migrateVersion3ToVersion4);
     this.version(5).stores(VERSION_5_STORES).upgrade(migrateVersion4ToVersion5);
-    // Add a date-range index. Optional circumference fields need no record rewrite.
+    // Add a date-range index. Optional circumference/scheduleType metadata needs no
+    // record rewrite: legacy programs retain weekday inference and existing modes survive.
     this.version(6).stores(VERSION_6_STORES);
   }
 }

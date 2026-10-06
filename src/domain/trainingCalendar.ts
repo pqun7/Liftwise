@@ -17,7 +17,8 @@ export function trainingCalendar(
     graph && !graph.program.archived && !graph.program.draft
       ? graph.days.filter(({ exercises }) => exercises.length > 0)
       : [];
-  const dated = days.some(({ day }) => day.weekday != null);
+  const dated =
+    graph?.program.scheduleType !== 'cycle' && days.some(({ day }) => day.weekday != null);
   const last = sessions
     .filter(
       (session) =>
