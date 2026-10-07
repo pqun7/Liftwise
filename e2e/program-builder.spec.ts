@@ -1,3 +1,4 @@
+import { openSavedEditor } from './programHelpers';
 import { expect, test } from '@playwright/test';
 import { setOffline } from './offline';
 
@@ -15,14 +16,9 @@ test('program-first templates, inline targets, moves and custom exercise persist
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
   await page.goto('/plan/new');
   await page.getByLabel('Program name').fill('Reference Upper Lower');
+  await page.getByRole('button', { name: 'Add description' }).click();
   await page.getByLabel('Description or notes').fill('Durable builder plan');
-  await page.getByRole('button', { name: 'Next: Schedule' }).click();
-  await page.getByRole('button', { name: /Upper.*Lower/ }).click();
-  await page.getByText('Preview Upper / Lower', { exact: true }).click();
-  await expect(page.getByRole('region', { name: /template preview/ })).toContainText(
-    'Barbell Bench Press',
-  );
-  await page.getByRole('button', { name: 'Next: Exercises' }).click();
+  await openSavedEditor(page, 'Upper / Lower');
   await expect(page.getByRole('article', { name: /workout day/ })).toHaveCount(4);
   const upper = page.getByRole('article', { name: 'Upper A workout day' });
   await upper.getByRole('button', { name: /Barbell Bench Press/ }).click();
@@ -44,8 +40,6 @@ test('program-first templates, inline targets, moves and custom exercise persist
   await setOffline(context, browserName, true);
   await page.getByRole('button', { name: 'Add Builder Custom Press to Upper A' }).click();
   await expect(upper).toContainText('Builder Custom Press');
-  await page.getByRole('button', { name: 'Next: Review', exact: true }).click();
-  await page.getByRole('button', { name: 'Save Program', exact: true }).click();
   await expect(page.getByText('✓ Saved', { exact: true })).toBeVisible();
   await expect(page.getByText('✓ Saved')).toBeVisible();
   for (const width of [375, 390, 393, 402, 430]) {
@@ -81,9 +75,7 @@ test('Custom weekdays rename, reschedule, fast-add and reorder without leaving t
   test.setTimeout(120_000);
   await page.goto('/plan/new');
   await page.getByLabel('Program name').fill('Custom Week');
-  await page.getByRole('button', { name: 'Next: Schedule' }).click();
-  await page.getByRole('button', { name: 'Custom Schedule' }).click();
-  await page.getByRole('button', { name: 'Next: Exercises' }).click();
+  await openSavedEditor(page);
   for (const [weekday, name] of [
     ['Monday', 'Push'],
     ['Wednesday', 'Pull'],
@@ -112,8 +104,6 @@ test('Custom weekdays rename, reschedule, fast-add and reorder without leaving t
   await push.getByRole('button', { name: 'Move Dumbbell Shoulder Press up', exact: true }).click();
   await expect(push.locator('ol > li').first()).toContainText('Dumbbell Shoulder Press');
   await expect(push).toContainText('3 × 6–10');
-  await page.getByRole('button', { name: 'Next: Review', exact: true }).click();
-  await page.getByRole('button', { name: 'Save Program', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Done', exact: true })).toBeVisible();
   await page.reload();
   await push.getByRole('button', { name: 'Options for Push' }).click();

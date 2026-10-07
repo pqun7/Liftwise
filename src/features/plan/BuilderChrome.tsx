@@ -4,7 +4,7 @@ import { Check, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
 
-const labels = ['Basics', 'Schedule', 'Exercises', 'Review'];
+const labels = ['Basics', 'Template', 'Schedule', 'Exercises', 'Review'];
 export function BuilderHeader({
   title,
   back,
@@ -23,8 +23,9 @@ export function BuilderHeader({
   const paths = programId
     ? [
         `/plan/${programId}/edit`,
+        `/plan/${programId}/build/template`,
         `/plan/${programId}/build/days`,
-        exercisesPath ?? `/plan/${programId}`,
+        exercisesPath ?? `/plan/${programId}/build/exercises`,
         `/plan/${programId}/build/review`,
       ]
     : [];

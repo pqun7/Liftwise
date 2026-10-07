@@ -1,6 +1,6 @@
 import { progressRepository } from '../features/progress/progressService';
 import { lazy } from 'react';
-import { createBrowserRouter, type RouteObject } from 'react-router-dom';
+import { createBrowserRouter, redirect, type RouteObject } from 'react-router-dom';
 
 import { HomePage } from '../features/home/HomePage';
 import { homeLoader } from '../features/home/homeService';
@@ -61,6 +61,11 @@ const TrainingDaysPage = lazy(() =>
 const ProgramReviewPage = lazy(() =>
   import('../features/plan/ProgramReviewPage').then((module) => ({
     default: module.ProgramReviewPage,
+  })),
+);
+const ProgramTemplatePage = lazy(() =>
+  import('../features/plan/ProgramTemplatePage').then((module) => ({
+    default: module.ProgramTemplatePage,
   })),
 );
 import {
@@ -180,6 +185,23 @@ export const routeObjects: RouteObject[] = [
         errorElement: <ProgramRouteError />,
       },
       { path: 'plan/new', element: <ProgramFormPage mode="create" /> },
+      {
+        path: 'plan/:programId/build/template',
+        element: <ProgramTemplatePage />,
+        loader: programLoader,
+        errorElement: <ProgramRouteError />,
+      },
+      {
+        path: 'plan/:programId/build/exercises',
+        loader: async (args) => {
+          const { graph } = await programLoader(args);
+          return redirect(
+            graph.days[0]
+              ? `/plan/${graph.program.id}/days/${graph.days[0].day.id}`
+              : `/plan/${graph.program.id}/build/days`,
+          );
+        },
+      },
       {
         path: 'plan/:programId/build/days',
         element: <TrainingDaysPage />,

@@ -149,7 +149,7 @@ function ProgramEditor() {
           title="Exercises"
           back="/plan"
           backLabel="Back to Programs"
-          step={2}
+          step={3}
           programId={program.id}
         />
       ) : (
@@ -483,11 +483,16 @@ function ProgramEditor() {
           <p className="text-sm text-secondary">
             {days.length} training days · {count} exercises
           </p>
-          <WeeklySchedule graph={graph} />
-          {chronologicalDays(days).map(({ day, exercises }) => (
+          {program.scheduleType !== 'cycle' ? <WeeklySchedule graph={graph} /> : null}
+          {chronologicalDays(days).map(({ day, exercises }, index) => (
             <Card key={day.id}>
               <h3 className="font-semibold">
-                {day.weekday == null ? 'Unscheduled' : weekdays[day.weekday]} · {day.name}
+                {program.scheduleType === 'cycle'
+                  ? `Day ${index + 1}`
+                  : day.weekday == null
+                    ? 'Unscheduled'
+                    : weekdays[day.weekday]}{' '}
+                · {day.name}
               </h3>
               <ul className="list-none p-0 m-0 mt-3 grid gap-3">
                 {exercises.map((item) => (
@@ -500,7 +505,9 @@ function ProgramEditor() {
                 ))}
               </ul>
               {!exercises.length ? (
-                <p className="text-sm text-secondary mt-2">No exercises yet</p>
+                <p className="text-sm text-secondary mt-2">
+                  {day.kind === 'recovery' ? 'Rest day' : 'No exercises yet'}
+                </p>
               ) : null}
             </Card>
           ))}

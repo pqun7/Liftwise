@@ -28,7 +28,11 @@ export function AppShell() {
       (data as { graph?: { program?: { draft?: boolean } } } | undefined)?.graph?.program?.draft,
     ),
   );
-  const builder = pathname === '/plan/new' || /\/build\//.test(pathname) || creating;
+  const builder =
+    pathname === '/plan/new' ||
+    /\/build\//.test(pathname) ||
+    /^\/plan\/[^/]+\/(edit|days\/)/.test(pathname) ||
+    creating;
   const focused = useMatches().some(({ data }) => {
     const status = (data as { workout?: { session?: { status?: string } } } | undefined)?.workout
       ?.session?.status;
@@ -39,7 +43,7 @@ export function AppShell() {
   });
   return (
     <div
-      className={`app-frame mx-auto min-h-dvh w-full max-w-[430px] bg-[radial-gradient(circle_at_85%_5%,rgb(20_120_90_/_15%),transparent_35%)] pl-[max(16px,var(--safe-left))] pr-[max(16px,var(--safe-right))] text-primary${home ? ' home-frame' : ''}${plan ? ' plan-frame' : ''}`}
+      className={`app-frame mx-auto min-h-dvh w-full max-w-[430px] ${plan ? 'plan-frame' : ''} pl-[max(16px,var(--safe-left))] pr-[max(16px,var(--safe-right))] text-primary${home ? ' home-frame' : ''}`}
     >
       <a className="skip-link" href="#main-content">
         Skip to content
@@ -57,7 +61,7 @@ export function AppShell() {
 
       <main
         id="main-content"
-        className={`main-content min-w-0 pt-[calc(18px+var(--safe-top))] ${focused ? 'pb-[calc(24px+var(--safe-bottom))]' : 'pb-[calc(112px+var(--safe-bottom))]'}`}
+        className={`main-content min-w-0 pt-[calc(18px+var(--safe-top))] ${focused || builder ? 'pb-[calc(24px+var(--safe-bottom))]' : 'pb-[calc(112px+var(--safe-bottom))]'}`}
         tabIndex={-1}
       >
         <UpdatePrompt />

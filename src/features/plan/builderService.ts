@@ -42,6 +42,45 @@ export const splitTemplates = [
   { id: 'custom', name: 'Custom', hint: 'Create from scratch', days: [], names: [] },
 ] as const;
 export type SplitTemplate = NonNullable<Program['splitTemplate']>;
+export function canReplaceStarter(
+  graph: import('../../lib/storage/repositories/programRepository').ProgramGraph,
+) {
+  if (!graph.program.draft) return false;
+  if (!graph.days.length) return true;
+  const source = programTemplates.find(({ split }) => split === graph.program.splitTemplate);
+  if (!source)
+    return (
+      graph.days.length === 3 &&
+      graph.days.every(
+        ({ day, exercises }, index) =>
+          !exercises.length &&
+          !day.notes &&
+          day.kind !== 'recovery' &&
+          day.name === `Workout Day ${index + 1}`,
+      )
+    );
+  return (
+    graph.days.length === source.days.length &&
+    graph.days.every(({ day, exercises }, index) => {
+      const expectedDay = source.days[index]!;
+      return (
+        day.name === expectedDay.name &&
+        !day.notes &&
+        day.kind !== 'recovery' &&
+        exercises.length === expectedDay.exercises.length &&
+        exercises.every((prescription, position) => {
+          const expected = expectedDay.exercises[position]!;
+          return (
+            !prescription.notes &&
+            Object.entries(expected).every(
+              ([key, value]) => prescription[key as keyof typeof prescription] === value,
+            )
+          );
+        })
+      );
+    })
+  );
+}
 const daysInput = z
   .array(z.number().int().min(0).max(6))
   .min(1)
@@ -56,7 +95,80 @@ export class ProgramBuilderService {
   }
 
   saveBasics(input: CreateProgramInput, id?: string) {
-    return id ? this.programs.update(id, input) : this.programs.create({ ...input, draft: true });
+    return id ? this.updateBasics(id, input) : this.programs.create({ ...input, draft: true });
+  }
+
+  private async updateBasics(id: string, input: CreateProgramInput) {
+    return this.db.transaction(
+      'rw',
+      [this.db.programs, this.db.programDays, this.db.programExercises, this.db.appSettings],
+      async () => {
+        const graph = await this.programs.get(id);
+        if (!graph) throw new Error('Program not found.');
+        if (input.scheduleType === 'weekly' && graph.program.scheduleType === 'cycle') {
+          if (graph.days.length > 7)
+            throw new Error(
+              'This cycle has more than seven days. Keep Flexible Cycle or shorten it in Schedule first.',
+            );
+          // Preserve every entity, prescription and note when changing schedule type.
+          for (const { day } of graph.days)
+            await this.programs.updateDay(day.id, { weekday: null });
+          for (const [index, { day }] of graph.days.entries())
+            await this.programs.updateDay(day.id, { weekday: index });
+        } else if (input.scheduleType === 'cycle' && graph.program.scheduleType !== 'cycle') {
+          for (const { day } of graph.days)
+            await this.programs.updateDay(day.id, { weekday: null });
+        }
+        return this.programs.update(id, input);
+      },
+    );
+  }
+
+  /** Selecting structure never replaces an existing saved plan or user prescriptions. */
+  async selectTemplate(programId: string, choice: ProgramTemplateId | 'custom') {
+    const graph = await this.programs.get(programId);
+    if (!graph) throw new Error('Program not found.');
+    const template = programTemplates.find(({ id }) => id === choice);
+    const split = template?.split ?? 'custom';
+    if (graph.program.splitTemplate === split && graph.days.length) return graph;
+    if (graph.days.length && !canReplaceStarter(graph)) {
+      await this.programs.update(programId, { splitTemplate: split });
+      return this.programs.get(programId);
+    }
+    const cycle = graph.program.scheduleType === 'cycle';
+    return this.db.transaction(
+      'rw',
+      [
+        this.db.programs,
+        this.db.programDays,
+        this.db.programExercises,
+        this.db.exercises,
+        this.db.workoutExercises,
+        this.db.workoutSessions,
+        this.db.appSettings,
+      ],
+      async () => {
+        if (template) {
+          await this.applyTemplate(programId, template.id, graph.days.length > 0);
+        } else {
+          for (const { day } of graph.days) await this.programs.deleteDay(day.id);
+          for (const [index, weekday] of [0, 2, 4].entries())
+            await this.programs.addDay({
+              programId,
+              name: `Workout Day ${index + 1}`,
+              weekday: cycle ? null : weekday,
+              kind: 'workout',
+            });
+          await this.programs.update(programId, { splitTemplate: 'custom' });
+        }
+        if (cycle) {
+          const updated = await this.programs.get(programId);
+          for (const { day } of updated!.days)
+            await this.programs.updateDay(day.id, { weekday: null });
+        }
+        return this.programs.get(programId);
+      },
+    );
   }
 
   async chooseDays(
@@ -166,20 +278,25 @@ export class ProgramBuilderService {
     );
   }
 
-  async finish(programId: string) {
+  async finish(programId: string, activate?: boolean) {
     return this.db.transaction(
       'rw',
       [this.db.programs, this.db.programDays, this.db.programExercises, this.db.appSettings],
       async () => {
         const graph = await this.programs.get(programId);
-        if (!graph?.days.length) throw new Error('Add at least one training day before saving.');
+        if (!graph?.days.some(({ day }) => day.kind !== 'recovery'))
+          throw new Error('Add at least one training day before saving.');
         const scheduled = graph.days.flatMap(({ day }) =>
           day.weekday == null ? [] : [day.weekday],
         );
-        if (graph.days.length > 7 || new Set(scheduled).size !== scheduled.length)
+        if (
+          graph.program.scheduleType !== 'cycle' &&
+          (graph.days.length > 7 || new Set(scheduled).size !== scheduled.length)
+        )
           throw new Error('Use at most seven training days with unique weekdays before saving.');
         const saved = await this.programs.update(programId, { draft: false });
-        if (!(await this.programs.getActiveId())) await this.programs.setActive(programId);
+        if (activate === true || (activate === undefined && !(await this.programs.getActiveId())))
+          await this.programs.setActive(programId);
         return saved;
       },
     );

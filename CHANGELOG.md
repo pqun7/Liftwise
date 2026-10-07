@@ -4,6 +4,10 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Fixed
+
+- Opening existing local programs no longer fails on known `scheduleType`/day `kind` metadata from the scheduling build. Strict validation, IDs, stored data and backup round trips are preserved; database v6 and backup v2 remain unchanged.
+
 ## [1.1.0] - 2026-10-05
 
 ### Program Builder and Workout redesign

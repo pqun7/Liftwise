@@ -94,6 +94,7 @@ export const createProgramDay = (programId: string, input: UpdateProgramDayInput
     notes: input.notes ?? null,
     defaultRestSeconds: input.defaultRestSeconds ?? null,
     weekday: input.weekday ?? null,
+    kind: input.kind,
   });
 export const updateProgramDay = (id: string, input: UpdateProgramDayInput) =>
   programs.updateDay(id, input);

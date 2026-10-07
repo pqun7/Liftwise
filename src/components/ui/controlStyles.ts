@@ -1,7 +1,7 @@
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
 export type ButtonSize = 'default' | 'large' | 'icon';
 const variants: Record<ButtonVariant, string> = {
-  primary: 'border-mint bg-mint text-app hover:bg-mint/90',
+  primary: 'border-mint bg-mint bg-[image:var(--accent-gradient)] text-app hover:brightness-95',
   secondary: 'border-border bg-surface-2 text-primary hover:bg-surface-3',
   outline: 'border-mint/60 bg-transparent text-mint hover:bg-mint/10',
   ghost: 'border-transparent bg-transparent text-secondary hover:bg-surface-2',

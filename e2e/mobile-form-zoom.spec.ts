@@ -39,6 +39,7 @@ test('mobile editable controls have zoom-safe computed typography and an unrestr
   expect(viewport).not.toMatch(/user-scalable\s*=\s*no|maximum-scale\s*=\s*1(?:\.0)?(?:\s|,|$)/i);
   await assertMobileInputIsZoomSafe(page.getByLabel('Program name'));
   await expect(page.getByLabel('Program name')).not.toBeFocused();
+  await page.getByRole('button', { name: 'Add description' }).click();
   await assertMobileInputIsZoomSafe(page.getByLabel('Description or notes'));
   for (const width of [320, 375, 390, 393, 414, 430]) {
     await page.setViewportSize({ width, height: 844 });

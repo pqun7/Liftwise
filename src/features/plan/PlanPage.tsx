@@ -1,16 +1,52 @@
 import { useRef, useState } from 'react';
-import { Link, useLoaderData, useNavigate } from 'react-router-dom';
-import { CalendarDays, Clock3, Dumbbell, Pencil, Play } from 'lucide-react';
+import { Link, useLoaderData, useNavigate, useRevalidator } from 'react-router-dom';
+import {
+  ArrowRight,
+  CalendarDays,
+  Dumbbell,
+  FileText,
+  Pencil,
+  Play,
+  Plus,
+  Eye,
+  SlidersHorizontal,
+  Smartphone,
+} from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { buttonClasses } from '../../components/ui/controlStyles';
-import { startPlannedWorkout } from '../workout/workoutService';
 import { weekdays } from './builderService';
-import { estimatedProgramMinutes } from './programDisplay';
+import { setActiveProgram, type ProgramListData } from './programService';
+import type { ProgramGraph } from '../../lib/storage/repositories/programRepository';
 import { trainingCalendar } from '../../domain/trainingCalendar';
-import { WeeklySchedule } from './WeeklySchedule';
-import type { ProgramListData } from './programService';
-import dumbbells from '../../assets/images/dumbbells.webp';
+import { startPlannedWorkout } from '../workout/workoutService';
+import planArtwork from '../../assets/images/plan/plan-empty-transparent.png';
+
+function SchedulePreview({ graph }: { graph: ProgramGraph }) {
+  const cycle = graph.program.scheduleType === 'cycle';
+  const entries = cycle
+    ? graph.days
+    : weekdays.map((_, weekday) => graph.days.find(({ day }) => day.weekday === weekday));
+  return (
+    <div className={`my-2 gap-1 ${cycle ? 'flex overflow-x-auto py-1' : 'grid grid-cols-7'}`}>
+      {entries.map((entry, index) => (
+        <div
+          key={index}
+          className={`grid min-w-0 justify-items-center gap-2 text-center type-label ${cycle ? 'w-12 shrink-0' : ''}`}
+        >
+          <span>{cycle ? index + 1 : weekdays[index]?.slice(0, 3)}</span>
+          <i
+            aria-hidden="true"
+            className={`size-2.5 rounded-full ${entry && entry.day.kind !== 'recovery' ? 'bg-mint' : 'bg-muted/70'}`}
+          />
+          <small className="w-full truncate type-caption text-secondary" title={entry?.day.name}>
+            {entry?.day.kind !== 'recovery' && entry ? entry.day.name : 'Rest'}
+          </small>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function PlanPage() {
   const {
@@ -21,213 +57,218 @@ export function PlanPage() {
     now,
     unfinished,
   } = useLoaderData<ProgramListData>();
-  const navigate = useNavigate();
-  const pending = useRef(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const active = graphs.find(
     ({ program }) => program.id === activeProgramId && !program.draft && !program.archived,
   );
+  const others = graphs.filter(({ program }) => program.id !== active?.program.id);
+  const revalidator = useRevalidator();
+  const navigate = useNavigate();
   const calendar = trainingCalendar(active, completed, new Date(now));
-  const next = calendar.next?.entry ?? null;
+  const next = calendar.next?.entry;
   const startable = calendar.startableToday ?? next;
-  const minutes = next ? estimatedProgramMinutes(next.exercises) : null;
-  const total = active?.days.reduce((sum, entry) => sum + entry.exercises.length, 0) ?? 0;
-  const estimates = active?.days.map(({ exercises }) => estimatedProgramMinutes(exercises)) ?? [];
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const pending = useRef(false);
+  const activate = async (id: string) => {
+    if (pending.current) return;
+    pending.current = true;
+    setBusy(true);
+    setError(null);
+    try {
+      await setActiveProgram(id);
+      await revalidator.revalidate();
+    } catch {
+      setError('Could not change your active program. Try again.');
+    } finally {
+      pending.current = false;
+      setBusy(false);
+    }
+  };
+  const summary = (graph: ProgramGraph) =>
+    `${graph.days.filter(({ day }) => day.kind !== 'recovery').length} training days · ${graph.days.reduce((sum, entry) => sum + entry.exercises.length, 0)} exercises`;
   return (
-    <section className="plan-experience grid gap-5" aria-labelledby="plan-title">
-      <header>
-        <p className="plan-eyebrow">Programs</p>
-        <h1 id="plan-title" className="type-page-title mt-1">
+    <section className="grid gap-6 font-ui type-body" aria-labelledby="plan-title">
+      <header className="px-1 pt-2 pb-3">
+        <p className="type-label uppercase text-mint">Programs</p>
+        <h1 id="plan-title" className="mt-1 type-display">
           My Training Plan
         </h1>
       </header>
       {active ? (
-        <>
-          <Card className="plan-active-card grid gap-4">
-            <div className="flex justify-between items-center">
-              <span className="plan-active-badge">● Active</span>
-              <Link
-                className="plan-overflow"
-                aria-label="Program settings"
-                to={`/plan/${active.program.id}?tab=settings`}
-              >
-                •••
-              </Link>
-            </div>
-            <div>
-              <h2 className="text-xl font-bold">{active.program.name}</h2>
-              <p className="text-sm text-secondary mt-1">
-                {active.days.length} training days · {total} exercises
-              </p>
-            </div>
-            {next ? (
-              <div className="plan-next">
-                <p className="flex items-center gap-2 text-xs text-secondary">
-                  <CalendarDays size={14} />
-                  Next scheduled workout
-                </p>
-                <div className="flex items-center gap-3 mt-3">
-                  <span className="plan-detail-icon text-mint">
-                    <CalendarDays size={22} />
-                  </span>
-                  <div className="min-w-0">
-                    <h3 className="font-semibold">{next.day.name}</h3>
-                    <p className="text-xs text-secondary mt-1">
-                      {next.day.weekday == null ? 'Unscheduled' : weekdays[next.day.weekday]} ·{' '}
-                      {next.exercises.length} exercises{minutes == null ? '' : ` · ~${minutes} min`}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <p className="text-sm text-secondary">
-                {active.days.length
-                  ? 'Add exercises to a training day to start your next workout.'
-                  : 'Build your weekly schedule. Add your first training day.'}
-              </p>
-            )}
-            {error ? (
-              <p role="alert" className="text-sm text-secondary">
-                {error}
-              </p>
-            ) : null}
-            <div className="grid gap-2">
+        <Card
+          variant="glass"
+          padding="spacious"
+          radius="hero"
+          className="plan-active-card grid gap-3"
+        >
+          <div className="flex justify-between items-center">
+            <span className="inline-flex items-center gap-2 justify-self-start rounded-full bg-mint/20 px-4 py-2 type-button">
+              <span className="size-2 rounded-full bg-mint" aria-hidden="true" /> Active
+            </span>
+            <Link
+              className="grid size-11 shrink-0 place-items-center rounded-full text-primary no-underline hover:bg-mint/10"
+              aria-label="Program settings"
+              to={`/plan/${active.program.id}?tab=settings`}
+            >
+              •••
+            </Link>
+          </div>
+          <h2 className="type-page-title wrap-anywhere">{active.program.name}</h2>
+          <p className="text-secondary">{summary(active)}</p>
+          <div className="mt-2 flex items-center gap-2.5 border-t border-border pt-4 text-secondary">
+            <CalendarDays size={19} />
+            {active.program.scheduleType === 'cycle' ? 'Flexible Cycle' : 'Weekly Structure'}
+          </div>
+          <SchedulePreview graph={active} />
+          <div className="grid gap-2">
+            <Link
+              className={buttonClasses('primary', '', 'large')}
+              to={`/plan/${active.program.id}/edit`}
+            >
+              <Pencil size={19} />
+              Edit program
+            </Link>
+            <Link
+              className={buttonClasses('secondary', '', 'large')}
+              to={`/plan/${active.program.id}?tab=preview`}
+            >
+              <Eye size={19} />
+              View program details
+            </Link>
+          </div>
+          {next ? (
+            <section className="grid gap-2 border-t border-border pt-3">
+              <p className="text-secondary">Next scheduled workout</p>
+              <h3>{next.day.name}</h3>
               <Button
-                variant="primary"
-                className="w-full min-h-14"
-                disabled={busy || (!startable && !unfinished)}
+                disabled={busy}
                 onClick={() => {
-                  if (pending.current) return;
-                  if (unfinished) {
-                    void navigate(`/workout/${unfinished.id}`);
-                    return;
-                  }
-                  if (!startable) return;
+                  if (!startable || pending.current) return;
                   pending.current = true;
                   setBusy(true);
-                  setError(null);
                   void startPlannedWorkout(startable.day.id)
                     .then((id) => navigate(`/workout/${id}`))
-                    .catch((failure: unknown) => {
+                    .catch((failure: unknown) =>
                       setError(
-                        failure instanceof Error
-                          ? failure.message
-                          : 'Could not start workout. Try again.',
-                      );
-                    })
+                        failure instanceof Error ? failure.message : 'Could not start workout.',
+                      ),
+                    )
                     .finally(() => {
                       pending.current = false;
                       setBusy(false);
                     });
                 }}
               >
-                <Play size={16} fill="currentColor" />
-                {busy
-                  ? 'Starting…'
-                  : unfinished
-                    ? `Resume ${unfinished.name ?? 'Workout'}`
-                    : startable === next
-                      ? 'Start next workout early'
-                      : 'Start today’s workout'}
+                {calendar.startableToday ? 'Start today’s workout' : 'Start next workout early'}
               </Button>
-              <Link
-                className={buttonClasses('outline', '!text-primary !border-border')}
-                to={`/plan/${active.program.id}`}
-              >
-                <Pencil size={16} />
-                Edit Program
-              </Link>
-            </div>
-          </Card>
-          <WeeklySchedule graph={active} />
-          <Card className="grid gap-4">
-            <h2 className="font-bold">Program Details</h2>
-            <div className="plan-detail-row">
-              <span className="plan-detail-icon">
-                <Dumbbell size={21} />
-              </span>
-              <div>
-                <p>Muscle split</p>
-                <strong className="capitalize">
-                  {active.program.splitTemplate?.replaceAll('-', ' ') ?? 'Custom'}
-                </strong>
-              </div>
-            </div>
-            <div className="plan-detail-row">
-              <span className="plan-detail-icon">
-                <Clock3 size={21} />
-              </span>
-              <div>
-                <p>Estimated time</p>
-                <strong>
-                  {estimates.length && estimates.every((value) => value != null)
-                    ? `~${estimates.reduce<number>((sum, value) => sum + (value ?? 0), 0)} min / week`
-                    : 'Set targets for an estimate'}
-                </strong>
-              </div>
-            </div>
-            <div className="plan-detail-row">
-              <span className="plan-detail-icon">
-                <CalendarDays size={21} />
-              </span>
-              <div>
-                <p>Last updated</p>
-                <strong>
-                  {new Date(active.program.updatedAt).toLocaleString(undefined, {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                  })}
-                </strong>
-              </div>
-            </div>
-          </Card>
-        </>
+            </section>
+          ) : null}
+          {unfinished ? (
+            <Button onClick={() => void navigate(`/workout/${unfinished.id}`)}>
+              Resume {unfinished.name ?? 'Workout'}
+            </Button>
+          ) : null}
+        </Card>
       ) : (
-        <Card className="plan-empty grid gap-4">
-          {!programs.length ? <img src={dumbbells} alt="" className="plan-empty-image" /> : null}
-          <h2 className="text-lg font-bold">
+        <Card variant="glass" padding="spacious" radius="hero" className="grid gap-4 text-center">
+          <img
+            className="plan-empty-artwork mx-auto block h-auto w-[248px] max-w-full object-contain"
+            src={planArtwork}
+            width={1448}
+            height={1086}
+            alt=""
+            decoding="async"
+          />
+          <h2 className="type-section-title text-[21px] leading-tight">
             {programs.length ? 'Choose your training program' : 'Build your training week'}
           </h2>
-          <p className="text-sm text-secondary">
+          <p className="mx-auto max-w-[265px] text-[15px] leading-relaxed text-secondary">
             {programs.length
-              ? 'Choose a program and set it active to see your next workout.'
+              ? 'Set a saved program active, or create a new training plan.'
               : 'Create your first plan with guided templates. Fully editable and saved on this device.'}
           </p>
           <Link className={buttonClasses('primary')} to="/plan/new">
             Create program
+            <ArrowRight size={19} />
           </Link>
-          {!programs.length ? (
-            <p className="text-xs text-secondary">
-              Templates · Fully editable · Stored on this device
-            </p>
-          ) : null}
+          <div className="mt-1 grid grid-cols-3 gap-2 border-t border-border pt-5 text-secondary [&>span]:grid [&>span]:content-start [&>span]:justify-items-center [&>span]:gap-2 [&>span]:type-label [&_svg]:size-6">
+            <span>
+              <FileText />
+              Templates
+            </span>
+            <span>
+              <SlidersHorizontal />
+              Fully editable
+            </span>
+            <span>
+              <Smartphone />
+              Stored on
+              <br />
+              this device
+            </span>
+          </div>
         </Card>
       )}
-      {programs
-        .filter(({ id }) => id !== active?.program.id)
-        .map((program) => (
-          <Card as="article" key={program.id}>
-            <h2 className="font-bold">
-              {program.name}
-              {program.draft ? ' · Draft' : ''}
-            </h2>
-            <p className="text-xs text-secondary mt-1">
-              {program.description ?? 'Training program'}
-            </p>
-            <Link
-              className="flex min-h-11 items-center text-sm text-secondary"
-              aria-label={`Open ${program.name}`}
-              to={`/plan/${program.id}`}
-            >
-              {program.draft ? 'Continue building' : 'Open program'} →
-            </Link>
-          </Card>
-        ))}
+      {error ? <p role="alert">{error}</p> : null}
+      {others.length ? (
+        <section className="grid gap-4">
+          <h2 className="px-1 type-section-title">{active ? 'Other Programs' : 'Your Programs'}</h2>
+          {others.map((graph, index) => (
+            <Card key={graph.program.id} variant="glass" className="grid gap-4">
+              <div className="flex items-center gap-3">
+                <span
+                  className={`grid size-12 shrink-0 place-items-center rounded-2xl ${index % 2 === 0 ? 'bg-mint/15 text-mint' : 'bg-violet-400/15 text-violet-400'}`}
+                >
+                  <Dumbbell size={26} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h3 className="type-card-title wrap-anywhere">
+                    {graph.program.name}
+                    {graph.program.draft ? ' · Draft' : ''}
+                  </h3>
+                  <p className="mt-1 type-body-small text-secondary">{summary(graph)}</p>
+                </div>
+                <Link
+                  className="grid size-11 shrink-0 place-items-center rounded-full text-primary no-underline hover:bg-mint/10"
+                  aria-label={`Options for ${graph.program.name}`}
+                  to={`/plan/${graph.program.id}?tab=settings`}
+                >
+                  •••
+                </Link>
+              </div>
+              <SchedulePreview graph={graph} />
+              {graph.program.draft ? (
+                <Link
+                  className={buttonClasses('secondary', 'w-full', 'large')}
+                  to={`/plan/${graph.program.id}/edit`}
+                >
+                  Continue building
+                  <ArrowRight size={17} />
+                </Link>
+              ) : graph.program.archived ? (
+                <Link
+                  className={buttonClasses('secondary', 'w-full')}
+                  to={`/plan/${graph.program.id}?tab=settings`}
+                >
+                  Archived · Program settings
+                </Link>
+              ) : (
+                <Button
+                  disabled={busy}
+                  className="w-full"
+                  onClick={() => void activate(graph.program.id)}
+                >
+                  <Play size={17} fill="currentColor" />
+                  Set as active
+                </Button>
+              )}
+            </Card>
+          ))}
+        </section>
+      ) : null}
       {active ? (
-        <Link className={buttonClasses('secondary')} to="/plan/new">
+        <Link className={buttonClasses('secondary', 'w-full')} to="/plan/new">
+          <Plus size={23} />
           Create another program
         </Link>
       ) : null}

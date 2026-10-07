@@ -14,6 +14,7 @@ import { Button } from '../../components/ui/Button';
 import { createPrescription } from './programService';
 import { targetDefaults } from './programTemplates';
 import { ExerciseImage } from '../exercises/ExerciseImage';
+import { reviewSuffix } from './reviewNavigation';
 
 interface PickerData {
   day: HydratedProgramDay;
@@ -50,7 +51,7 @@ export function ExercisePickerPage() {
   const returnTo =
     params.get('return') === 'editor'
       ? `/plan/${day.program.id}#day-${day.day.id}`
-      : `/plan/${day.program.id}/days/${day.day.id}`;
+      : `/plan/${day.program.id}/days/${day.day.id}${reviewSuffix(params)}`;
   const [error, setError] = useState<string | null>(null);
   const add = async (exercise: Exercise) => {
     if (pending.current) return;
@@ -204,7 +205,7 @@ export function ExercisePickerPage() {
             </div>
             <Link
               className="flex min-h-11 items-center text-xs text-secondary"
-              to={`${base}/${encodeURIComponent(exercise.id)}${params.get('return') === 'editor' ? '?return=editor' : ''}`}
+              to={`${base}/${encodeURIComponent(exercise.id)}${params.get('return') === 'editor' ? '?return=editor' : reviewSuffix(params)}`}
             >
               Configure {exercise.name} before adding
             </Link>

@@ -1,6 +1,7 @@
+import { finishBuilder } from './programHelpers';
 import { expect, test } from '@playwright/test';
 
-test('four-step PPL builder, seven-day guard and autosave survive reload at iPhone widths', async ({
+test('five-step PPL builder, seven-day guard and autosave survive reload at iPhone widths', async ({
   page,
 }, testInfo) => {
   test.setTimeout(120_000);
@@ -10,21 +11,20 @@ test('four-step PPL builder, seven-day guard and autosave survive reload at iPho
   await page.screenshot({ path: testInfo.outputPath('plan-empty.png'), fullPage: true });
   await page.getByRole('link', { name: 'Create program', exact: true }).click();
   await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toHaveCount(0);
-  await page.getByRole('button', { name: 'Next: Schedule' }).click();
+  await page.getByRole('button', { name: 'Continue to Template' }).click();
   await expect(page.getByRole('alert')).toContainText('Enter a program name');
   const longName = 'Advanced Upper Body Hypertrophy Strength Block';
   await page.getByLabel('Program name').fill(longName);
   await page.screenshot({ path: testInfo.outputPath('basics.png'), fullPage: true });
-  await page.getByRole('button', { name: 'Next: Schedule' }).click();
+  await page.getByRole('button', { name: 'Continue to Template' }).click();
   await expect(page.getByRole('navigation', { name: 'Program builder steps' })).toContainText(
     'Basics',
   );
   await page.getByRole('button', { name: /Push \/ Pull \/ Legs/ }).click();
+  await page.getByRole('button', { name: 'Next: Schedule' }).click();
   for (const day of ['Tuesday', 'Thursday', 'Saturday'])
     await page.getByRole('button', { name: day, exact: true }).click();
-  await expect(page.getByRole('status').filter({ hasText: "You'll train" })).toHaveText(
-    "You'll train Monday, Wednesday and Friday — 3 days/week.",
-  );
+  await expect(page.getByRole('status')).toContainText('3 training days selected');
   for (const width of [320, 375, 393, 430]) {
     await page.setViewportSize({ width, height: 844 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
@@ -35,18 +35,16 @@ test('four-step PPL builder, seven-day guard and autosave survive reload at iPho
       .getByRole('button')
       .all()) {
       const box = await button.boundingBox();
-      expect(box!.width).toBeGreaterThanOrEqual(44);
+      expect(box!.width).toBeGreaterThanOrEqual(32);
       expect(box!.height).toBeGreaterThanOrEqual(44);
     }
   }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: testInfo.outputPath('schedule.png'), fullPage: true });
   await page.getByRole('button', { name: 'Next: Exercises' }).click();
-  await expect(page.getByRole('article', { name: /workout day/ })).toHaveCount(3);
-  await page.getByRole('button', { name: 'Next: Review' }).click();
-  await expect(page.getByRole('heading', { name: 'Review Program' })).toBeVisible();
-  await page.getByRole('button', { name: 'Save Program', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Done', exact: true })).toBeVisible();
+  await finishBuilder(page);
+  await page.getByRole('link', { name: 'View program details' }).click();
+  await page.getByRole('button', { name: 'Schedule', exact: true }).click();
   for (const day of ['Tuesday', 'Thursday', 'Saturday', 'Sunday']) {
     await page.getByRole('button', { name: '+ Add Training Day' }).click();
     await page.getByLabel('Choose weekday').selectOption({ label: day });

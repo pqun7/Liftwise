@@ -1,5 +1,14 @@
 # Development log
 
+## 2026-10-06 — Local startup compatibility fix
+
+- Cause: records from the scheduling build contain optional `scheduleType` (`weekly`/`cycle`) and day `kind` (`workout`/`recovery`), but the current strict schemas rejected these keys during startup.
+- Fix: retain and validate only those known optional fields across repository reads, edits and backup/restore. No database version, migration, scheduling behavior, architecture or backup format change; no data reset or network service added.
+- Coverage: regression reproduces the reported error, then verifies reopen, editing, backup/restore and strict rejection of invalid values/unknown keys. Browser regression covers fresh launch, retained records, offline navigation and no application external requests.
+- Local-first audit: canonical data remains in Dexie/IndexedDB; runtime fetches are limited to bundled same-origin RepDB catalog/media. The app shell/catalog are precached; optional exercise photographs need prior caching. Physical-iPhone acceptance remains pending.
+- Verification: reproduced the exact `scheduleType` error before the fix; 24 focused tests and all 215 tests across 36 files pass afterward. Typecheck/build pass (69 precache entries). Startup and complete offline training/chart/backup/CSV journeys pass on Chrome and iPhone WebKit emulation: 4/4 in 56.8s, no application external requests. WebKit uses the existing network-abort harness; Chrome also covers native offline reload.
+- Quality gate limitation: `pnpm check` stops at 55 pre-existing formatting violations (including the unrelated untracked `.vscode/` file). Remaining checks ran separately; full lint initially found four errors in the new browser fixture, corrected and all affected files lint clean. Formatting of all seven changed/new files and final diff checks pass. Existing Zod annotation/chunk-size and hydration warnings remain; no physical-device test, push or tag performed.
+
 ## 2026-10-02 — Program-first workflow (unreleased)
 
 - Goal/work: simplify Program first, then Home/Workout. Real previewable templates, weekday/name distinction, inline targets, immediate day-scoped exercise addition and cross-day move/copy.

@@ -9,6 +9,7 @@ import type { HydratedProgramDay } from './programService';
 import { createPrescription, updatePrescription } from './programService';
 import { BuilderHeader } from './BuilderChrome';
 import { UnsavedChanges } from './UnsavedChanges';
+import { reviewSuffix } from './reviewNavigation';
 
 interface EditorData extends HydratedProgramDay {
   selected: HydratedProgramDay['exercises'][number]['exercise'];
@@ -34,7 +35,7 @@ export function PrescriptionFormPage() {
   const returnTo =
     params.get('return') === 'editor'
       ? `/plan/${program.id}#day-${day.id}`
-      : `/plan/${program.id}/days/${day.id}`;
+      : `/plan/${program.id}/days/${day.id}${reviewSuffix(params)}`;
   const [saveError, setSaveError] = useState<string | null>(null);
   const {
     register,
@@ -95,7 +96,7 @@ export function PrescriptionFormPage() {
   };
   return (
     <section className="builder-page" aria-labelledby="prescription-title">
-      <BuilderHeader title="Prescription" back={returnTo} />
+      <BuilderHeader title="Exercise targets" back={returnTo} />
       <UnsavedChanges
         dirty={isDirty}
         saving={isSubmitting}
@@ -105,18 +106,18 @@ export function PrescriptionFormPage() {
         ← {day.name}
       </Link>
       <header className="program-header">
-        <p className="section-kicker">Prescription</p>
+        <p className="section-kicker">Exercise targets</p>
         <h1 id="prescription-title">{selected.name}</h1>
-        <p>
-          Set the intended work. A future workout will snapshot this prescription before performance
-          is logged.
-        </p>
+        <p>Set your sets, reps, effort and rest for this exercise.</p>
       </header>
       <form
         className="builder-card exercise-form prescription-form"
         onSubmit={(event) => void submit(event)}
         noValidate
       >
+        <p className="text-secondary">
+          RIR means reps in reserve: how many more reps you could perform at the end of a set.
+        </p>
         <label>
           <span>Target sets</span>
           <Input
@@ -133,7 +134,18 @@ export function PrescriptionFormPage() {
         <div className="field-pair">
           <label>
             <span>Minimum reps</span>
-            <Input type="number" inputMode="numeric" {...register('minReps', numberRules)} />
+            <Input
+              type="number"
+              inputMode="numeric"
+              aria-invalid={Boolean(errors.minReps)}
+              aria-describedby={errors.minReps ? 'min-reps-error' : undefined}
+              {...register('minReps', numberRules)}
+            />
+            {errors.minReps ? (
+              <small id="min-reps-error" role="alert">
+                {errors.minReps.message}
+              </small>
+            ) : null}
           </label>
           <label>
             <span>Maximum reps</span>
@@ -149,8 +161,18 @@ export function PrescriptionFormPage() {
               inputMode="numeric"
               min="0"
               max="10"
-              {...register('targetRirMin', { min: 0, max: 10 })}
+              aria-invalid={Boolean(errors.targetRirMin)}
+              aria-describedby={errors.targetRirMin ? 'min-rir-error' : undefined}
+              {...register('targetRirMin', {
+                min: { value: 0, message: 'RIR must be between 0 and 10.' },
+                max: { value: 10, message: 'RIR must be between 0 and 10.' },
+              })}
             />
+            {errors.targetRirMin ? (
+              <small id="min-rir-error" role="alert">
+                {errors.targetRirMin.message}
+              </small>
+            ) : null}
           </label>
           <label>
             <span>Maximum RIR</span>
@@ -159,9 +181,18 @@ export function PrescriptionFormPage() {
               inputMode="numeric"
               min="0"
               max="10"
-              {...register('targetRirMax', { min: 0, max: 10 })}
+              aria-invalid={Boolean(errors.targetRirMax)}
+              aria-describedby={errors.targetRirMax ? 'max-rir-error' : undefined}
+              {...register('targetRirMax', {
+                min: { value: 0, message: 'RIR must be between 0 and 10.' },
+                max: { value: 10, message: 'RIR must be between 0 and 10.' },
+              })}
             />
-            {errors.targetRirMax ? <small role="alert">{errors.targetRirMax.message}</small> : null}
+            {errors.targetRirMax ? (
+              <small id="max-rir-error" role="alert">
+                {errors.targetRirMax.message}
+              </small>
+            ) : null}
           </label>
         </div>
         <label>
@@ -172,8 +203,18 @@ export function PrescriptionFormPage() {
             min="0"
             max="3600"
             step="5"
-            {...register('restSeconds', { min: 0, max: 3600 })}
+            aria-invalid={Boolean(errors.restSeconds)}
+            aria-describedby={errors.restSeconds ? 'rest-error' : undefined}
+            {...register('restSeconds', {
+              min: { value: 0, message: 'Rest must be between 0 and 3600 seconds.' },
+              max: { value: 3600, message: 'Rest must be between 0 and 3600 seconds.' },
+            })}
           />
+          {errors.restSeconds ? (
+            <small id="rest-error" role="alert">
+              {errors.restSeconds.message}
+            </small>
+          ) : null}
         </label>
         <label>
           <span>Exercise notes</span>

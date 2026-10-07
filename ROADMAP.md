@@ -2,6 +2,11 @@
 
 The roadmap is directional. Reliability, privacy, and data safety take priority over dates.
 
+## Startup reliability (2026-10-06)
+
+- [x] Preserve known scheduling metadata when opening existing local programs and round-tripping backups.
+- [ ] Physical-iPhone installed-PWA launch with existing records and offline navigation.
+
 ## Program-first workflow (unreleased)
 
 - [x] Real versioned templates, continuous days/exercises editor and transactional move/copy.

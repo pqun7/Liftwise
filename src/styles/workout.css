@@ -564,11 +564,11 @@
 
 .workout-active .workout-primary,
 .workout-summary .workout-primary {
-  background: #27e8bd;
+  background: var(--mint);
 }
 
 .workout-current-card {
-  background: #061b16;
+  background: var(--surface-1);
 }
 
 @media (max-width: 360px) {

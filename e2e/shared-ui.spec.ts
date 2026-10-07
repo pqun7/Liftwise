@@ -6,7 +6,7 @@ test('shared controls and navigation stay coherent at mobile widths', async ({
   test.setTimeout(90_000);
   const screens = [
     { route: '/', action: 'Create Program', role: 'link' as const },
-    { route: '/plan/new', action: 'Next: Schedule', role: 'button' as const },
+    { route: '/plan/new', action: 'Continue to Template', role: 'button' as const },
     { route: '/workout', action: 'Create Program', role: 'link' as const },
     { route: '/progress/measurements', action: 'Add measurement', role: 'button' as const },
   ];

@@ -174,6 +174,7 @@ test('builds and reloads an exact program prescription offline', async ({
   await page.goto('/plan');
   await page.getByRole('link', { name: 'Create program' }).click();
   await page.getByLabel('Program name').fill('Push Pull Legs');
+  await page.getByRole('button', { name: 'Add description' }).click();
   await page.getByLabel('Description or notes').fill('Offline strength plan');
   await saveEmptyProgram(page);
   await expect(page.getByRole('heading', { name: 'Push Pull Legs' })).toBeVisible();

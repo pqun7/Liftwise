@@ -231,7 +231,7 @@
 }
 
 .home-hero-meta {
-  color: #d0dcd7;
+  color: var(--text-secondary);
   max-width: 26ch;
   font-size: var(--type-size-card);
   line-height: var(--type-leading-heading);
@@ -262,7 +262,7 @@
   font-size: var(--type-size-body-small);
   line-height: 18px;
   font-weight: var(--fw-medium);
-  color: #d0dcd7;
+  color: var(--text-secondary);
 }
 
 .home-hero-actions {
@@ -434,7 +434,7 @@
 }
 
 .home-tile-neutral {
-  color: #d0dcd7;
+  color: var(--text-secondary);
   background: rgb(255 255 255 / 6%);
   border: 1px solid var(--home-border);
   border-radius: 12px;

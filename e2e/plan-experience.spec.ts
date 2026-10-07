@@ -1,3 +1,4 @@
+import { openSavedEditor } from './programHelpers';
 import { expect, test } from '@playwright/test';
 
 test('reference plan editor keeps weekday integrity, context, targets and overview across reloads', async ({
@@ -5,10 +6,9 @@ test('reference plan editor keeps weekday integrity, context, targets and overvi
 }, testInfo) => {
   await page.goto('/plan/new');
   await page.getByLabel('Program name').fill('Reference QA');
+  await page.getByRole('button', { name: 'Add description' }).click();
   await page.getByLabel('Description or notes').fill('A real editable weekly schedule');
-  await page.getByRole('button', { name: 'Next: Schedule' }).click();
-  await page.getByRole('button', { name: 'Custom Schedule' }).click();
-  await page.getByRole('button', { name: 'Next: Exercises' }).click();
+  await openSavedEditor(page);
   const monday = page.getByRole('article', { name: 'Monday workout day' });
   const friday = page.getByRole('article', { name: 'Friday workout day' });
   await expect(monday.getByRole('button', { name: 'Options for Monday' })).toBeVisible();
@@ -43,8 +43,6 @@ test('reference plan editor keeps weekday integrity, context, targets and overvi
   const copy = page.getByRole('article', { name: 'Friday Copy workout day' });
   await expect(copy).toContainText('Sunday');
   await expect(copy).toContainText('12–15');
-  await page.getByRole('button', { name: 'Next: Review', exact: true }).click();
-  await page.getByRole('button', { name: 'Save Program', exact: true }).click();
   await expect(page.getByText('✓ Saved', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Preview', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Reference QA', exact: true })).toBeVisible();

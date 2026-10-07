@@ -1,0 +1,7 @@
+{
+    "github.copilot.chat.commitMessageGeneration.instructions": [
+        {
+            "text": "Generate commit messages using Conventional Commits. Format: type(scope): description. Allowed types: feat, fix, ui, refactor, perf, test, docs, chore, build, ci. Use a relevant scope such as plan, workout, exercise, progress, ui, routing, pwa, data, tests, docs, deploy, or release. Use lowercase. Keep the subject concise and under 72 characters. Use imperative language. Do not use emojis or periods. Describe only the actual changes. Use ui for purely visual/UI changes, fix for bug fixes, feat for new functionality, refactor for internal restructuring, test for tests, docs for documentation, chore for maintenance, build for build/deployment changes, and ci for CI/CD changes. Return only the commit message."
+        }
+    ]
+}

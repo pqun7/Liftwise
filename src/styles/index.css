@@ -3,8 +3,8 @@
 @import './legacy.css' layer(base);
 @import './home.css' layer(base);
 @import './plan.css' layer(base);
-@import './workout.css';
-@import './progress.css';
+@import './workout.css' layer(base);
+@import './progress.css' layer(base);
 
 /* Local static instances of the canonical variable source work around
    incorrect outline rasterization in Windows WebKit. One family, one setup. */
@@ -66,21 +66,25 @@
 
 @layer base {
   :root {
-    --app-bg: #03110f;
-    --surface-1: #081815;
-    --surface-2: #0a1d19;
-    --surface-3: #0d2420;
-    --mint: #48f0bb;
+    --app-bg: #00110d;
+    --surface-1: #031a14;
+    --surface-2: #06251d;
+    --surface-3: #0b3028;
+    --mint: #30efc5;
+    --mint-light: #77ffe2;
+    --accent-gradient: linear-gradient(105deg, #30efc5, #2af0d0);
+    --panel-gradient: linear-gradient(145deg, rgb(0 42 29 / 40%), rgb(0 19 14 / 48%));
+    --app-gradient: radial-gradient(ellipse at 76% 8%, rgb(0 86 57 / 18%), transparent 50%);
     --text-primary: #f7fbfa;
-    --text-secondary: #a5b2ae;
-    --text-muted: #8d9d97;
-    --border-default: rgb(180 255 232 / 12%);
+    --text-secondary: #b3c3bd;
+    --text-muted: #8fa59d;
+    --border-default: rgb(76 174 145 / 23%);
     /* Compatibility aliases for UI not migrated in this increment. */
     --home-bg: var(--app-bg);
     --home-surface: var(--surface-1);
     --home-surface-2: var(--surface-2);
     --home-mint: var(--mint);
-    --home-mint-light: #5af2c5;
+    --home-mint-light: var(--mint-light);
     --home-text: var(--text-primary);
     --home-secondary: var(--text-secondary);
     --home-muted: var(--text-muted);
@@ -120,11 +124,15 @@
     font-family: var(--font-ui);
     font-size: 100%;
     font-variant-numeric: tabular-nums;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
     background: var(--app-bg);
   }
 
   html,
   body {
+    font-family: var(--font-ui);
     background: var(--app-bg);
   }
 
@@ -134,11 +142,17 @@
     font-weight: var(--fw-regular);
   }
 
+  .app-frame {
+    background: var(--app-gradient), var(--app-bg);
+    isolation: isolate;
+  }
+
   button,
   input,
   textarea,
   select {
     font: inherit;
+    font-family: var(--font-ui);
   }
 
   button,
@@ -177,6 +191,10 @@
     font-size: var(--type-size-card);
     line-height: var(--type-leading-heading);
     font-weight: var(--fw-semibold);
+  }
+
+  p {
+    margin-block: 0;
   }
 
   :focus-visible {
