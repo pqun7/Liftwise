@@ -3,7 +3,7 @@ import { expect, test, type Page, type TestInfo } from '@playwright/test';
 async function stage(page: Page, label: string, testInfo?: TestInfo) {
   await expect(page.locator('.builder-stepper li')).toHaveCount(5);
   await expect(page.locator('.builder-stepper .is-current')).toHaveText(label);
-  await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toHaveCount(0);
+  await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toHaveCount(1);
   for (const width of [320, 390, 430]) {
     await page.setViewportSize({ width, height: 844 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(

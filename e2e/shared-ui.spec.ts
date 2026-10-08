@@ -18,9 +18,10 @@ test('shared controls and navigation stay coherent at mobile widths', async ({
       'background-color',
       route === '/' ? 'rgb(4, 34, 27)' : 'rgb(56, 232, 183)',
     );
-    await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toHaveCount(
-      route === '/plan/new' ? 0 : 1,
-    );
+    const navigation = page.getByRole('navigation', { name: 'Primary navigation' });
+    await expect(navigation).toHaveCount(1);
+    await expect(navigation).toHaveCSS('position', 'fixed');
+    await expect(navigation).toHaveCSS('bottom', '0px');
     for (const width of [320, 375, 390, 393, 402, 430]) {
       await page.setViewportSize({ width, height: 844 });
       await expect

@@ -54,7 +54,7 @@ test('focused logger preserves decimal sets, rest, prefill, recovery and canonic
   await page.getByRole('button', { name: 'Start Workout', exact: true }).click();
   const logger = page.getByRole('region', { name: 'Set logger' });
   await expect(page.getByRole('heading', { name: 'Push Day', exact: true })).toBeVisible();
-  await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toHaveCount(0);
+  await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toHaveCount(1);
   await expect(page.getByText('No previous workout data')).toBeVisible();
   for (const width of [320, 375, 390, 393, 402, 430]) {
     await page.setViewportSize({ width, height: 844 });

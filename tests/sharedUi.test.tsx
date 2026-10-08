@@ -83,6 +83,7 @@ describe('shared UI contracts', () => {
     );
     const navigation = screen.getByRole('navigation', { name: 'Primary navigation' });
     expect(navigation.querySelectorAll('a')).toHaveLength(5);
+    expect(navigation).toHaveClass('fixed', 'bottom-0');
     expect(screen.getByRole('link', { name: 'Workout' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'Home' })).not.toHaveAttribute('aria-current');
   });

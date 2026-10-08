@@ -34,17 +34,6 @@ export function AppShell() {
   const home = pathname === '/';
   const plan = pathname === '/plan' || pathname.startsWith('/plan/');
   const progress = pathname === '/progress' || pathname.startsWith('/progress/');
-  const creating = useMatches().some(({ data }) =>
-    Boolean(
-      (data as { graph?: { program?: { draft?: boolean } } } | undefined)?.graph?.program?.draft,
-    ),
-  );
-  const builder =
-    pathname === '/plan/new' ||
-    /\/build\//.test(pathname) ||
-    (/^\/plan\/[^/]+\/(edit|days\/)/.test(pathname) &&
-      new URLSearchParams(location.search).get('mode') !== 'preview') ||
-    creating;
   const focused = useMatches().some(({ data }) => {
     const status = (data as { workout?: { session?: { status?: string } } } | undefined)?.workout
       ?.session?.status;
@@ -74,7 +63,7 @@ export function AppShell() {
 
         <main
           id="main-content"
-          className={`main-content min-w-0 pt-[calc(18px+var(--safe-top))] ${focused || builder ? 'pb-[calc(24px+var(--safe-bottom))]' : 'pb-[calc(112px+var(--safe-bottom))]'}`}
+          className="main-content min-w-0 pb-[calc(112px+var(--safe-bottom))] pt-[calc(18px+var(--safe-top))]"
           tabIndex={-1}
         >
           <UpdatePrompt />
@@ -91,9 +80,7 @@ export function AppShell() {
           </Suspense>
         </main>
 
-        {!focused && !builder ? (
-          <BottomNavigation planReturnTo={plan ? '/plan' : planReturnTo} />
-        ) : null}
+        <BottomNavigation planReturnTo={plan ? '/plan' : planReturnTo} />
 
         <ScrollRestoration
           getKey={(location) =>

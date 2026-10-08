@@ -12,7 +12,7 @@ test('five-step PPL builder, seven-day guard and autosave survive reload at iPho
   await expect(page.getByRole('heading', { name: 'Build your training week' })).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath('plan-empty.png'), fullPage: true });
   await page.getByRole('link', { name: 'Create program', exact: true }).click();
-  await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toHaveCount(0);
+  await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toHaveCount(1);
   await page.getByRole('button', { name: 'Continue to Template' }).click();
   await expect(page.getByRole('alert')).toContainText('Enter a program name');
   const longName = 'Advanced Upper Body Hypertrophy Strength Block';

@@ -226,7 +226,7 @@
 
 .workout-active-action {
   position: sticky;
-  bottom: calc(12px + var(--safe-bottom));
+  bottom: calc(92px + var(--safe-bottom));
   width: 100%;
   z-index: 25;
   margin-top: auto;

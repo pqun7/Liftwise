@@ -57,7 +57,7 @@
   scroll-padding-inline: 3px;
 }
 .builder-editor .plan-save-bar {
-  bottom: calc(16px + var(--safe-bottom));
+  bottom: calc(88px + var(--safe-bottom));
 }
 .builder-card.builder-days-card {
   padding: 12px;
@@ -936,9 +936,9 @@ button.plan-schedule-row {
 }
 .builder-footer {
   position: sticky;
-  bottom: 0;
+  bottom: calc(80px + var(--safe-bottom));
   z-index: 10;
-  padding: 12px 0 calc(12px + var(--safe-bottom));
+  padding: 12px 0;
   background: linear-gradient(transparent, var(--app-bg) 12px);
 }
 .builder-footer > :is(button, a),
