@@ -4,6 +4,10 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Fixed
+
+- Restored eager loading for the critical workout session screen, removing its deferred module-fetch failure when opening or resuming saved workouts. Added browser coverage with the logger module download blocked; workout data and persistence are unchanged.
+
 ## [1.2.1] - 2026-10-09
 
 ### Changed
