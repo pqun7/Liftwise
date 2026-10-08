@@ -306,6 +306,10 @@ test('backs up, deletes, restores, and verifies an exact program offline', async
     await page.getByRole('radio', { name: 'Program', exact: true }).click();
     await page.getByRole('link', { name: 'View program details', exact: true }).click();
     await page.getByRole('link', { name: 'Edit program', exact: true }).click();
+    const restoredDay = page.getByRole('article', { name: 'Backup Push Day workout day' });
+    await expect(restoredDay).toBeVisible();
+    const expand = restoredDay.getByRole('button', { name: 'Expand Backup Push Day' });
+    if (await expand.count()) await expand.click();
     await page.getByRole('button', { name: 'Options for Backup Push Day' }).click();
     await page.getByRole('link', { name: 'View day details' }).click();
     await expect(page.getByRole('heading', { name: 'Barbell Bench Press' })).toBeVisible();
