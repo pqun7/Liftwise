@@ -37,6 +37,10 @@ async function review(page: Page) {
     const destination = await action.getAttribute('href');
     await action.click();
     await expect(page).toHaveURL(new RegExp(`${destination}$`));
+    await expect(page.locator('.builder-footer a').last()).not.toHaveAttribute(
+      'href',
+      destination!,
+    );
   }
   await page.getByRole('link', { name: 'Review Program', exact: true }).click();
 }
@@ -207,22 +211,31 @@ test('flexible cycle: add, rename, duplicate, move, delete, recovery artwork and
   await expect(page.locator('.structure-day')).toHaveCount(8);
   await stage(page, 'Schedule', testInfo);
   await page.getByRole('button', { name: 'Next: Exercises' }).click();
+  await expect(page.locator('.exercise-day-navigation')).toContainText('Day 1 of 8');
   for (let i = 0; i < 3; i++) {
     const next = page.getByRole('link', { name: 'Next day', exact: true });
     const destination = await next.getAttribute('href');
     await next.click();
     await expect(page).toHaveURL(new RegExp(`${destination}$`));
+    await expect(page.locator('.exercise-day-navigation')).toContainText(`Day ${i + 2} of 8`);
   }
-  await expect(page.getByRole('heading', { name: 'Recovery Day' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Take the day off' })).toBeVisible();
   await expect(page.locator('.recovery-artwork')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Add exercise', exact: true })).toHaveCount(0);
   await expect(page.locator('.recovery-up-next')).toContainText('Upper');
+  const dismiss = page.getByRole('button', { name: 'Dismiss', exact: true });
+  if (await dismiss.isVisible()) await dismiss.click();
+  await page.setViewportSize({ width: 375, height: 844 });
+  await page.addStyleTag({ content: ':root { --safe-top: 47px; --safe-bottom: 34px; }' });
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.scrollHeight))
+    .toBeLessThanOrEqual(844);
   await stage(page, 'Exercises', testInfo);
   await page.screenshot({ path: testInfo.outputPath('recovery.png'), fullPage: true });
   await page.getByRole('link', { name: 'View Day 5' }).click();
   await expect(page.getByRole('heading', { name: 'Upper', exact: true })).toBeVisible();
   await page.getByRole('link', { name: 'Previous day', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Recovery Day' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Take the day off' })).toBeVisible();
   await review(page);
   await expect(page.locator('.review-details')).toContainText('8 days');
   await expect(page.locator('.review-overview .review-day')).toHaveCount(8);

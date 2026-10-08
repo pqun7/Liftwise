@@ -29,7 +29,7 @@ export function ScheduleEmpty({
   return (
     <Card variant="glass" padding="spacious" radius="hero" className="grid gap-4 text-center">
       <img
-        className="plan-empty-artwork mx-auto block h-auto w-[248px] max-w-full object-contain"
+        className="plan-empty-artwork mx-auto block h-auto w-[var(--artwork-width)] max-w-full object-contain"
         src={planArtwork}
         width={1448}
         height={1086}

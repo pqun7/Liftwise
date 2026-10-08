@@ -96,12 +96,12 @@ export function ExercisePickerPage() {
   return (
     <section className="builder-page" aria-labelledby="picker-title">
       <BuilderHeader title="Add Exercise" back={returnTo} />
-      <Link className="back-link" to={returnTo}>
-        ← {day.day.name}
-      </Link>
+      <p className="type-body-small text-secondary">{day.day.name}</p>
       <header className="program-header">
         <p className="section-kicker">Add exercise</p>
-        <h1 id="picker-title">Add to {day.day.name}</h1>
+        <h2 id="picker-title" className="type-page-title">
+          Add to {day.day.name}
+        </h2>
         <p>
           {day.day.weekday == null
             ? 'Unscheduled'

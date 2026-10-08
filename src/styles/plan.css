@@ -57,7 +57,7 @@
   scroll-padding-inline: 3px;
 }
 .builder-editor .plan-save-bar {
-  bottom: calc(88px + var(--safe-bottom));
+  bottom: calc(var(--navigation-height) + 8px);
 }
 .builder-card.builder-days-card {
   padding: 12px;
@@ -66,14 +66,11 @@
   font-size: var(--type-size-body);
   color: var(--home-secondary);
 }
-.plan-frame .main-content {
-  padding-top: calc(18px + var(--safe-top));
-}
 .builder-page {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-height: calc(100dvh - 145px - var(--safe-top) - var(--safe-bottom));
+  min-height: 0;
   font-size: var(--type-size-body);
   line-height: var(--type-leading-body);
 }
@@ -83,18 +80,6 @@
 .builder-page a:not(.ui-button) {
   color: inherit;
   text-decoration: none;
-}
-.builder-header {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) 44px;
-  align-items: center;
-  gap: 8px;
-}
-.builder-header h1 {
-  font-size: var(--type-size-section);
-  line-height: var(--type-leading-heading);
-  text-align: center;
-  font-weight: var(--fw-bold);
 }
 .builder-back {
   display: grid;
@@ -857,7 +842,7 @@ button.plan-schedule-row {
 }
 .plan-save-bar {
   position: fixed;
-  bottom: calc(88px + var(--safe-bottom));
+  bottom: calc(var(--navigation-height) + 8px);
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
@@ -914,12 +899,9 @@ button.plan-schedule-row {
   font-family: var(--font-ui);
 }
 .plan-frame .builder-page {
-  min-height: calc(100dvh - 40px - var(--safe-top) - var(--safe-bottom));
+  min-height: 0;
   gap: 16px;
   padding-bottom: 12px;
-}
-.builder-header h1 {
-  font-size: var(--type-size-card);
 }
 .builder-page h2 {
   font-weight: var(--fw-bold);
@@ -935,15 +917,14 @@ button.plan-schedule-row {
   color: var(--text-primary);
 }
 .builder-footer {
-  position: sticky;
-  bottom: calc(80px + var(--safe-bottom));
+  position: static;
   z-index: 10;
   padding: 12px 0;
   background: linear-gradient(transparent, var(--app-bg) 12px);
 }
 .builder-footer > :is(button, a),
 .builder-footer .exercise-footer-actions > a {
-  min-height: 56px;
+  min-height: var(--action-height);
 }
 .builder-page .basics-content {
   background: transparent;
@@ -1642,4 +1623,15 @@ button.plan-schedule-row {
 .schedule-date:focus-visible {
   outline: 2px solid var(--mint);
   outline-offset: 2px;
+}
+
+.plan-frame .recovery-page {
+  gap: var(--space-3);
+}
+.recovery-page .builder-footer {
+  padding-top: 0;
+  margin-top: 0;
+}
+.recovery-page .type-page-title {
+  font-size: var(--type-size-page);
 }

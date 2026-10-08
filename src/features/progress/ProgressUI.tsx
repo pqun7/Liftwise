@@ -2,9 +2,7 @@ import type { ReactNode } from 'react';
 import { type LucideIcon } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { ContextBackLink } from '../../components/ContextBackLink';
-import { StreakBadge } from '../../components/ui/StreakBadge';
-import { AppWordmark } from '../../components/ui/AppWordmark';
-import { useRouteStreak } from './useRouteStreak';
+import { ContextToolbar } from '../../components/layout/ContextToolbar';
 import { Card } from '../../components/ui/Card';
 import type { DateRange } from '../../domain/analytics';
 
@@ -21,22 +19,16 @@ export function ProgressHeader({
   description: string;
   overview?: boolean;
 }) {
-  const streak = useRouteStreak();
   return (
-    <header className="grid gap-3 pb-1">
-      <div className="flex min-h-11 flex-wrap items-center justify-between gap-2">
-        {overview ? (
-          <AppWordmark />
-        ) : (
-          <ContextBackLink fallback="/progress" label="Back to Progress" />
-        )}
-        <StreakBadge currentStreak={streak?.currentStreak ?? 0} />
-      </div>
-      <div>
-        <h1 className="type-page-title">{title}</h1>
-        <p className="mt-1! type-body text-secondary">{description}</p>
-      </div>
-    </header>
+    <div className="grid gap-3">
+      {!overview ? (
+        <ContextToolbar
+          title={title}
+          back={<ContextBackLink fallback="/progress" label="Back to Progress" iconOnly />}
+        />
+      ) : null}
+      <p className="type-body text-secondary">{description}</p>
+    </div>
   );
 }
 export function RangeControl({

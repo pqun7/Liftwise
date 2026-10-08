@@ -13,7 +13,7 @@ test('completed history, PRs, charts, measurements and CSV stay usable offline',
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/progress');
   await expect(page.getByRole('link', { name: 'Workout streak', exact: true })).toBeVisible();
-  await expect(page.locator('.streak-badge-copy')).toHaveText('');
+  await expect(page.locator('.streak-badge-copy')).toHaveText('0 days');
   await page.goto('/exercises/new');
   await page.getByLabel('Name', { exact: true }).fill('Progress Bench');
   await page.getByLabel('Primary muscle').fill('Chest');
@@ -38,6 +38,15 @@ test('completed history, PRs, charts, measurements and CSV stay usable offline',
     ).toBeVisible();
     await finishLogger(page);
     await expect(page.getByRole('heading', { name: 'Start training' })).toBeVisible();
+    for (const route of ['Home', 'Plan', 'Progress']) {
+      await page
+        .getByRole('navigation', { name: 'Primary navigation' })
+        .getByRole('link', { name: route, exact: true })
+        .click();
+      await expect(page.getByRole('link', { name: '1 day streak', exact: true })).toHaveText(
+        '1 day',
+      );
+    }
     await page
       .getByRole('navigation', { name: 'Primary navigation' })
       .getByRole('link', { name: 'Progress', exact: true })

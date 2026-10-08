@@ -4,8 +4,19 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-10-09
+
+### Changed
+
+- Unified application header with compact streak presentation and no App Wordmark on Home, Plan, Workout, Progress, Settings and Exercise Library. Secondary screens share contextual back controls; the builder retains its five-stage workflow.
+- Streak calendar shows actual dates and connects adjacent completed days only; rest, pending and untracked days remain distinct.
+- iPhone-wide safe-area ownership, measured navigation clearance, shared typography and control sizing, and cleaner vertical spacing.
+- Compact Recovery Day artwork and copy, Schedule Settings, Plan heroes and Exercise Detail; builder actions stay in flow without covering content.
+- Added shared-header and mobile viewport regressions, including eight WebKit widths, larger text, focus, reduced motion, keyboard-sensitive layouts and offline navigation. Automated checks do not establish physical-iPhone acceptance.
+
 ### Fixed
 
+- Progress and History now use ProgressRepository.streak() like Home and the shared header, including flexible-cycle recovery dates. Current/best streaks remain lifetime values; the selected period affects missed-day counts only. Reopening the app adds no attendance, and multiple workouts on one local completion date count once.
 - Opening existing local programs no longer fails on known `scheduleType`/day `kind` metadata from the scheduling build. Strict validation, IDs, stored data and backup round trips are preserved; database v6 and backup v2 remain unchanged.
 
 ## [1.1.0] - 2026-10-05

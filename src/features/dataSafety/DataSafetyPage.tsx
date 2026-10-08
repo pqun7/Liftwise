@@ -1,3 +1,4 @@
+import { ContextBackLink } from '../../components/ContextBackLink';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -201,9 +202,7 @@ export function DataSafetyPage() {
 
   return (
     <section className="page-stack" aria-labelledby="data-safety-title">
-      <Link className="back-link" to="/settings">
-        ← Settings
-      </Link>
+      <ContextBackLink fallback="/settings" label="Settings" />
       <PageIntro
         titleId="data-safety-title"
         eyebrow="Data safety"

@@ -12,9 +12,9 @@ It helps you organize exercises and training programs while keeping your persona
 - Works offline after the required files are loaded
 - Installable on the iPhone Home Screen
 
-> **Version:** v1.1.0 — Program Builder and Workout redesign. Physical-iPhone acceptance and gym-soak testing remain unverified.
+> **Version:** v1.2.1 — Unified streak tracking, shared header and iPhone layout polish. Physical-iPhone acceptance and gym-soak testing remain unverified.
 
-See [v1.1 release notes](docs/RELEASE_NOTES_v1.1.0.md) for verification scope and device limitations.
+See [v1.2.1 release notes](docs/RELEASE_NOTES_v1.2.1.md) for verification scope and device limitations.
 
 ---
 
@@ -206,11 +206,11 @@ After the required app files are cached, supported features are designed to work
 | Data backup / validated restore | ✅ Available          |
 | Storage health and estimates    | ✅ Available          |
 | Custom exercise CSV export      | ✅ Available          |
-| Live Workout Logger             | 🚧 Planned for v0.6   |
-| Set logging                     | 🚧 Planned            |
-| Workout history                 | 🚧 Planned            |
-| Personal records                | 🚧 Planned            |
-| Progress charts                 | 🚧 Planned            |
+| Live Workout Logger             | ✅ Available          |
+| Set logging                     | ✅ Available          |
+| Workout history                 | ✅ Available          |
+| Personal records                | ✅ Available          |
+| Progress charts                 | ✅ Available          |
 | Accounts / cloud sync           | Not currently planned |
 
 See [`ROADMAP.md`](ROADMAP.md) for the development roadmap.

@@ -6,3 +6,5 @@ playwright-report
 test-results
 public/repdb/catalog.json
 pnpm-lock.yaml
+output
+work

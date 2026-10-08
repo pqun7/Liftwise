@@ -18,8 +18,9 @@
 .streak-badge-copy {
   display: inline-block;
   overflow: hidden;
-  max-width: 0;
-  opacity: 0;
+  max-width: none;
+  opacity: 1;
+  margin-left: 6px;
   white-space: nowrap;
   color: var(--text-primary);
   font-size: var(--type-size-label);
@@ -30,7 +31,7 @@
     margin 180ms ease;
 }
 .streak-badge-active .streak-badge-copy {
-  max-width: 15em;
+  max-width: none;
   opacity: 1;
   margin-left: 7px;
 }
@@ -164,6 +165,7 @@
   gap: 3px;
 }
 .streak-day {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -174,6 +176,14 @@
   font-size: var(--type-size-caption);
   line-height: var(--type-leading-label);
   color: var(--text-secondary);
+}
+.streak-day-connected .streak-day-circle::after {
+  content: '';
+  position: absolute;
+  left: calc(50% + 16px);
+  width: max(0px, calc(100% - 29px));
+  height: 2px;
+  background: color-mix(in srgb, var(--accent) 38%, transparent);
 }
 .streak-day-circle {
   display: flex;

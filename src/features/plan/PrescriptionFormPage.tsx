@@ -2,7 +2,7 @@ import { Button } from '../../components/ui/Button';
 import { Input, Textarea } from '../../components/ui/FormControl';
 import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, useLoaderData, useNavigate, useSearchParams } from 'react-router-dom';
+import { useLoaderData, useNavigate, useSearchParams } from 'react-router-dom';
 
 import type { ProgramExercise } from '../../domain/entities';
 import type { HydratedProgramDay } from './programService';
@@ -102,12 +102,12 @@ export function PrescriptionFormPage() {
         saving={isSubmitting}
         committedNavigation={committedNavigation}
       />
-      <Link className="back-link" to={returnTo}>
-        ← {day.name}
-      </Link>
+      <p className="type-body-small text-secondary">{day.name}</p>
       <header className="program-header">
         <p className="section-kicker">Exercise targets</p>
-        <h1 id="prescription-title">{selected.name}</h1>
+        <h2 id="prescription-title" className="type-page-title">
+          {selected.name}
+        </h2>
         <p>Set your sets, reps, effort and rest for this exercise.</p>
       </header>
       <form

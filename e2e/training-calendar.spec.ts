@@ -182,8 +182,8 @@ for (const timezoneId of ['Africa/Cairo', 'America/Los_Angeles']) {
       await expect(today).not.toContainText('Legs B');
       await expect(page.getByRole('button', { name: /Sun.*today/ })).toBeVisible();
       await page.getByRole('link', { name: 'Plan', exact: true }).click();
-      await expect(page.locator('.plan-next')).toContainText('Push A');
-      await expect(page.locator('.plan-next')).toContainText('Monday');
+      const nextWorkout = page.getByRole('link', { name: /^Push A.*Mon, Oct 5/ });
+      await expect(nextWorkout).toContainText('Mon, Oct 5');
       await page.getByRole('link', { name: 'Workout', exact: true }).click();
       await expect(page.getByRole('link', { name: 'Resume Workout' })).toBeVisible();
       await expect(page.getByText(/Active session · Started Saturday/)).toBeVisible();

@@ -1,3 +1,4 @@
+import { AppShell } from '../src/app/shell/AppShell';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
@@ -18,6 +19,13 @@ import { LiftwiseDatabase } from '../src/lib/storage/database';
 import { cleanupTestDatabases, createTestDatabase } from './helpers/database';
 
 vi.mock('../src/features/workout/workoutService', () => ({ startPlannedWorkout: vi.fn() }));
+vi.mock('virtual:pwa-register/react', () => ({
+  useRegisterSW: () => ({
+    needRefresh: [false, vi.fn()],
+    offlineReady: [false, vi.fn()],
+    updateServiceWorker: vi.fn(),
+  }),
+}));
 afterEach(async () => {
   vi.clearAllMocks();
   await cleanupTestDatabases();
@@ -52,8 +60,8 @@ async function renderHome(data: Awaited<ReturnType<typeof getHomeData>>) {
       router={createMemoryRouter([
         {
           path: '/',
-          element: <HomePage />,
-          loader: () => data,
+          element: <AppShell />,
+          children: [{ index: true, element: <HomePage />, loader: () => data }],
           hydrateFallbackElement: <p>Opening</p>,
         },
         { path: '/workout/:id', element: <h1>Session opened</h1> },

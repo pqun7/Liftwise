@@ -1,7 +1,8 @@
+import { ContextBackLink } from '../../components/ContextBackLink';
 import { Input, Textarea } from '../../components/ui/FormControl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { PageIntro } from '../../components/PageIntro';
 import { createCustomExercise } from './exerciseService';
@@ -48,9 +49,7 @@ export function CustomExercisePage() {
 
   return (
     <section className="page-stack" aria-labelledby="custom-exercise-title">
-      <Link className="back-link" to="/exercises">
-        ← Exercise library
-      </Link>
+      <ContextBackLink fallback="/exercises" label="Exercise library" />
       <PageIntro
         titleId="custom-exercise-title"
         eyebrow="Custom exercise"

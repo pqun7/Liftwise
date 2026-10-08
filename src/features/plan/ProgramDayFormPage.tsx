@@ -2,7 +2,7 @@ import { Button } from '../../components/ui/Button';
 import { Input, Select, Textarea } from '../../components/ui/FormControl';
 import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, useLoaderData, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useLoaderData, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { weekdays } from './builderService';
 
 import { BuilderHeader } from './BuilderChrome';
@@ -83,9 +83,7 @@ export function ProgramDayFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' 
         saving={isSubmitting}
         committedNavigation={committedNavigation}
       />
-      <Link className="back-link" to={returnTo}>
-        ← {graph.program.name}
-      </Link>
+      <p className="type-body-small text-secondary">{graph.program.name}</p>
       <h2 id="day-form-title" className="sr-only">
         {day ? `Edit ${day.name}` : 'Add a training day'}
       </h2>

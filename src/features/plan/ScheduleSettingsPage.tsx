@@ -53,11 +53,11 @@ function ScheduleEditor({ data }: { data: ProgramListData }) {
     <section className="grid gap-4 font-ui">
       <UnsavedChanges dirty={dirty} saving={busy} committedNavigation={committedNavigation} />
       <BuilderHeader title="Schedule settings" back="/plan" backLabel="Back to Schedule" />
-      <Card variant="glass" padding="spacious" radius="hero" className="grid gap-4">
-        <h2 className="type-section-title">{program.name}</h2>
+      <Card variant="glass" radius="hero" className="grid gap-4">
+        <h2 className="type-section-title wrap-anywhere">{program.name}</h2>
         <p className="text-secondary">
           {cycle
-            ? 'Choose when Day 1 begins. Your ordered program cycle repeats from this date, including rest days.'
+            ? 'Your cycle repeats from this date, including recovery days.'
             : 'Assign your existing training days to weekdays. Unassigned days remain available in Program and Workout.'}
         </p>
         <form

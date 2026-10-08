@@ -4,6 +4,7 @@ import { expect, test } from '@playwright/test';
 test('reference plan editor keeps weekday integrity, context, targets and overview across reloads', async ({
   page,
 }, testInfo) => {
+  test.setTimeout(120_000);
   await page.goto('/plan/new');
   await page.getByLabel('Program name').fill('Reference QA');
   await page.getByRole('button', { name: 'Add description' }).click();

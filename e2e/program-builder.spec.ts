@@ -1,4 +1,4 @@
-import { openSavedEditor } from './programHelpers';
+import { openSavedEditor, openWorkoutDay } from './programHelpers';
 import { expect, test } from '@playwright/test';
 import { setOffline } from './offline';
 
@@ -61,10 +61,7 @@ test('program-first templates, inline targets, moves and custom exercise persist
   await expect(upper).toContainText('Builder Custom Press');
   await page.getByRole('link', { name: 'Workout', exact: true }).click();
   await expect(page.getByRole('button', { name: /Quick Workout/ })).toHaveCount(0);
-  await page
-    .getByRole('region', { name: 'Program context' })
-    .getByRole('button', { name: /Upper B/ })
-    .click();
+  await openWorkoutDay(page, 'Upper B');
   await page.getByRole('button', { name: 'Start Workout', exact: true }).click();
   await expect(page.getByRole('link', { name: 'Leave workout, keep session saved' })).toBeVisible();
 });

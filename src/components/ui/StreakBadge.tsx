@@ -12,9 +12,9 @@ export function StreakBadge({ currentStreak }: { currentStreak: number }) {
       className={`streak-badge${active ? ' streak-badge-active' : ''}`}
       aria-label={label}
     >
-      <Flame size={21} fill="currentColor" aria-hidden="true" />
+      <Flame size={18} fill="currentColor" aria-hidden="true" />
       <span className="streak-badge-copy" aria-hidden="true">
-        {active ? label : ''}
+        {currentStreak} {currentStreak === 1 ? 'day' : 'days'}
       </span>
     </Link>
   );

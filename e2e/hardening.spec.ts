@@ -3,7 +3,7 @@ import { openLegacyUnplannedFixture } from './workoutUi';
 import { finishLogger, expectProgressCounts } from './workoutUi';
 import { expect, test, type Page } from '@playwright/test';
 import { setOffline } from './offline';
-import { saveEmptyProgram } from './programHelpers';
+import { saveEmptyProgram, openWorkoutDay } from './programHelpers';
 
 async function dismissStatus(page: Page) {
   const dismiss = page.getByRole('button', { name: 'Dismiss', exact: true });
@@ -68,7 +68,7 @@ test('compact forms retain zoom, safe spacing, large text and keyboard focus', a
   ).toBeGreaterThanOrEqual(34);
   expect(
     await page
-      .locator('.main-content')
+      .locator('.app-header')
       .evaluate((element) => parseFloat(getComputedStyle(element).paddingTop)),
   ).toBeGreaterThanOrEqual(44);
   await page.evaluate(() => {
@@ -150,9 +150,10 @@ test('all core training, charts, backup and CSV flows work with network disabled
     await page.getByLabel('Target sets').fill('3');
     await page.getByLabel('Rest duration in seconds').fill('60');
     await page.getByRole('button', { name: 'Add to day' }).press('Enter');
+    await expect(page.locator('.builder-exercises')).toContainText('Barbell Bench Press');
     await page.getByRole('link', { name: 'Workout', exact: true }).click();
     started = Date.now();
-    await page.getByRole('button', { name: /Offline Push/ }).click();
+    await openWorkoutDay(page, 'Offline Push');
     await page.getByRole('button', { name: 'Start Workout', exact: true }).click();
     await expect(page.getByLabel('Set 1 weight', { exact: true })).toBeVisible();
     timings.workout = Date.now() - started;
@@ -252,8 +253,14 @@ test('all core training, charts, backup and CSV flows work with network disabled
       '2 of 3 sets completed',
     );
     await expect(page.getByLabel('Completed set', { exact: true })).toHaveCount(2);
-    await page.getByRole('button', { name: 'Done', exact: true }).click();
+    await page.getByRole('link', { name: 'Done', exact: true }).click();
     await page.getByRole('link', { name: 'Plan', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Offline Push', exact: true })).toBeVisible();
+    await page.getByRole('link', { name: 'Plan', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Plan', exact: true })).toBeVisible();
+    await page.getByRole('radio', { name: 'Program', exact: true }).click();
+    await expect(page.getByRole('radio', { name: 'Program', exact: true })).toBeChecked();
+    await page.getByRole('link', { name: 'View program details' }).click();
     await expect(page.getByRole('heading', { name: 'Offline QA', exact: true })).toBeVisible();
     expect(external).toEqual([]);
     await page.getByRole('link', { name: 'Workout', exact: true }).click();

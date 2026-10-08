@@ -21,7 +21,7 @@ export function ProgramOverview() {
   const training = days.filter(({ day }) => day.kind !== 'recovery');
   return (
     <section className="grid gap-4 font-ui">
-      <BuilderHeader title={program.name} back="/plan?tab=program" backLabel="Back to Program" />
+      <BuilderHeader title="Program details" back="/plan?tab=program" backLabel="Back to Program" />
       <SegmentedControl
         legend="Program details"
         options={['Overview', 'Training Days'] as const}

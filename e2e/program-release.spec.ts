@@ -52,6 +52,7 @@ test('five-step PPL builder, seven-day guard and autosave survive reload at iPho
   await finishBuilder(page);
   await page.getByRole('radio', { name: 'Program', exact: true }).click();
   await page.getByRole('link', { name: 'View program details' }).click();
+  await expect(page.getByRole('heading', { name: 'Program details', exact: true })).toBeVisible();
   await page.getByRole('link', { name: 'Edit program', exact: true }).click();
   for (const day of ['Tuesday', 'Thursday', 'Saturday', 'Sunday']) {
     await page.getByRole('button', { name: '+ Add Training Day' }).click();

@@ -78,20 +78,7 @@ export function PlanPage() {
   const summary = (graph: ProgramGraph) =>
     `${graph.days.filter(({ day }) => day.kind !== 'recovery').length} training days · ${graph.days.reduce((sum, entry) => sum + entry.exercises.length, 0)} exercises`;
   return (
-    <section className="grid gap-6 font-ui type-body" aria-labelledby="plan-title">
-      <header className="flex items-center justify-between px-1 pt-2 pb-3">
-        <div>
-          <p className="type-label uppercase text-mint">Training</p>
-          <h1 id="plan-title" className="mt-1 type-display">
-            Plan
-          </h1>
-        </div>
-        {tab === 'Schedule' ? (
-          <Link to="/plan/calendar" aria-label="Open calendar" className={buttonClasses('ghost')}>
-            <CalendarDays size={22} />
-          </Link>
-        ) : null}
-      </header>
+    <section className="grid gap-4 font-ui type-body" aria-labelledby="plan-title">
       <SegmentedControl
         legend="Plan view"
         options={['Schedule', 'Program'] as const}
@@ -154,7 +141,7 @@ export function PlanPage() {
               className="grid gap-4 text-center"
             >
               <img
-                className="plan-empty-artwork mx-auto block h-auto w-[248px] max-w-full object-contain"
+                className="plan-empty-artwork mx-auto block h-auto w-[var(--artwork-width)] max-w-full object-contain"
                 src={planArtwork}
                 width={1448}
                 height={1086}

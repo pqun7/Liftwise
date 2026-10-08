@@ -7,7 +7,10 @@ import {
   useRevalidator,
   useSearchParams,
 } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
+import { ChevronRight, MoreHorizontal } from 'lucide-react';
+import { ContextToolbar } from '../../components/layout/ContextToolbar';
+import { ContextBackLink } from '../../components/ContextBackLink';
+import { IconButton } from '../../components/ui/IconButton';
 import type { Exercise, Program } from '../../domain/entities';
 import type { ProgramGraph } from '../../lib/storage/repositories/programRepository';
 import { Button } from '../../components/ui/Button';
@@ -162,24 +165,27 @@ function ProgramEditor() {
           programId={program.id}
         />
       ) : (
-        <header className="plan-editor-header">
-          <Link to="/plan?tab=program" aria-label="Back to Programs">
-            <ChevronLeft size={22} />
-          </Link>
-          <div>
-            <h1 id="program-title">{program.name}</h1>
-            <p className="text-xs text-secondary capitalize">
-              {days.length} days · {program.goal ?? 'General'}
-            </p>
-          </div>
-          <button
-            aria-label="Program options"
-            disabled={busy}
-            onClick={() => void setParams({ tab: 'settings' })}
-          >
-            <MoreHorizontal size={20} />
-          </button>
-        </header>
+        <>
+          <ContextToolbar
+            title={program.name}
+            titleId="program-title"
+            back={
+              <ContextBackLink fallback="/plan?tab=program" label="Back to Programs" iconOnly />
+            }
+            action={
+              <IconButton
+                aria-label="Program options"
+                disabled={busy}
+                onClick={() => void setParams({ tab: 'settings' })}
+              >
+                <MoreHorizontal size={20} aria-hidden="true" />
+              </IconButton>
+            }
+          />
+          <p className="type-body-small text-secondary capitalize">
+            {days.length} days · {program.goal ?? 'General'}
+          </p>
+        </>
       )}
       {program.draft ? (
         <h1 id="program-title" className="sr-only">
@@ -430,7 +436,6 @@ function ProgramEditor() {
       ) : tab === 'Settings' ? (
         <Card className="grid gap-3">
           <h2 className="font-bold">Program settings</h2>
-          <h3 className="text-sm font-semibold">{program.name}</h3>
           <SegmentedSelector
             legend="Goal"
             options={['strength', 'hypertrophy', 'general'] as const}
@@ -496,7 +501,6 @@ function ProgramEditor() {
         </Card>
       ) : (
         <>
-          <h2 className="text-xl font-bold">{program.name}</h2>
           <p className="text-sm text-secondary">
             {days.length} training days · {count} exercises
           </p>

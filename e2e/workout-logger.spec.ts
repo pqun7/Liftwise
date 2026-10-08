@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { saveEmptyProgram } from './programHelpers';
+import { saveEmptyProgram, openWorkoutDay } from './programHelpers';
 import { expectProgressCounts } from './workoutUi';
 
 test('focused logger preserves decimal sets, rest, prefill, recovery and canonical history', async ({
@@ -31,12 +31,15 @@ test('focused logger preserves decimal sets, rest, prefill, recovery and canonic
   await page.getByLabel('Rest duration in seconds').fill('180');
   await page.getByRole('button', { name: 'Add to day' }).click();
   await expect(page.getByRole('heading', { name: 'Push Day', exact: true })).toBeVisible();
-  await expect(page.getByText('3 sets · 6–8 reps · 1–2 RIR', { exact: true })).toBeVisible();
+  await expect(
+    page.getByText('3 sets · 6–8 reps · 1–2 RIR · 3 min rest', { exact: true }),
+  ).toBeVisible();
   await page.getByRole('link', { name: 'Add exercise', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search exercises' }).fill('Logger Row');
   await page.getByRole('link', { name: /Logger Row/ }).click();
   await page.getByLabel('Target sets').fill('1');
   await page.getByRole('button', { name: 'Add to day' }).click();
+  await expect(page.locator('.builder-exercises')).toContainText('Logger Row');
   await expect(page.getByRole('heading', { name: 'Push Day', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Logger Row', exact: true })).toBeVisible();
   await page.goto('/workout');
@@ -50,7 +53,7 @@ test('focused logger preserves decimal sets, rest, prefill, recovery and canonic
     );
   }
   await page.screenshot({ path: testInfo.outputPath('workout-landing.png'), fullPage: true });
-  await page.getByRole('button', { name: /Push Day/ }).click();
+  await openWorkoutDay(page, 'Push Day');
   await page.getByRole('button', { name: 'Start Workout', exact: true }).click();
   const logger = page.getByRole('region', { name: 'Set logger' });
   await expect(page.getByRole('heading', { name: 'Push Day', exact: true })).toBeVisible();
@@ -149,7 +152,7 @@ test('focused logger preserves decimal sets, rest, prefill, recovery and canonic
     '3 of 3 sets completed',
   );
   await expect(page.locator('.workout-summary-metrics')).toContainText('Sets completed4');
-  await page.getByRole('button', { name: 'Done', exact: true }).click();
+  await page.getByRole('link', { name: 'Done', exact: true }).click();
   await page.goto('/progress');
   await expectProgressCounts(page, 1, 4);
 });
