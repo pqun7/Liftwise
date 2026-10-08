@@ -6,13 +6,13 @@
   min-width: 44px;
   min-height: 44px;
   padding: 0 10px;
-  border: 1px solid rgb(72 240 187 / 45%);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
   border-radius: 999px;
   color: var(--mint);
-  background: rgb(0 49 36 / 22%);
+  background: color-mix(in srgb, var(--background) 22%, transparent);
   box-shadow:
-    0 0 12px rgb(72 240 187 / 8%),
-    inset 0 0 8px rgb(72 240 187 / 4%);
+    0 0 12px color-mix(in srgb, var(--accent) 8%, transparent),
+    inset 0 0 8px color-mix(in srgb, var(--accent) 4%, transparent);
   text-decoration: none;
 }
 .streak-badge-copy {
@@ -50,32 +50,15 @@
 .progress-overview > fieldset > div {
   border-radius: 999px;
 }
-.progress-overview > .grid > section {
-  border-radius: 17px;
-  background: linear-gradient(125deg, rgb(0 43 32 / 55%), rgb(6 26 21 / 65%));
-  min-height: 80px;
-  padding: 5px 11px;
-}
-.progress-overview > .grid > section h2 {
-  font-size: var(--type-size-caption);
-  line-height: var(--type-leading-label);
-  padding-top: 6px;
-}
+
 .progress-overview > .grid > section > p:last-of-type {
   line-height: var(--type-leading-label);
 }
-.progress-overview > .grid > section > div > span {
-  border-radius: 50%;
-}
-.progress-overview > .grid > section > p:first-of-type {
-  font-size: var(--type-size-metric-md);
-  line-height: var(--type-leading-heading);
-  margin-top: 2px !important;
-}
+
 .progress-streak {
-  padding: 10px;
-  border-radius: 17px;
-  background: linear-gradient(125deg, rgb(0 43 32 / 55%), rgb(6 26 21 / 65%));
+  padding: 16px;
+  border-radius: var(--radius-card);
+  background: var(--surface-gradient);
   scroll-margin-top: 16px;
 }
 .streak-heading {
@@ -110,8 +93,8 @@
   flex-shrink: 0;
   border-radius: 50%;
   color: var(--mint);
-  background: rgb(72 240 187 / 8%);
-  box-shadow: 0 0 18px rgb(72 240 187 / 7%);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 7%, transparent);
 }
 .streak-stats {
   display: grid;
@@ -121,9 +104,9 @@
 .streak-stat {
   position: relative;
   min-width: 0;
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   padding: 8px 9px;
-  border: 1px solid rgb(180 255 232 / 7%);
+  border: 1px solid color-mix(in srgb, var(--accent) 7%, transparent);
 }
 .streak-stat strong {
   display: block;
@@ -154,23 +137,23 @@
   padding: 2px;
 }
 .streak-current {
-  background: rgb(0 125 89 / 12%);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 .streak-best {
-  background: rgb(171 139 54 / 12%);
-  border-color: rgb(190 156 64 / 12%);
+  background: color-mix(in srgb, var(--warning) 12%, transparent);
+  border-color: color-mix(in srgb, var(--warning) 12%, transparent);
 }
 .streak-best > svg {
-  color: #d5b45e;
-  background: rgb(190 156 64 / 12%);
+  color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 12%, transparent);
 }
 .streak-missed {
-  background: rgb(153 72 65 / 13%);
-  border-color: rgb(205 116 109 / 13%);
+  background: color-mix(in srgb, var(--danger) 13%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 13%, transparent);
 }
 .streak-missed > svg {
-  color: #df827e;
-  background: rgb(205 116 109 / 12%);
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
 }
 .streak-week {
   list-style: none;
@@ -199,19 +182,19 @@
   width: 31px;
   height: 31px;
   border-radius: 50%;
-  border: 2px solid rgb(162 181 174 / 24%);
-  background: rgb(140 174 161 / 4%);
+  border: 2px solid color-mix(in srgb, var(--accent) 24%, transparent);
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
 }
 .streak-day-circle svg {
   width: 13px;
   height: 13px;
-  fill: rgb(162 181 174 / 24%);
+  fill: color-mix(in srgb, var(--accent) 24%, transparent);
   color: transparent;
 }
 .streak-day-completed .streak-day-circle {
   color: var(--mint);
-  border-color: rgb(72 240 187 / 38%);
-  background: rgb(72 240 187 / 6%);
+  border-color: color-mix(in srgb, var(--accent) 38%, transparent);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
 }
 .streak-day-completed .streak-day-circle svg {
   width: 20px;
@@ -226,22 +209,22 @@
   color: var(--mint);
 }
 .streak-day-missed .streak-day-circle {
-  border-color: rgb(216 100 99 / 60%);
-  background: rgb(168 70 68 / 10%);
+  border-color: color-mix(in srgb, var(--danger) 60%, transparent);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
 }
 .streak-day-missed .streak-day-circle svg {
   width: 19px;
   height: 19px;
-  color: #df827e;
+  color: var(--danger);
   fill: none;
 }
 .streak-day-today .streak-day-circle {
   border-color: var(--mint);
-  box-shadow: 0 0 10px rgb(72 240 187 / 15%);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 15%, transparent);
 }
 .streak-day-rest .streak-day-circle {
-  border-color: rgb(160 181 255 / 65%);
-  background: rgb(160 181 255 / 10%);
+  border-color: color-mix(in srgb, var(--info) 65%, transparent);
+  background: color-mix(in srgb, var(--info) 10%, transparent);
 }
 .streak-day-rest .streak-day-circle svg {
   width: 18px;
@@ -255,7 +238,7 @@
 }
 .streak-day-rest.streak-day-current .streak-day-circle {
   border-color: var(--home-blue);
-  box-shadow: 0 0 10px rgb(160 181 255 / 15%);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--info) 15%, transparent);
 }
 .streak-day-today .streak-day-circle svg {
   color: var(--mint);
@@ -268,7 +251,7 @@
 }
 .streak-day-current.streak-day-completed .streak-day-circle {
   border-color: var(--mint);
-  box-shadow: 0 0 10px rgb(72 240 187 / 15%);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 15%, transparent);
 }
 .streak-day-future > span:last-child,
 .streak-day-not-tracked > span:last-child {
@@ -298,21 +281,21 @@
   background: var(--mint);
 }
 .streak-legend .legend-missed {
-  background: #df827e;
+  background: var(--danger);
 }
 .streak-legend .legend-rest {
   background: var(--home-blue);
 }
 .streak-legend .legend-future {
-  background: #4c625a;
+  background: var(--muted);
 }
 .streak-legend svg {
   color: var(--mint);
 }
 .progress-activity {
-  padding: 10px 13px;
-  border-radius: 17px;
-  background: linear-gradient(125deg, rgb(0 43 32 / 55%), rgb(6 26 21 / 65%));
+  padding: 16px;
+  border-radius: var(--radius-card);
+  background: var(--surface-gradient);
 }
 .progress-activity-heading {
   display: flex;
@@ -331,19 +314,9 @@
   height: 76px;
   margin-top: 1px;
 }
-.progress-explore-link {
-  background: linear-gradient(125deg, rgb(0 43 32 / 55%), rgb(6 26 21 / 65%));
-  border-radius: 17px;
-  min-height: 57px;
-  gap: 6px;
-  padding: 7px 8px;
-}
 .progress-explore-link > span {
   width: 32px;
   height: 32px;
-}
-.progress-explore-link > svg {
-  width: 10px;
 }
 .progress-explore-link h3 {
   overflow-wrap: anywhere;
@@ -382,16 +355,9 @@
     gap: 8px;
     font-size: var(--type-size-caption);
   }
-  .progress-explore-link {
-    gap: 6px;
-    padding: 7px;
-  }
   .progress-explore-link > span {
     width: 27px;
     height: 27px;
-  }
-  .progress-explore-link > svg {
-    width: 10px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

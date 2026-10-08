@@ -156,6 +156,7 @@ export const catalogMetadataSchema: z.ZodType<CatalogMetadata> = z
 export const programSchema: z.ZodType<Program> = z
   .object({
     scheduleType: z.enum(['weekly', 'cycle']).optional(),
+    cycleStartDate: z.iso.date().nullable().optional(),
     id: entityIdSchema,
     name: z.string().trim().min(1).max(120),
     description: z.string().trim().max(2_000).nullable(),

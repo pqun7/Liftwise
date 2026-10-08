@@ -37,6 +37,7 @@ export interface WorkoutPreviewEntry {
 }
 
 export interface WorkoutListSummary {
+  programDayId?: string | null;
   id: string;
   name: string;
   startedAt: string;
@@ -92,6 +93,7 @@ export async function getWorkoutLanding(
     const sets = graph.exercises.flatMap(({ sets }) => sets);
     return {
       id: graph.session.id,
+      programDayId: graph.session.programDayId,
       name: graph.session.name ?? 'Quick Workout',
       startedAt: graph.session.startedAt,
       completedSets: sets.filter(({ completed }) => completed).length,

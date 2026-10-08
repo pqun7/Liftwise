@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Link, useLoaderData, useNavigate } from 'react-router-dom';
+import { useScreenState } from '../../app/useScreenState';
+import { ContextBackLink } from '../../components/ContextBackLink';
+import { Link, useLoaderData, useNavigate, useLocation } from 'react-router-dom';
 
 import type { Exercise } from '../../domain/entities';
 import { ExerciseImage } from './ExerciseImage';
@@ -22,7 +24,8 @@ function DetailFact({ label, value }: Readonly<{ label: string; value: string | 
 export function ExerciseDetailPage() {
   const { exercise } = useLoaderData<DetailLoaderData>();
   const navigate = useNavigate();
-  const [pose, setPose] = useState<'start' | 'peak'>('start');
+  const location = useLocation();
+  const [pose, setPose] = useScreenState<'start' | 'peak'>('pose', 'start');
   const [duplicating, setDuplicating] = useState(false);
   const paired = exercise.images.start !== null && exercise.images.peak !== null;
   const displayedImage = paired ? exercise.images[pose] : exercise.images.main;
@@ -39,9 +42,7 @@ export function ExerciseDetailPage() {
 
   return (
     <article className="exercise-detail">
-      <Link className="back-link" to="/exercises">
-        ← Exercise library
-      </Link>
+      <ContextBackLink fallback="/exercises" label="Exercise library" />
       <header className="exercise-detail-header">
         <p className="section-kicker">
           {exercise.sourceProvider === 'repdb' ? 'Built-in exercise' : 'Custom exercise'}
@@ -78,7 +79,7 @@ export function ExerciseDetailPage() {
       </dl>
 
       {exercise.goals.length ? (
-        <section className="detail-section">
+        <section className="detail-section ui-card">
           <h2>Goals</h2>
           <div className="tag-list">
             {exercise.goals.map((goal) => (
@@ -89,7 +90,7 @@ export function ExerciseDetailPage() {
       ) : null}
 
       {exercise.instructions.length ? (
-        <section className="detail-section readable-steps">
+        <section className="detail-section ui-card readable-steps">
           <h2>How to perform</h2>
           <ol>
             {exercise.instructions.map((instruction, index) => (
@@ -100,7 +101,7 @@ export function ExerciseDetailPage() {
       ) : null}
 
       {exercise.tips.length ? (
-        <section className="detail-section tips-section">
+        <section className="detail-section ui-card tips-section">
           <h2>Tips</h2>
           <ul>
             {exercise.tips.map((tip) => (
@@ -116,7 +117,7 @@ export function ExerciseDetailPage() {
 
       {exercise.sourceProvider === 'repdb' ? (
         <button
-          className="secondary-action"
+          className="secondary-action ui-button ui-button-secondary"
           type="button"
           disabled={duplicating}
           onClick={() => void duplicate()}
@@ -124,12 +125,20 @@ export function ExerciseDetailPage() {
           {duplicating ? 'Creating…' : 'Duplicate as custom exercise'}
         </button>
       ) : exercise.notes ? (
-        <section className="detail-section">
+        <section className="detail-section ui-card">
           <h2>Notes</h2>
           <p>{exercise.notes}</p>
         </section>
       ) : null}
-      <Link className="compact-link" to={`/progress/exercises/${encodeURIComponent(exercise.id)}`}>
+      <Link
+        className="compact-link ui-button ui-button-primary"
+        to={`/progress/exercises/${encodeURIComponent(exercise.id)}`}
+        state={{
+          returnTo: location.pathname,
+          returnKey: location.key,
+          returnLabel: 'Exercise details',
+        }}
+      >
         View exercise history
       </Link>
     </article>

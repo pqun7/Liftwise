@@ -79,6 +79,8 @@ export interface CatalogMetadata {
 }
 
 export interface Program extends TimestampedEntity {
+  /** Schedule anchor for projecting the ordered cycle onto local calendar dates. */
+  cycleStartDate?: string | null | undefined;
   /** Retained for compatibility with records from the scheduling build. */
   scheduleType?: 'weekly' | 'cycle' | undefined;
   id: string;

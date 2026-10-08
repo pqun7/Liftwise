@@ -64,6 +64,34 @@ async function renderHome(data: Awaited<ReturnType<typeof getHomeData>>) {
 }
 
 describe('Home derived state and local data', () => {
+  it('opens completed dates as saved details without offering the planned workout again', async () => {
+    const { db, programs, workouts, push } = await programFixture();
+    await programs.updateDay(push.id, { weekday: 1 });
+    const graph = await workouts.startPlannedWorkout(
+      push.id,
+      new Date(2026, 9, 6, 10).toISOString(),
+    );
+    await workouts.finish(graph.session.id, new Date(2026, 9, 6, 11));
+    const data = await getHomeData(db, now);
+    await renderHome(data);
+    const user = userEvent.setup();
+    const completedDay = screen.getByRole('button', { name: /Tuesday.*1 completed workouts/ });
+    expect(completedDay).toHaveAttribute('data-status', 'completed');
+    await user.click(completedDay);
+    expect(homeState(data, '2026-10-06')).toBe('rest-day');
+    expect(screen.queryByRole('button', { name: 'Start Workout' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'View Scheduled Workout' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'View Completed Workout' })).toHaveAttribute(
+      'href',
+      `/workout/${graph.session.id}?details=1`,
+    );
+    expect(startPlannedWorkout).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: /Monday.*Rest/ })).toHaveAttribute(
+      'data-status',
+      'rest',
+    );
+    expect(screen.getByRole('button', { name: /Thursday/ })).toHaveAttribute('data-future', 'true');
+  });
   it('shows honest empty/rest state and a local Monday-first week across a month boundary', async () => {
     const db = createTestDatabase('home-empty');
     const data = await getHomeData(db, new Date(2026, 9, 2, 12));

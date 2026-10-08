@@ -1,13 +1,14 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 import type { Exercise } from '../../domain/entities';
 import { ExerciseImage } from './ExerciseImage';
 import { formatExerciseValue } from './formatters';
 
 export function ExerciseCard({ exercise }: Readonly<{ exercise: Exercise }>) {
+  const location = useLocation();
   const preview = exercise.images.main ?? exercise.images.start;
   return (
-    <article className="exercise-card">
+    <article className="exercise-card ui-card">
       <ExerciseImage image={preview} className="exercise-card-image" />
       <div className="exercise-card-copy">
         <div className="exercise-card-heading">
@@ -22,6 +23,11 @@ export function ExerciseCard({ exercise }: Readonly<{ exercise: Exercise }>) {
         </p>
         <Link
           to={`/exercises/${encodeURIComponent(exercise.id)}`}
+          state={{
+            returnTo: location.pathname + location.search,
+            returnKey: location.key,
+            returnLabel: 'Exercise library',
+          }}
           aria-label={`View ${exercise.name}`}
         >
           View details <span aria-hidden="true">→</span>

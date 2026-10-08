@@ -198,7 +198,7 @@ export function SetLogger({
             <Button
               variant="primary"
               size="large"
-              className="workout-primary workout-active-action"
+              className="workout-primary ui-button ui-button-primary ui-button-large workout-active-action"
               disabled={busy || disabled}
               aria-pressed={false}
               onPointerDown={(event) => event.preventDefault()}
@@ -244,7 +244,7 @@ export function SetLogger({
         </details>
       ) : null}
       {error || editor.saveError ? (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-sm text-danger">
           {error ?? editor.saveError}{' '}
           {editor.saveError ? (
             <Button variant="ghost" disabled={busy || disabled} onClick={retry}>

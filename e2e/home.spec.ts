@@ -12,7 +12,12 @@ async function auditHome(page: Page) {
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
     .toBe(true);
-  for (const selector of ['.home-primary', '.home-day', '.home-local', '.bottom-nav .nav-item']) {
+  for (const selector of [
+    '.home-primary',
+    '.home-week .calendar-day',
+    '.home-local',
+    '.bottom-nav .nav-item',
+  ]) {
     for (const locator of await page.locator(selector).all()) {
       const box = await locator.boundingBox();
       expect(box!.height).toBeGreaterThanOrEqual(44);
@@ -60,7 +65,10 @@ test('Home adapts to local program, active workout and rest states with cached p
     .click();
   await page.getByLabel('Target sets').fill('3');
   await page.getByRole('button', { name: 'Add to day' }).press('Enter');
-  await page.getByRole('link', { name: 'Home', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Barbell Bench Press', exact: true }),
+  ).toBeVisible();
+  await page.goto('/');
   await expect(page.locator('[data-home-state=scheduled]')).toBeVisible();
   await expect(page.locator('.home-hero')).toContainText('1 exercise · 3 planned sets');
   await dismissStatus(page);

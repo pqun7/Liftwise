@@ -34,7 +34,7 @@ export function PrescriptionFormPage() {
   const [params] = useSearchParams();
   const returnTo =
     params.get('return') === 'editor'
-      ? `/plan/${program.id}#day-${day.id}`
+      ? `/plan/${program.id}?tab=edit#day-${day.id}`
       : `/plan/${program.id}/days/${day.id}${reviewSuffix(params)}`;
   const [saveError, setSaveError] = useState<string | null>(null);
   const {
@@ -111,7 +111,7 @@ export function PrescriptionFormPage() {
         <p>Set your sets, reps, effort and rest for this exercise.</p>
       </header>
       <form
-        className="builder-card exercise-form prescription-form"
+        className="builder-card ui-card exercise-form ui-card prescription-form"
         onSubmit={(event) => void submit(event)}
         noValidate
       >

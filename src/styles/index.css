@@ -1,10 +1,13 @@
 @import 'tailwindcss';
-/* Unmigrated screens remain in the base layer so shared utilities are authoritative. */
+@import './tokens.css' layer(base);
+/* Feature layouts share primitives; utilities remain authoritative for composition. */
 @import './legacy.css' layer(base);
 @import './home.css' layer(base);
 @import './plan.css' layer(base);
 @import './workout.css' layer(base);
+@import './workout-complete.css';
 @import './progress.css' layer(base);
+@import './primitives.css' layer(base);
 
 /* Local static instances of the canonical variable source work around
    incorrect outline rasterization in Windows WebKit. One family, one setup. */
@@ -62,23 +65,35 @@
   --color-secondary: var(--text-secondary);
   --color-muted: var(--text-muted);
   --color-border: var(--border-default);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-active: var(--accent-active);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-highlight: var(--surface-highlight);
+  --color-border-strong: var(--border-strong);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
 }
 
 @layer base {
   :root {
-    --app-bg: #00110d;
-    --surface-1: #031a14;
-    --surface-2: #06251d;
-    --surface-3: #0b3028;
-    --mint: #30efc5;
-    --mint-light: #77ffe2;
-    --accent-gradient: linear-gradient(105deg, #30efc5, #2af0d0);
-    --panel-gradient: linear-gradient(145deg, rgb(0 42 29 / 40%), rgb(0 19 14 / 48%));
-    --app-gradient: radial-gradient(ellipse at 76% 8%, rgb(0 86 57 / 18%), transparent 50%);
-    --text-primary: #f7fbfa;
-    --text-secondary: #b3c3bd;
-    --text-muted: #8fa59d;
-    --border-default: rgb(76 174 145 / 23%);
+    --app-bg: var(--background);
+    --surface-1: var(--surface);
+    --surface-2: var(--surface-elevated);
+    --surface-3: var(--surface-highlight);
+    --mint: var(--accent);
+    --mint-light: var(--accent-hover);
+    --accent-gradient: linear-gradient(var(--accent), var(--accent));
+    --panel-gradient: var(--surface-gradient);
+    --app-gradient: none;
+    --text-primary: var(--foreground);
+    --text-secondary: var(--secondary);
+    --text-muted: var(--muted);
+    --border-default: var(--border);
     /* Compatibility aliases for UI not migrated in this increment. */
     --home-bg: var(--app-bg);
     --home-surface: var(--surface-1);
@@ -89,9 +104,9 @@
     --home-secondary: var(--text-secondary);
     --home-muted: var(--text-muted);
     --home-border: var(--border-default);
-    --home-coral: #f08072;
-    --home-blue: #a0b5ff;
-    --home-violet: #bda9f5;
+    --home-coral: var(--danger);
+    --home-blue: var(--info);
+    --home-violet: var(--series-purple);
     --font-ui: var(--font-family);
     --font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-display: var(--font-ui);
@@ -101,20 +116,20 @@
     --fw-semibold: 600;
     --fw-bold: 700;
     --fw-display: 800;
-    --type-size-display: 1.75rem;
-    --type-size-page: 1.625rem;
-    --type-size-section: 1.125rem;
+    --type-size-display: 2.125rem;
+    --type-size-page: 2rem;
+    --type-size-section: 1.25rem;
     --type-size-card: 1rem;
     --type-size-body: 0.875rem;
     --type-size-body-small: 0.8125rem;
     --type-size-label: 0.75rem;
     --type-size-caption: 0.6875rem;
-    --type-size-metric-lg: 1.75rem;
-    --type-size-metric-md: 1.375rem;
+    --type-size-metric-lg: 2rem;
+    --type-size-metric-md: 1.5rem;
     --type-size-timer: clamp(3rem, 15vw, 4.5rem);
     --type-size-button: 0.9375rem;
-    --type-size-nav: 0.75rem;
-    --type-leading-display: 1.15;
+    --type-size-nav: max(12px, 0.6rem);
+    --type-leading-display: 1.12;
     --type-leading-heading: 1.25;
     --type-leading-body: 1.5;
     --type-leading-label: 1.35;
@@ -143,7 +158,7 @@
   }
 
   .app-frame {
-    background: var(--app-gradient), var(--app-bg);
+    background: var(--app-bg);
     isolation: isolate;
   }
 
@@ -155,13 +170,7 @@
     font-family: var(--font-ui);
   }
 
-  button,
-  .primary-action,
-  .secondary-action,
-  .load-more-button,
-  .primary-link,
-  .compact-link,
-  .update-prompt button {
+  button {
     font-size: var(--type-size-button);
     font-weight: var(--fw-semibold);
     line-height: var(--type-leading-heading);
@@ -177,8 +186,8 @@
   h1 {
     font-size: var(--type-size-page);
     line-height: var(--type-leading-heading);
-    font-weight: var(--fw-bold);
-    letter-spacing: var(--type-tracking-tight);
+    font-weight: var(--fw-display);
+    letter-spacing: -0.04em;
   }
 
   h2 {
@@ -211,9 +220,17 @@
 
 @utility type-page-title {
   font-size: var(--type-size-page);
-  line-height: var(--type-leading-heading);
-  font-weight: var(--fw-bold);
-  letter-spacing: var(--type-tracking-tight);
+  line-height: var(--type-leading-display);
+  font-weight: var(--fw-display);
+  letter-spacing: -0.04em;
+}
+
+@utility type-stat-label {
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
 }
 
 @utility type-section-title {

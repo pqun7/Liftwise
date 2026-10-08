@@ -18,7 +18,7 @@ export function SegmentedControl<T extends string>({
         {options.map((option) => (
           <label
             key={option}
-            className={`relative flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-1 rounded-xl border px-2 text-xs capitalize has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-mint ${value === option ? 'border-mint bg-mint/10 text-mint' : 'border-border bg-surface-2 text-secondary'}`}
+            className={`relative flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-1 rounded-2xl border px-2 text-xs capitalize transition-colors duration-200 has-focus-visible:outline-2 has-focus-visible:outline-offset-4 has-focus-visible:outline-mint ${value === option ? 'border-mint/30 bg-mint/[0.07] text-mint' : 'border-border bg-surface text-secondary hover:bg-surface-highlight'}`}
           >
             <input
               className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"

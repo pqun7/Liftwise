@@ -1,5 +1,5 @@
 import { ChevronRight, Dumbbell } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Card } from '../../components/ui/Card';
 import { SectionHeader } from '../../components/ui/SectionHeader';
 import { ExerciseImage } from '../exercises/ExerciseImage';
@@ -8,6 +8,7 @@ import { formatPreviousSets } from './workoutFormat';
 import type { WorkoutPreviewEntry } from './workoutService';
 
 export function WorkoutPreview({ entries }: { entries: WorkoutPreviewEntry[] }) {
+  const location = useLocation();
   return (
     <section aria-labelledby="preview-title" className="workout-preview grid gap-2">
       <SectionHeader
@@ -65,6 +66,11 @@ export function WorkoutPreview({ entries }: { entries: WorkoutPreviewEntry[] }) 
                 {exercise ? (
                   <Link
                     to={`/exercises/${encodeURIComponent(exercise.id)}`}
+                    state={{
+                      returnTo: location.pathname + location.search,
+                      returnKey: location.key,
+                      returnLabel: 'Workout',
+                    }}
                     aria-label={`${index + 1}. ${exercise.name} — exercise details`}
                     className="workout-preview-row"
                   >

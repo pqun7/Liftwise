@@ -252,7 +252,7 @@ test('all core training, charts, backup and CSV flows work with network disabled
       '2 of 3 sets completed',
     );
     await expect(page.getByLabel('Completed set', { exact: true })).toHaveCount(2);
-    await page.getByRole('link', { name: 'Done', exact: true }).click();
+    await page.getByRole('button', { name: 'Done', exact: true }).click();
     await page.getByRole('link', { name: 'Plan', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Offline QA', exact: true })).toBeVisible();
     expect(external).toEqual([]);

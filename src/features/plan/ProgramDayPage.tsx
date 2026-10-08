@@ -2,8 +2,15 @@ import { IconButton } from '../../components/ui/IconButton';
 import { Button } from '../../components/ui/Button';
 import { buttonClasses } from '../../components/ui/controlStyles';
 import { Card } from '../../components/ui/Card';
+import { useScreenState } from '../../app/useScreenState';
 import { useRef, useState } from 'react';
-import { Link, useLoaderData, useRevalidator, useSearchParams } from 'react-router-dom';
+import {
+  Link,
+  useLoaderData,
+  useRevalidator,
+  useSearchParams,
+  useLocation,
+} from 'react-router-dom';
 import {
   Plus,
   GripVertical,
@@ -29,10 +36,91 @@ import { estimatedProgramMinutes } from './programDisplay';
 import { UnsavedChanges } from './UnsavedChanges';
 import { reviewDestination, reviewSuffix } from './reviewNavigation';
 import recoveryArtwork from '../../assets/images/plan/recovery-transparent.png';
+import { ScheduleEmpty } from './ScheduleView';
 
 export function ProgramDayPage() {
   const { day: data } = useLoaderData<{ day: HydratedProgramDay }>();
-  return <ProgramDayEditor key={data.day.id} />;
+  const [params] = useSearchParams();
+  return params.get('mode') === 'preview' ? (
+    <ProgramDayPreview />
+  ) : (
+    <ProgramDayEditor key={data.day.id} />
+  );
+}
+
+function ProgramDayPreview() {
+  const location = useLocation();
+  const { day: data } = useLoaderData<{ day: HydratedProgramDay }>();
+  const base = `/plan/${data.program.id}/days/${data.day.id}`;
+  const minutes = estimatedProgramMinutes(data.exercises.map(({ prescription }) => prescription));
+  return (
+    <section className="grid gap-4 font-ui">
+      <BuilderHeader
+        title={data.day.name}
+        back={`/plan/${data.program.id}?tab=workouts`}
+        backLabel="Back to Training Days"
+      />
+      <p className="type-body-small text-secondary">
+        Program preview · {data.exercises.length} exercises
+        {minutes == null ? '' : ` · ~${minutes} min`}
+      </p>
+      <Link className={buttonClasses('secondary')} to={base}>
+        Edit training day
+      </Link>
+      {data.day.kind === 'recovery' ? (
+        <Card variant="glass" padding="spacious" radius="hero" className="grid gap-4 text-center">
+          <img
+            src={recoveryArtwork}
+            className="recovery-artwork mx-auto w-[248px] max-w-full"
+            alt=""
+          />
+          <h2 className="type-section-title">Rest day</h2>
+          <p className="text-secondary">Recovery is part of your program cycle.</p>
+        </Card>
+      ) : !data.exercises.length ? (
+        <ScheduleEmpty
+          title="No exercises yet"
+          description="Choose the exercises you want to perform on this training day."
+          to={`${base}/exercises`}
+          action="Add exercises"
+        />
+      ) : (
+        <div className="grid gap-2">
+          {data.exercises.map(({ prescription, exercise }) => (
+            <Card key={prescription.id} variant="glass">
+              <Link
+                className="flex items-center gap-3 text-primary no-underline"
+                to={`/exercises/${exercise.id}`}
+                state={{
+                  returnTo: location.pathname + location.search,
+                  returnKey: location.key,
+                  returnLabel: 'Training day',
+                }}
+              >
+                <ExerciseImage
+                  image={exercise.images.main ?? exercise.images.start}
+                  className="size-14 shrink-0 rounded-xl"
+                />
+                <span className="min-w-0 flex-1">
+                  <strong className="type-card-title">{exercise.name}</strong>
+                  <small className="mt-1 block type-body-small text-secondary">
+                    {formatPrescription(prescription)}
+                  </small>
+                </span>
+                <ChevronRight size={19} />
+              </Link>
+            </Card>
+          ))}
+        </div>
+      )}
+      {data.day.notes ? (
+        <Card>
+          <h2 className="type-section-title">Day notes</h2>
+          <p className="mt-2 text-secondary">{data.day.notes}</p>
+        </Card>
+      ) : null}
+    </section>
+  );
 }
 
 function ProgramDayEditor() {
@@ -42,7 +130,7 @@ function ProgramDayEditor() {
   const suffix = reviewSuffix(params);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const [expanded, setExpanded] = useScreenState<string | null>('exercise', null);
   const [note, setNote] = useState(data.day.notes ?? '');
   const [noteSaved, setNoteSaved] = useState(data.day.notes ?? '');
   const pending = useRef(false);
@@ -81,7 +169,9 @@ function ProgramDayEditor() {
         title={data.program.draft ? 'Create Program' : 'Edit Program'}
         step={3}
         programId={data.program.id}
-        back={`${base}/build/days`}
+        back={
+          data.program.draft ? `${base}/build/days` : `${base}/days/${data.day.id}?mode=preview`
+        }
         exercisesPath={`${base}/days/${data.day.id}`}
       />
       <nav className="exercise-day-navigation" aria-label="Program days">
@@ -146,7 +236,7 @@ function ProgramDayEditor() {
             <Card variant="glass" className="recovery-up-next grid w-full gap-3 text-left">
               <small className="type-label tracking-wider text-mint">UP NEXT</small>
               <div className="flex flex-wrap items-center gap-3">
-                <span className="grid size-12 shrink-0 place-items-center rounded-2xl border border-border bg-surface-2 text-sky-400">
+                <span className="grid size-12 shrink-0 place-items-center rounded-2xl border border-border bg-surface-2 text-mint">
                   <Dumbbell size={27} aria-hidden="true" />
                 </span>
                 <div className="min-w-0 flex-1">
@@ -247,7 +337,6 @@ function ProgramDayEditor() {
                     </Button>
                   </div>
                 ) : null}
-                <p className="builder-exercise-rest">{formatRest(prescription.restSeconds)}</p>
               </Card>
             ))}
           </div>

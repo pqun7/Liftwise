@@ -3,7 +3,7 @@
   width: 100%;
   height: 200px;
   object-fit: cover;
-  border-radius: 18px;
+  border-radius: var(--radius-card);
   mask-image: linear-gradient(black 70%, transparent);
 }
 .schedule-template {
@@ -17,7 +17,7 @@
   color: var(--home-text);
   background: var(--home-surface);
   border: 1px solid var(--home-border);
-  border-radius: 18px;
+  border-radius: var(--radius-card);
 }
 .schedule-template > svg {
   flex-shrink: 0;
@@ -38,7 +38,7 @@
 }
 .schedule-template[aria-pressed='true'] {
   border-color: var(--home-mint);
-  background: rgb(73 224 180 / 7%);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
 }
 .schedule-template[aria-pressed='true'] > svg {
   color: var(--home-mint);
@@ -66,11 +66,6 @@
   font-size: var(--type-size-body);
   color: var(--home-secondary);
 }
-.builder-exercise-rest {
-  font-size: var(--type-size-caption);
-  color: var(--home-secondary);
-  padding: 0 10px 6px 99px;
-}
 .plan-frame .main-content {
   padding-top: calc(18px + var(--safe-top));
 }
@@ -85,7 +80,7 @@
 .builder-page :is(h1, h2, h3, p) {
   margin: 0;
 }
-.builder-page a {
+.builder-page a:not(.ui-button) {
   color: inherit;
   text-decoration: none;
 }
@@ -96,7 +91,7 @@
   gap: 8px;
 }
 .builder-header h1 {
-  font-size: var(--type-size-page);
+  font-size: var(--type-size-section);
   line-height: var(--type-leading-heading);
   text-align: center;
   font-weight: var(--fw-bold);
@@ -106,9 +101,9 @@
   place-items: center;
   height: 44px;
   width: 44px;
-  background: rgb(255 255 255 / 5%);
+  background: color-mix(in srgb, var(--light) 5%, transparent);
   border: 1px solid var(--home-border);
-  border-radius: 16px;
+  border-radius: var(--radius-control);
 }
 .builder-stepper {
   display: grid;
@@ -174,9 +169,7 @@
 }
 .builder-card {
   padding: 16px;
-  border-radius: 18px;
-  border: 1px solid var(--home-border);
-  background: linear-gradient(150deg, rgb(255 255 255 / 4%), transparent), var(--home-surface);
+
   min-width: 0;
 }
 .builder-card h2,
@@ -206,9 +199,9 @@
 }
 .builder-page .exercise-form :is(input, textarea, select) {
   font-size: max(16px, 1rem);
-  background: rgb(255 255 255 / 3%);
+  background: color-mix(in srgb, var(--light) 3%, transparent);
   border: 1px solid var(--home-border);
-  border-radius: 13px;
+  border-radius: var(--radius-control);
   padding: 12px;
   min-width: 0;
   color: var(--home-text);
@@ -241,7 +234,7 @@
   padding: 4px;
   min-height: 44px;
   border: 1px solid var(--home-border);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   color: var(--home-secondary);
   font-size: var(--type-size-label);
   text-transform: capitalize;
@@ -251,7 +244,7 @@
 .builder-split.is-selected {
   border-color: var(--home-mint);
   color: var(--home-mint);
-  background: rgb(72 240 187 / 7%);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
 }
 .builder-segment input,
 .builder-split input {
@@ -263,8 +256,8 @@
 }
 .builder-segment label:has(input:focus-visible),
 .builder-split:has(input:focus-visible) {
-  outline: 3px solid var(--home-mint);
-  outline-offset: 3px;
+  outline: 2px solid var(--home-mint);
+  outline-offset: 4px;
 }
 .builder-footer {
   margin-top: auto;
@@ -277,10 +270,7 @@
   gap: 10px;
   width: 100%;
   min-height: 54px;
-  border: 0;
-  border-radius: 17px;
-  background: linear-gradient(90deg, var(--home-mint), var(--home-mint-light));
-  color: var(--app-bg) !important;
+
   font-size: var(--type-size-card);
   font-weight: var(--fw-bold);
   padding: 12px;
@@ -308,8 +298,8 @@
   width: 100%;
   min-height: 64px;
   border: 1px solid var(--home-border);
-  border-radius: 12px;
-  background: rgb(255 255 255 / 3%);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--light) 3%, transparent);
   color: var(--home-secondary);
   font-size: var(--type-size-label);
   cursor: pointer;
@@ -340,7 +330,7 @@
   min-height: 58px;
   padding: 7px;
   border: 1px solid var(--home-border);
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   cursor: pointer;
 }
 .builder-split strong {
@@ -358,17 +348,17 @@
   height: 44px;
   display: grid;
   place-items: center;
-  background: rgb(255 255 255 / 6%);
+  background: color-mix(in srgb, var(--light) 6%, transparent);
   border: 1px solid var(--home-border);
-  border-radius: 13px;
+  border-radius: var(--radius-control);
 }
 .builder-info {
   display: flex;
   align-items: flex-start;
   gap: 9px;
   padding: 12px;
-  border-radius: 12px;
-  background: rgb(255 255 255 / 5%);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--light) 5%, transparent);
   color: var(--home-secondary);
   font-size: var(--type-size-label);
 }
@@ -397,9 +387,9 @@
   padding: 10px 13px;
   min-height: 44px;
   min-width: 44px;
-  border-radius: 13px;
+  border-radius: var(--radius-control);
   border: 1px solid var(--home-border);
-  background: rgb(255 255 255 / 4%);
+  background: color-mix(in srgb, var(--light) 4%, transparent);
 }
 .builder-tabs a[aria-current='page'] {
   background: var(--home-mint);
@@ -414,7 +404,9 @@
   min-width: 0;
   border: 1px solid var(--home-border);
   border-radius: 15px;
-  background: linear-gradient(130deg, rgb(255 255 255 / 4%), transparent), var(--home-surface);
+  background:
+    linear-gradient(130deg, color-mix(in srgb, var(--light) 4%, transparent), transparent),
+    var(--home-surface);
   overflow: hidden;
 }
 .builder-exercise-row {
@@ -478,7 +470,7 @@
   gap: 5px;
   flex: 1;
   min-height: 44px;
-  background: rgb(255 255 255 / 4%);
+  background: color-mix(in srgb, var(--light) 4%, transparent);
   color: var(--home-secondary);
   border: 1px solid var(--home-border);
   border-radius: 10px;
@@ -494,7 +486,7 @@
   justify-content: center;
   border: 1px solid var(--home-mint);
   color: var(--home-mint) !important;
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   font-weight: var(--fw-semibold);
 }
 .builder-empty {
@@ -512,8 +504,8 @@
   gap: 12px;
   padding: 11px;
   min-height: 60px;
-  border-radius: 12px;
-  background: rgb(255 255 255 / 4%);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--light) 4%, transparent);
 }
 .builder-day-settings a div {
   flex: 1;
@@ -569,8 +561,8 @@
   padding: 16px;
   background: var(--home-surface-2);
   border: 1px solid var(--home-mint);
-  border-radius: 16px;
-  box-shadow: 0 5px 30px rgb(0 0 0 / 40%);
+  border-radius: var(--radius-control);
+  box-shadow: 0 5px 30px color-mix(in srgb, var(--background) 40%, transparent);
 }
 .builder-leave div {
   display: flex;
@@ -618,7 +610,7 @@
 }
 .plan-active-badge {
   color: var(--text-primary);
-  background: #075d43;
+  background: var(--surface-highlight);
   padding: 6px 11px;
   border-radius: 99px;
   font-size: var(--type-size-label);
@@ -639,7 +631,7 @@
 .plan-detail-icon {
   width: 42px;
   height: 42px;
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   background: var(--surface-2);
   display: grid;
   place-items: center;
@@ -661,7 +653,7 @@
 }
 .plan-schedule {
   border: 1px solid var(--border-default);
-  border-radius: 16px;
+  border-radius: var(--radius-control);
   background: var(--surface-1);
   padding: 8px 14px;
 }
@@ -713,13 +705,13 @@ button.plan-schedule-row {
   background: var(--text-muted);
 }
 .plan-dot-0 {
-  background: #93adff;
+  background: var(--info);
 }
 .plan-dot-1 {
-  background: #f4d264;
+  background: var(--warning);
 }
 .plan-dot-2 {
-  background: #dcb3b0;
+  background: var(--danger);
 }
 .plan-schedule-name {
   flex: 1;
@@ -769,7 +761,7 @@ button.plan-schedule-row {
 }
 .plan-tabs button[aria-pressed='true'] {
   color: var(--text-primary);
-  background: #0a3c2e;
+  background: var(--surface-highlight);
   font-weight: var(--fw-bold);
 }
 .plan-info-row {
@@ -779,7 +771,7 @@ button.plan-schedule-row {
   gap: 10px;
   padding: 14px;
   border: 1px solid var(--border-default);
-  border-radius: 13px;
+  border-radius: var(--radius-control);
   background: var(--surface-1);
   width: 100%;
   text-align: left;
@@ -801,10 +793,10 @@ button.plan-schedule-row {
   margin-top: 5px;
 }
 .plan-day {
-  border-radius: 13px;
+  border-radius: var(--radius-control);
 }
 .plan-day-open {
-  border-color: rgb(72 240 187 / 30%);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
 }
 .plan-day-toggle {
   min-width: 0;
@@ -889,16 +881,12 @@ button.plan-schedule-row {
   }
 }
 .plan-leave-dialog {
-  background: var(--surface-2);
-  color: var(--text-primary);
-  border: 1px solid var(--border-default);
-  border-radius: 18px;
   padding: 20px;
   width: min(360px, calc(100% - 32px));
   margin: auto;
 }
 .plan-leave-dialog::backdrop {
-  background: rgb(0 0 0 / 65%);
+  background: color-mix(in srgb, var(--background) 65%, transparent);
 }
 .plan-leave-dialog h2 {
   font-size: var(--type-size-section);
@@ -917,9 +905,7 @@ button.plan-schedule-row {
 .plan-leave-dialog button {
   flex: 1;
   min-height: 44px;
-  border: 1px solid var(--border-default);
-  background: var(--surface-1);
-  border-radius: 10px;
+
   cursor: pointer;
 }
 /* Five-stage Plan builder. All typography inherits the application's Manrope tokens. */
@@ -957,7 +943,7 @@ button.plan-schedule-row {
 }
 .builder-footer > :is(button, a),
 .builder-footer .exercise-footer-actions > a {
-  min-height: 52px;
+  min-height: 56px;
 }
 .builder-page .basics-content {
   background: transparent;
@@ -1006,7 +992,7 @@ button.plan-schedule-row {
   color: var(--mint);
 }
 .description-toggle {
-  min-height: 52px;
+  min-height: 56px;
   text-align: left;
 }
 .schedule-type-options {
@@ -1028,12 +1014,12 @@ button.plan-schedule-row {
   gap: 12px;
   padding: 16px;
   border: 1px solid var(--border-default);
-  border-radius: 18px;
+  border-radius: var(--radius-card);
   cursor: pointer;
 }
 .schedule-choice.is-selected {
   border-color: var(--mint);
-  background: rgb(72 240 187 / 5%);
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
 }
 .schedule-choice input {
   position: absolute;
@@ -1043,14 +1029,14 @@ button.plan-schedule-row {
 }
 .schedule-choice:has(input:focus-visible) {
   outline: 2px solid var(--mint);
-  outline-offset: 3px;
+  outline-offset: 4px;
 }
 .schedule-choice-icon {
   display: grid;
   place-items: center;
   width: 42px;
   height: 42px;
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   background: var(--surface-2);
   color: var(--mint);
 }
@@ -1089,7 +1075,7 @@ button.plan-schedule-row {
 }
 .template-content {
   border: 1px solid var(--border-default);
-  border-radius: 16px;
+  border-radius: var(--radius-control);
   padding: 12px;
 }
 .template-list {
@@ -1104,7 +1090,7 @@ button.plan-schedule-row {
   padding: 12px;
   min-height: 80px;
   border: 1px solid var(--border-default);
-  border-radius: 13px;
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--text-primary);
   text-align: left;
@@ -1114,7 +1100,7 @@ button.plan-schedule-row {
 .template-choice[aria-pressed='true'] {
   border-color: var(--mint);
   box-shadow: inset 0 0 0 1px var(--mint);
-  background: rgb(72 240 187 / 4%);
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
 }
 .template-icon {
   display: grid;
@@ -1124,7 +1110,7 @@ button.plan-schedule-row {
   flex-shrink: 0;
   color: var(--mint);
   background: var(--surface-2);
-  border-radius: 13px;
+  border-radius: var(--radius-control);
 }
 .template-copy {
   flex: 1;
@@ -1156,7 +1142,7 @@ button.plan-schedule-row {
 }
 .starting-template {
   border: 1px solid var(--border-default);
-  border-radius: 13px;
+  border-radius: var(--radius-control);
   padding: 10px;
 }
 .starting-template-row {
@@ -1170,14 +1156,14 @@ button.plan-schedule-row {
   height: 40px;
 }
 .starting-template-row > a {
-  min-height: 40px;
+  min-height: 44px;
   padding: 5px 10px;
   font-size: var(--type-size-label);
   border-radius: 10px;
 }
 .schedule-weekdays {
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 4px;
+  gap: 2px;
   overflow: visible;
 }
 .schedule-weekdays button {
@@ -1191,7 +1177,7 @@ button.plan-schedule-row {
   align-items: center;
   gap: 16px;
   border: 1px solid var(--border-default);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   padding: 12px;
 }
 .schedule-summary > svg {
@@ -1208,7 +1194,7 @@ button.plan-schedule-row {
 }
 .structure-day {
   border: 1px solid var(--border-default);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   background: var(--surface-1);
 }
 .structure-day-row {
@@ -1235,28 +1221,28 @@ button.plan-schedule-row {
   color: var(--mint);
 }
 .day-color-0 {
-  color: #34bdff;
-  background: rgb(52 189 255 / 10%);
+  color: var(--info);
+  background: color-mix(in srgb, var(--info) 10%, transparent);
 }
 .day-color-1 {
-  color: #ff697e;
-  background: rgb(255 105 126 / 10%);
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
 }
 .day-color-2 {
-  color: #efce48;
-  background: rgb(239 206 72 / 10%);
+  color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 10%, transparent);
 }
 .day-color-3 {
-  color: #37e79e;
-  background: rgb(55 231 158 / 10%);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 .day-color-4 {
-  color: #c587f4;
-  background: rgb(197 135 244 / 10%);
+  color: var(--series-purple);
+  background: color-mix(in srgb, var(--info) 10%, transparent);
 }
 .day-color-5 {
-  color: #fcad59;
-  background: rgb(252 173 89 / 10%);
+  color: var(--series-orange);
+  background: color-mix(in srgb, var(--warning) 10%, transparent);
 }
 .day-copy {
   flex: 1;
@@ -1284,7 +1270,7 @@ button.plan-schedule-row {
 .day-menu-trigger {
   display: grid;
   place-items: center;
-  min-width: 32px;
+  min-width: 44px;
   min-height: 44px;
   border: 0;
   background: transparent;
@@ -1301,7 +1287,7 @@ button.plan-schedule-row {
   font-size: var(--type-size-label);
 }
 .is-recovery {
-  background: rgb(180 255 232 / 3%);
+  background: color-mix(in srgb, var(--accent) 3%, transparent);
   color: var(--text-secondary);
 }
 .is-recovery .day-icon {
@@ -1337,7 +1323,7 @@ button.plan-schedule-row {
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: rgb(0 0 0 / 65%);
+  background: color-mix(in srgb, var(--background) 65%, transparent);
   display: grid;
   align-items: end;
   justify-items: center;
@@ -1347,7 +1333,7 @@ button.plan-schedule-row {
   max-height: 85dvh;
   overflow-y: auto;
   border: 1px solid var(--border-default);
-  border-radius: 22px 22px 0 0;
+  border-radius: var(--radius-elevated) var(--radius-elevated) 0 0;
   padding: 22px 20px calc(22px + var(--safe-bottom));
   background: var(--surface-1);
   display: grid;
@@ -1372,7 +1358,7 @@ button.plan-schedule-row {
   align-items: center;
   padding: 6px;
   border: 1px solid var(--border-default);
-  border-radius: 14px;
+  border-radius: var(--radius-control);
 }
 .exercise-day-navigation a {
   display: grid;
@@ -1386,7 +1372,7 @@ button.plan-schedule-row {
   display: flex;
   gap: 10px;
   align-items: center;
-  font-size: 26px;
+  font-size: var(--type-size-section);
   overflow-wrap: anywhere;
 }
 .builder-exercise-main {
@@ -1406,9 +1392,6 @@ button.plan-schedule-row {
   height: 64px;
   object-fit: contain;
 }
-.builder-exercise-rest {
-  display: none;
-}
 .builder-page .builder-empty {
   display: grid;
   justify-items: center;
@@ -1416,7 +1399,7 @@ button.plan-schedule-row {
   padding: 38px 20px;
   text-align: center;
   border: 1px solid var(--border-default);
-  border-radius: 16px;
+  border-radius: var(--radius-control);
   color: var(--text-secondary);
 }
 .builder-empty > svg {
@@ -1429,7 +1412,7 @@ button.plan-schedule-row {
 }
 .day-note {
   border: 1px solid var(--border-default);
-  border-radius: 13px;
+  border-radius: var(--radius-control);
   padding: 12px;
 }
 .day-note summary {
@@ -1437,7 +1420,7 @@ button.plan-schedule-row {
   align-items: center;
   gap: 12px;
   cursor: pointer;
-  min-height: 30px;
+  min-height: 44px;
 }
 .day-note form {
   display: grid;
@@ -1467,13 +1450,13 @@ button.plan-schedule-row {
   align-items: center;
   color: var(--mint);
   border-radius: 50%;
-  border: 1px solid rgb(72 240 187 / 22%);
-  background: radial-gradient(circle at 40% 25%, #07674d, transparent 80%);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  background: radial-gradient(circle at 40% 25%, var(--surface-highlight), transparent 80%);
   margin: 14px 0;
-  box-shadow: 0 0 45px rgb(72 240 187 / 7%);
+  box-shadow: 0 0 45px color-mix(in srgb, var(--accent) 7%, transparent);
 }
 .recovery-illustration span {
-  font-size: 28px;
+  font-size: var(--type-size-metric-lg);
 }
 .recovery-content > h2 {
   font-size: 24px;
@@ -1483,7 +1466,7 @@ button.plan-schedule-row {
   max-width: 290px;
 }
 .review-intro h2 {
-  font-size: 26px;
+  font-size: var(--type-size-section);
 }
 .review-details,
 .review-overview,
@@ -1509,7 +1492,7 @@ button.plan-schedule-row {
   padding: 3px 8px;
   margin-top: 6px;
   border-radius: 8px;
-  background: rgb(72 240 187 / 10%);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
   color: var(--mint);
 }
 .review-goals {
@@ -1610,7 +1593,7 @@ button.plan-schedule-row {
     height: 30px;
   }
   .day-menu-trigger {
-    min-width: 28px;
+    min-width: 44px;
   }
   .review-stats {
     gap: 4px;
@@ -1625,10 +1608,10 @@ button.plan-schedule-row {
   color: var(--text-primary);
   background: var(--surface-1);
   border: 1px solid var(--border-default);
-  border-radius: 22px 22px 0 0;
+  border-radius: var(--radius-elevated) var(--radius-elevated) 0 0;
 }
 .plan-native-sheet::backdrop {
-  background: rgb(0 0 0 / 65%);
+  background: color-mix(in srgb, var(--background) 65%, transparent);
 }
 .plan-native-sheet .plan-sheet {
   width: 100%;
@@ -1642,4 +1625,21 @@ button.plan-schedule-row {
 }
 .plan-next-disclosure > button {
   font-size: var(--type-size-label);
+}
+.schedule-copy-active,
+.schedule-copy-scheduled {
+  color: var(--mint);
+}
+.schedule-copy-completed {
+  color: var(--completed);
+}
+.schedule-copy-rest {
+  color: var(--home-blue);
+}
+.schedule-copy-missed {
+  color: var(--home-coral);
+}
+.schedule-date:focus-visible {
+  outline: 2px solid var(--mint);
+  outline-offset: 2px;
 }

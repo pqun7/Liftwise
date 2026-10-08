@@ -24,6 +24,17 @@ import { exerciseDetailLoader, exerciseLibraryLoader } from '../features/exercis
 const PlanPage = lazy(() =>
   import('../features/plan/PlanPage').then((module) => ({ default: module.PlanPage })),
 );
+const CalendarPage = lazy(() =>
+  import('../features/plan/CalendarPage').then((module) => ({ default: module.CalendarPage })),
+);
+const CalendarDayPage = lazy(() =>
+  import('../features/plan/CalendarPage').then((module) => ({ default: module.CalendarDayPage })),
+);
+const ScheduleSettingsPage = lazy(() =>
+  import('../features/plan/ScheduleSettingsPage').then((module) => ({
+    default: module.ScheduleSettingsPage,
+  })),
+);
 const ExercisePickerPage = lazy(() =>
   import('../features/plan/ExercisePickerPage').then((module) => ({
     default: module.ExercisePickerPage,
@@ -185,6 +196,24 @@ export const routeObjects: RouteObject[] = [
         errorElement: <ProgramRouteError />,
       },
       { path: 'plan/new', element: <ProgramFormPage mode="create" /> },
+      {
+        path: 'plan/calendar',
+        element: <CalendarPage />,
+        loader: programListLoader,
+        errorElement: <ProgramRouteError />,
+      },
+      {
+        path: 'plan/calendar/day/:date',
+        element: <CalendarDayPage />,
+        loader: programListLoader,
+        errorElement: <ProgramRouteError />,
+      },
+      {
+        path: 'plan/schedule',
+        element: <ScheduleSettingsPage />,
+        loader: programListLoader,
+        errorElement: <ProgramRouteError />,
+      },
       {
         path: 'plan/:programId/build/template',
         element: <ProgramTemplatePage />,

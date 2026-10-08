@@ -82,9 +82,13 @@ export function ActiveWorkoutLogger({
   const entry = workout.exercises[index];
   const current = entry?.sets.find((set) => !set.completed);
   const hasRest = session.restEndsAt !== null;
+  const position = `${entry?.exercise.id}:${current?.id}:${hasRest}`;
+  const previousPosition = useRef(position);
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
-  }, [entry?.exercise.id, current?.id, hasRest]);
+    // Scroll for a new set/exercise, never on remount after a detail route.
+    if (previousPosition.current !== position) window.scrollTo({ top: 0, behavior: 'instant' });
+    previousPosition.current = position;
+  }, [position]);
   const next = workout.exercises
     .slice(index + 1)
     .find(
@@ -227,7 +231,7 @@ export function ActiveWorkoutLogger({
         · {formatDuration(workoutElapsedSeconds(session, now))}
       </p>
       {error ? (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       ) : null}
@@ -366,7 +370,7 @@ export function ActiveWorkoutLogger({
               <Button
                 variant="primary"
                 size="large"
-                className="workout-primary"
+                className="workout-primary ui-button ui-button-primary ui-button-large"
                 onClick={() =>
                   void run(() =>
                     setCurrentWorkoutExercise(session.id, (next ?? unfinished)!.exercise.id),
@@ -380,7 +384,7 @@ export function ActiveWorkoutLogger({
               <Button
                 variant="primary"
                 size="large"
-                className="workout-primary workout-active-action"
+                className="workout-primary ui-button ui-button-primary ui-button-large workout-active-action"
                 disabled={busy || session.status === 'paused'}
                 onClick={finish}
               >
@@ -412,14 +416,14 @@ export function ActiveWorkoutLogger({
       <dialog
         ref={leaveDialog}
         onCancel={() => setLeave(false)}
-        className="m-auto w-[calc(100%-32px)] max-w-[398px] rounded-2xl border border-border bg-surface p-5 text-primary backdrop:bg-black/70"
+        className="ui-dialog m-auto w-[calc(100%-32px)] max-w-[398px] p-5"
       >
         <h2 className="text-xl font-bold">Leave Workout?</h2>
         <p className="my-3 text-sm text-secondary">
           Your progress is saved on this device. Pending changes will save before you leave.
         </p>
         {error || saves?.error ? (
-          <p role="alert" className="my-3 text-sm text-red-300">
+          <p role="alert" className="my-3 text-sm text-danger">
             {error ?? saves?.error}
           </p>
         ) : null}

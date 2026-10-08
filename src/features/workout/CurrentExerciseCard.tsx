@@ -1,5 +1,5 @@
 import { ChartNoAxesColumnIncreasing, ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Card } from '../../components/ui/Card';
 import { ExerciseImage } from '../exercises/ExerciseImage';
 import { previousSetFor } from '../../domain/workoutPrefill';
@@ -8,15 +8,21 @@ import type { HydratedWorkoutExercise } from './workoutService';
 import { formatPreviousSets, targetRange } from './workoutFormat';
 
 export function CurrentExerciseCard({ entry }: { entry: HydratedWorkoutExercise }) {
+  const location = useLocation();
   const exercise = entry.exercise;
   const images = entry.displayExercise?.images;
   const current = entry.sets.find((set) => !set.completed);
   const history = entry.previous?.sets ?? [];
   const reference = current ? previousSetFor(current, history) : history.at(-1);
   return (
-    <Card as="article" aria-label={exercise.exerciseName} className="workout-current-card">
+    <Card as="article" aria-label={exercise.exerciseName} className="workout-current-card ui-card">
       <Link
         to={`/exercises/${encodeURIComponent(exercise.exerciseId)}`}
+        state={{
+          returnTo: location.pathname + location.search,
+          returnKey: location.key,
+          returnLabel: 'Workout',
+        }}
         className="workout-current-exercise"
       >
         <ExerciseImage

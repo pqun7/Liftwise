@@ -50,7 +50,10 @@ export function ActiveWorkoutBanner() {
         </p>
       </div>
       <div className="recovery-actions">
-        <Link className="primary-action" to={`/workout/${summary.id}`}>
+        <Link
+          className="primary-action ui-button ui-button-primary ui-button-large"
+          to={`/workout/${summary.id}`}
+        >
           Resume
         </Link>
         <Link to={`/workout/${summary.id}`}>View</Link>

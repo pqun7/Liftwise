@@ -44,6 +44,10 @@ export function dateFromKey(key: string): Date {
   return date;
 }
 
+export function isLocalDateKey(value: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) && localDateKey(dateFromKey(value)) === value;
+}
+
 export function addLocalCalendarDays(key: string, days: number): string {
   const date = dateFromKey(key);
   date.setDate(date.getDate() + days);

@@ -13,7 +13,7 @@ export function ExerciseRouteError() {
       <p className="section-kicker">Exercise library</p>
       <h1>{message}</h1>
       <p className="muted">No data was reset or deleted. Retry, or return home.</p>
-      <Link className="primary-link" to="/exercises">
+      <Link className="primary-link ui-button ui-button-primary" to="/exercises">
         Retry library
       </Link>
     </section>

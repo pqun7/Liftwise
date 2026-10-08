@@ -5,7 +5,7 @@ import { countLabel } from '../../features/home/homeData';
 
 export function ProgramCard({ graph, active }: { graph: ProgramGraph; active: boolean }) {
   return (
-    <Link className="home-list-item" to={`/plan/${graph.program.id}`}>
+    <Link className="home-list-item ui-card ui-card-interactive" to={`/plan/${graph.program.id}`}>
       <span className="home-tile-icon home-tile-neutral">
         <CalendarDays size={22} aria-hidden="true" />
       </span>

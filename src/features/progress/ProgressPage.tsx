@@ -1,5 +1,4 @@
 import { number } from './format';
-import { weekdayNames } from '../../domain/localCalendar';
 import {
   ChartNoAxesColumnIncreasing,
   ChevronRight,
@@ -11,10 +10,9 @@ import {
 } from 'lucide-react';
 import { Link, useLoaderData } from 'react-router-dom';
 import { MobilePage } from '../../components/layout/MobilePage';
-import { Card } from '../../components/ui/Card';
 import { StreakCard } from './StreakCard';
 import type { progressLoader } from './loaders';
-import { periodSummary, weekdayActivity } from './overviewAnalytics';
+import { periodSummary } from './overviewAnalytics';
 import {
   focus,
   MetricCard,
@@ -25,12 +23,8 @@ import {
 } from './ProgressUI';
 
 export function ProgressPage() {
-  const { workouts, range, streak, now } =
-    useLoaderData<Awaited<ReturnType<typeof progressLoader>>>();
+  const { workouts, range, streak } = useLoaderData<Awaited<ReturnType<typeof progressLoader>>>();
   const current = periodSummary(workouts);
-  const activity = weekdayActivity(workouts, new Date(now)),
-    step = Math.max(1, Math.ceil(Math.max(...activity) / 2)),
-    max = step * 2;
   const items = [
     {
       icon: Dumbbell,
@@ -75,66 +69,6 @@ export function ProgressPage() {
         ))}
       </div>
       <StreakCard streak={streak} />
-      <Card padding="none" className="progress-activity">
-        <Link to="/progress/history" className="progress-activity-heading">
-          <div>
-            <h2 className="text-base font-bold">Weekday Activity</h2>
-            <p className="text-xs text-secondary">
-              Completed workouts by weekday · selected period
-            </p>
-          </div>
-          <ChevronRight size={19} aria-hidden="true" />
-        </Link>
-        <svg
-          className="mt-2 h-[90px] w-full overflow-visible"
-          viewBox="0 0 330 112"
-          preserveAspectRatio="none"
-          role="img"
-          aria-label={activity.map((n, i) => `${weekdayNames[i]}: ${n} workouts`).join(', ')}
-        >
-          <defs>
-            <linearGradient id="activity-mint" x2="0" y2="1">
-              <stop stopColor="var(--mint)" />
-              <stop offset="1" stopColor="var(--mint)" stopOpacity="0.55" />
-            </linearGradient>
-          </defs>
-          {[0, 1, 2].map((i) => (
-            <g key={i}>
-              <line
-                x1="22"
-                x2="328"
-                y1={84 - i * 37.5}
-                y2={84 - i * 37.5}
-                stroke="var(--border-default)"
-              />
-              <text x="2" y={88 - i * 37.5} fill="var(--text-muted)" fontSize="12">
-                {step * i}
-              </text>
-            </g>
-          ))}
-          {activity.map((count, i) => (
-            <g key={i}>
-              <rect
-                x={31 + i * 43}
-                y={84 - (count / max) * 75}
-                width="22"
-                height={(count / max) * 75}
-                rx="4"
-                fill="url(#activity-mint)"
-              />
-              <text
-                x={42 + i * 43}
-                y="105"
-                textAnchor="middle"
-                fill="var(--text-secondary)"
-                fontSize="12"
-              >
-                {weekdayNames[i]?.slice(0, 3)}
-              </text>
-            </g>
-          ))}
-        </svg>
-      </Card>
       <section>
         <h2 className="mb-2! text-base font-bold">Explore Progress</h2>
         <div className="grid grid-cols-2 gap-2">
@@ -167,16 +101,20 @@ export function ProgressPage() {
             <Link
               key={to}
               to={to}
-              className={`${surface} ${focus} progress-explore-link flex min-h-[82px] items-center gap-2 p-2.5 no-underline transition-colors hover:border-mint/40 active:bg-surface-3`}
+              className={`${surface} ${focus} progress-explore-link relative grid min-h-[82px] content-start gap-3 p-4 no-underline transition-colors hover:border-mint/20 active:bg-surface-3`}
             >
               <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-mint/10 text-mint">
-                <Icon size={20} />
+                <Icon size={20} strokeWidth={1.7} aria-hidden="true" />
               </span>
               <div className="min-w-0">
                 <h3 className="type-body font-semibold text-primary">{title}</h3>
                 <p className="mt-1! type-caption text-secondary">{copy}</p>
               </div>
-              <ChevronRight size={14} className="ml-auto shrink-0 text-secondary" />
+              <ChevronRight
+                size={16}
+                className="absolute top-5 right-4 text-muted"
+                aria-hidden="true"
+              />
             </Link>
           ))}
         </div>

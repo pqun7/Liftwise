@@ -48,7 +48,7 @@ export function HomeSecondaryCards({ data }: { data: HomeData }) {
   return (
     <div className="home-secondary-grid">
       {cards.map(({ title, to, Icon, accent, value, detail }) => (
-        <Link key={title} className="home-surface home-small-card" to={to}>
+        <Link key={title} className="home-surface ui-card home-small-card" to={to}>
           <h2>
             {title}
             <ChevronRight size={18} aria-hidden="true" />

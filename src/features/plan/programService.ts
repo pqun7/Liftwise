@@ -1,7 +1,9 @@
 import type { Exercise, Program, ProgramDay, ProgramExercise } from '../../domain/entities';
 import { initializeRepdbCatalog } from '../../data/providers/repdb/initialize';
-import { database } from '../../lib/storage/database';
+import { database, type LiftwiseDatabase } from '../../lib/storage/database';
 import { ExerciseRepository } from '../../lib/storage/repositories/exerciseRepository';
+import { WorkoutRepository } from '../../lib/storage/repositories/workoutRepository';
+import { workoutCompletion } from '../home/homeData';
 import {
   ProgramRepository,
   type CreateProgramInput,
@@ -21,6 +23,7 @@ export interface ProgramListData {
   activeProgramId: string | null;
   graphs: ProgramGraph[];
   completed: import('../../domain/entities').WorkoutSession[];
+  sessionProgress?: { completedSets: number; totalSets: number } | null;
 }
 
 export interface HydratedProgramExercise {
@@ -34,19 +37,41 @@ export interface HydratedProgramDay {
   exercises: HydratedProgramExercise[];
 }
 
-export async function listPrograms(): Promise<ProgramListData> {
-  const [items, activeProgramId] = await Promise.all([programs.list(), programs.getActiveId()]);
-  const graphs = await Promise.all(items.map((item) => programs.get(item.id)));
-  const completed = await database.workoutSessions.where('status').equals('completed').toArray();
-  return {
-    now: new Date().toISOString(),
-    unfinished:
-      (await database.workoutSessions.where('status').anyOf('active', 'paused').first()) ?? null,
-    programs: items,
-    activeProgramId,
-    completed,
-    graphs: graphs.filter((graph): graph is ProgramGraph => graph !== undefined),
-  };
+export async function listPrograms(
+  db: LiftwiseDatabase = database,
+  now = new Date(),
+): Promise<ProgramListData> {
+  const repository = new ProgramRepository(db);
+  return db.transaction(
+    'r',
+    [
+      db.programs,
+      db.programDays,
+      db.programExercises,
+      db.appSettings,
+      db.workoutSessions,
+      db.workoutExercises,
+      db.workoutSets,
+    ],
+    async () => {
+      const [items, activeProgramId, completed, unfinished] = await Promise.all([
+        repository.list(),
+        repository.getActiveId(),
+        db.workoutSessions.where('status').equals('completed').toArray(),
+        new WorkoutRepository(db).getUnfinished(),
+      ]);
+      const graphs = await Promise.all(items.map((item) => repository.get(item.id)));
+      return {
+        now: now.toISOString(),
+        unfinished: unfinished?.session ?? null,
+        sessionProgress: unfinished ? workoutCompletion(unfinished) : null,
+        programs: items,
+        activeProgramId,
+        completed,
+        graphs: graphs.filter((graph): graph is ProgramGraph => graph !== undefined),
+      };
+    },
+  );
 }
 
 export async function getProgram(id: string): Promise<ProgramGraph | undefined> {
@@ -86,6 +111,40 @@ export const updateProgram = (id: string, input: UpdateProgramInput) => programs
 export const duplicateProgram = (id: string) => programs.duplicate(id);
 export const deleteProgram = (id: string) => programs.delete(id);
 export const setActiveProgram = (id: string) => programs.setActive(id);
+
+/** Change timing only; retain day IDs, order and prescriptions in one atomic commit. */
+export async function saveProgramSchedule(
+  id: string,
+  input: { cycleStartDate: string | null } | { weekdays: Record<string, string> },
+  db: LiftwiseDatabase = database,
+) {
+  const programs = new ProgramRepository(db);
+  return db.transaction(
+    'rw',
+    [db.programs, db.programDays, db.programExercises, db.appSettings],
+    async () => {
+      const graph = await programs.get(id);
+      if (!graph) throw new Error('Program not found.');
+      if ('cycleStartDate' in input) {
+        if (graph.program.scheduleType !== 'cycle')
+          throw new Error('This program uses a weekly schedule.');
+        await programs.update(id, { cycleStartDate: input.cycleStartDate });
+        return;
+      }
+      if (graph.program.scheduleType === 'cycle')
+        throw new Error('This program uses an ordered cycle. Choose a start date.');
+      const assigned = graph.days.map(({ day }) => input.weekdays[day.id] ?? '').filter(Boolean);
+      if (new Set(assigned).size !== assigned.length)
+        throw new Error('Assign each weekday to only one training day.');
+      // Clear old assignments within the transaction so weekday swaps are safe.
+      for (const { day } of graph.days) await programs.updateDay(day.id, { weekday: null });
+      for (const { day } of graph.days) {
+        const value = input.weekdays[day.id];
+        await programs.updateDay(day.id, { weekday: value ? Number(value) : null });
+      }
+    },
+  );
+}
 
 export const createProgramDay = (programId: string, input: UpdateProgramDayInput) =>
   programs.addDay({

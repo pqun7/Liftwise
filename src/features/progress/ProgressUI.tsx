@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
-import { ArrowLeft, type LucideIcon } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { type LucideIcon } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { ContextBackLink } from '../../components/ContextBackLink';
 import { StreakBadge } from '../../components/ui/StreakBadge';
 import { AppWordmark } from '../../components/ui/AppWordmark';
 import { useRouteStreak } from './useRouteStreak';
@@ -8,10 +9,9 @@ import { Card } from '../../components/ui/Card';
 import type { DateRange } from '../../domain/analytics';
 
 export const progressLayout = 'progress-page grid gap-3 [&_h1]:m-0 [&_h2]:m-0 [&_h3]:m-0 [&_p]:m-0';
-export const surface =
-  'rounded-[16px] border border-border bg-gradient-to-br from-surface-2 to-surface';
+export const surface = 'ui-card';
 export const focus =
-  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint';
+  'focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mint';
 export function ProgressHeader({
   title,
   description,
@@ -28,13 +28,7 @@ export function ProgressHeader({
         {overview ? (
           <AppWordmark />
         ) : (
-          <Link
-            to="/progress"
-            aria-label="Back to Progress"
-            className={`${focus} flex size-11 items-center justify-center rounded-full border border-border bg-surface-3 text-primary`}
-          >
-            <ArrowLeft size={19} />
-          </Link>
+          <ContextBackLink fallback="/progress" label="Back to Progress" />
         )}
         <StreakBadge currentStreak={streak?.currentStreak ?? 0} />
       </div>
@@ -98,17 +92,12 @@ export function MetricCard({
   trend?: string | null;
 }) {
   return (
-    <Card
-      padding="none"
-      className="rounded-[16px] bg-gradient-to-br from-surface-2 to-surface p-2.5"
-    >
-      <div className="flex items-start gap-2">
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-mint/10 text-mint">
-          <Icon size={20} />
-        </span>
-        <h2 className="pt-0.5 type-label">{label}</h2>
+    <Card className="grid content-start gap-2">
+      <div className="grid gap-3">
+        <Icon size={20} strokeWidth={1.7} className="text-mint" aria-hidden="true" />
+        <h2 className="type-stat-label text-secondary">{label}</h2>
       </div>
-      <p className="mt-1.5! type-metric-md">{value}</p>
+      <p className="type-metric-lg wrap-anywhere">{value}</p>
       {trend && <p className="mt-0.5! text-sm font-bold text-mint">{trend}</p>}
       {caption && <p className="mt-0.5! type-caption text-secondary">{caption}</p>}
     </Card>

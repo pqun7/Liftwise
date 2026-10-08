@@ -11,7 +11,7 @@ export function ProgramRouteError() {
       <p className="section-kicker">Programs</p>
       <h1>{message}</h1>
       <p className="muted">Your existing data is unchanged.</p>
-      <Link className="primary-link" to="/plan">
+      <Link className="primary-link ui-button ui-button-primary" to="/plan">
         Return to programs
       </Link>
     </section>

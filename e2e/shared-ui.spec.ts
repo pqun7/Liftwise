@@ -16,7 +16,7 @@ test('shared controls and navigation stay coherent at mobile widths', async ({
     await expect(primary).toBeVisible();
     await expect(primary).toHaveCSS(
       'background-color',
-      route === '/' ? 'rgb(10, 29, 25)' : 'rgb(72, 240, 187)',
+      route === '/' ? 'rgb(4, 34, 27)' : 'rgb(56, 232, 183)',
     );
     await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toHaveCount(
       route === '/plan/new' ? 0 : 1,

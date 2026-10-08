@@ -6,7 +6,7 @@ export function NotFoundPage() {
       <p className="section-kicker">404</p>
       <h1 id="not-found-title">That screen is not here.</h1>
       <p className="muted">Your local data is safe. Head back home to continue.</p>
-      <Link className="primary-link" to="/">
+      <Link className="primary-link ui-button ui-button-primary" to="/">
         Return home
       </Link>
     </section>

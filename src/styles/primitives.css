@@ -1,0 +1,353 @@
+/* Shared appearance; feature styles retain layout and information architecture. */
+.ui-card {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface-elevated);
+  color: var(--foreground);
+}
+.ui-card-subtle {
+  background: var(--surface);
+  border-color: var(--border-subtle);
+}
+.ui-card-highlight {
+  background: var(--surface-gradient);
+  box-shadow: var(--shadow-card);
+}
+.ui-card-active {
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.ui-card-interactive {
+  transition:
+    background-color var(--motion-duration),
+    border-color var(--motion-duration);
+}
+.ui-card-interactive:hover {
+  background: var(--surface-highlight);
+  border-color: var(--border-strong);
+}
+.ui-card-hero {
+  border-radius: var(--radius-elevated);
+}
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  padding: 8px 16px;
+  font-size: var(--type-size-button);
+  font-weight: 600;
+  line-height: 1.25;
+  text-decoration: none;
+  touch-action: manipulation;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-duration),
+    transform var(--motion-duration),
+    border-color var(--motion-duration);
+}
+.ui-button-primary {
+  background: var(--accent);
+  color: var(--accent-foreground);
+  font-weight: 700;
+}
+.ui-button-primary:hover {
+  background: var(--accent-hover);
+}
+.ui-button-primary:active {
+  background: var(--accent-active);
+}
+.ui-button-secondary {
+  background: var(--surface);
+  border-color: var(--border-strong);
+  color: var(--foreground);
+}
+.ui-button-secondary:hover {
+  background: var(--surface-highlight);
+}
+.ui-button-outline {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--accent);
+}
+.ui-button-outline:hover {
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+.ui-button-ghost {
+  background: transparent;
+  color: var(--secondary);
+}
+.ui-button-ghost:hover {
+  background: var(--surface-highlight);
+  color: var(--foreground);
+}
+.ui-button-danger {
+  background: var(--danger-solid);
+  border-color: color-mix(in srgb, var(--danger) 55%, transparent);
+  color: var(--foreground);
+}
+.ui-button-danger:hover {
+  background: color-mix(in srgb, var(--danger-solid) 85%, var(--danger));
+}
+.ui-button-large {
+  min-height: 58px;
+  border-radius: var(--radius-button);
+  font-size: 17px;
+  font-weight: 700;
+  padding: 12px 16px;
+}
+.ui-button-icon {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  flex-shrink: 0;
+}
+.ui-button:active:not(:disabled) {
+  transform: scale(0.985);
+}
+.ui-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.ui-control {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border-input);
+  background: var(--surface);
+  color: var(--foreground);
+  padding: 8px 12px;
+  font-size: max(1rem, 16px);
+  line-height: 1.5;
+  transition:
+    border-color var(--motion-duration),
+    box-shadow var(--motion-duration);
+}
+.ui-control:focus {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.ui-control::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+.ui-control[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+.ui-control:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.ui-icon-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
+}
+.ui-dialog {
+  background: var(--surface-elevated);
+  color: var(--foreground);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-elevated);
+  box-shadow: var(--shadow-overlay);
+}
+.ui-dialog::backdrop {
+  background: var(--scrim);
+}
+.lucide {
+  flex-shrink: 0;
+  stroke-width: 1.7;
+}
+.completion-emblem .lucide {
+  stroke-width: 3;
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--accent);
+}
+button,
+a,
+input,
+select,
+textarea,
+summary {
+  -webkit-tap-highlight-color: transparent;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0s !important;
+    scroll-behavior: auto !important;
+  }
+  .ui-button:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* Shared date selection in Home and Plan; state is always announced in its label. */
+.calendar-day {
+  --day-tone: var(--accent);
+  --day-color: var(--day-tone);
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 5px;
+  min-height: 80px;
+  min-width: 44px;
+  padding: 8px 3px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--secondary);
+  font-size: var(--type-size-label);
+  line-height: 1.35;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-duration),
+    border-color var(--motion-duration);
+}
+.calendar-day:hover {
+  background: var(--surface-highlight);
+}
+.calendar-day[aria-pressed='true'] {
+  border-color: var(--day-color);
+  background: color-mix(in srgb, var(--day-color) 16%, var(--surface));
+  color: var(--day-color);
+  box-shadow: inset 0 0 0 1px var(--day-color);
+}
+.calendar-day[data-status='completed'] {
+  --day-tone: var(--completed);
+}
+.calendar-day[data-status='rest'] {
+  --day-tone: var(--series-purple);
+}
+.calendar-day[data-status='missed'] {
+  --day-tone: var(--warning);
+}
+.calendar-day[data-status='future'],
+.calendar-day[data-status='empty'],
+.calendar-day[data-status='unscheduled'],
+.calendar-day[data-status='no-program'] {
+  --day-tone: var(--muted);
+}
+.calendar-day[data-future='true'] {
+  --day-color: color-mix(in srgb, var(--day-tone) 20%, var(--secondary));
+}
+.calendar-day[data-status] {
+  border-color: color-mix(in srgb, var(--day-color) 40%, var(--border));
+  background: color-mix(in srgb, var(--day-color) 8%, var(--surface));
+}
+.calendar-day[data-status][aria-pressed='true'] {
+  border-color: var(--day-color);
+  background: color-mix(in srgb, var(--day-color) 16%, var(--surface));
+}
+.calendar-day > small,
+.calendar-day .calendar-day-marker[data-status] {
+  color: var(--day-color);
+}
+.calendar-day[aria-current='date'] > strong {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-underline-offset: 4px;
+}
+.calendar-day strong {
+  font-size: var(--type-size-body);
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+.calendar-day small {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--type-size-caption);
+}
+.calendar-day-marker {
+  display: grid;
+  place-items: center;
+  height: 16px;
+  color: var(--muted);
+}
+.calendar-day-marker[data-status='scheduled'],
+.calendar-day-marker[data-status='active'] {
+  color: var(--accent);
+}
+.calendar-day-marker[data-status='active'] svg {
+  fill: currentColor;
+}
+.calendar-day-marker[data-status='completed'] {
+  color: var(--completed);
+}
+.calendar-day-marker[data-status='rest'] {
+  color: var(--series-purple);
+}
+.calendar-day-marker[data-status='missed'] {
+  color: var(--warning);
+}
+.calendar-day-marker[data-status='future'] {
+  opacity: 0.65;
+}
+
+button.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  text-align: left;
+  cursor: pointer;
+}
+a.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.calendar-day-link {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  min-width: 44px;
+  min-height: 56px;
+  gap: 5px;
+  padding: 8px 3px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  text-decoration: none;
+}
+.calendar-day-link:hover {
+  background: var(--surface-highlight);
+}
+.calendar-day-link[aria-current='date'] {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+}

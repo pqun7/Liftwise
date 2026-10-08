@@ -1,5 +1,6 @@
+import { useScreenState } from '../../app/useScreenState';
 import { number } from './format';
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense } from 'react';
 import { Link, useLoaderData, useNavigate, useLocation } from 'react-router-dom';
 import { ChartNoAxesColumnIncreasing, Dumbbell, Info, Target, Trophy } from 'lucide-react';
 import { MobilePage } from '../../components/layout/MobilePage';
@@ -29,7 +30,7 @@ export function ExerciseHistoryPage() {
     useLoaderData<Awaited<ReturnType<typeof exerciseHistoryLoader>>>();
   const navigate = useNavigate();
   const location = useLocation();
-  const [metric, setMetric] = useState<Metric>('weight');
+  const [metric, setMetric] = useScreenState<Metric>('metric', 'weight');
   const allPoints = exercisePoints(workouts, exerciseId),
     start = rangeStart(range, new Date(now));
   const filtered = workouts.filter(
@@ -80,7 +81,7 @@ export function ExerciseHistoryPage() {
         </Select>
       </label>
       <RangeControl range={range} />
-      <Card padding="none" className="rounded-[16px] p-3" aria-label={metricLabels[metric]}>
+      <Card aria-label={metricLabels[metric]}>
         <div className="flex flex-wrap items-center justify-between gap-1">
           <h2 className="text-xs font-bold">
             {metric === 'weight' ? 'Top Set Weight (kg)' : metricLabels[metric]}

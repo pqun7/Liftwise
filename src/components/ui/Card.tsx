@@ -1,10 +1,12 @@
 import type { HTMLAttributes } from 'react';
 
 const variants = {
-  default: 'border-border bg-surface',
-  active: 'border-mint/60 bg-mint/5',
-  subtle: 'border-border/60 bg-surface/60',
-  glass: 'border-border bg-[image:var(--panel-gradient)]',
+  default: '',
+  active: 'ui-card-active',
+  subtle: 'ui-card-subtle',
+  glass: 'ui-card-highlight',
+  elevated: 'ui-card-hero',
+  interactive: 'ui-card-interactive',
 };
 export function Card({
   as: Tag = 'section',
@@ -21,7 +23,7 @@ export function Card({
 }) {
   return (
     <Tag
-      className={`min-w-0 border text-primary ${radius === 'hero' ? 'rounded-3xl' : 'rounded-[18px]'} ${padding === 'none' ? 'p-0' : padding === 'spacious' ? 'p-5' : 'p-4'} ${variants[variant]} ${className}`}
+      className={`ui-card ${radius === 'hero' ? 'ui-card-hero' : ''} ${padding === 'none' ? 'p-0' : padding === 'spacious' ? 'p-5' : 'p-4'} ${variants[variant]} ${className}`}
       {...props}
     />
   );

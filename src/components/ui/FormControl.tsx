@@ -1,7 +1,6 @@
 import type { ComponentProps } from 'react';
 
-const control =
-  'w-full min-w-0 min-h-11 rounded-xl border border-border bg-surface-2 px-3 py-2 text-base leading-normal font-normal text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint disabled:opacity-40 aria-invalid:border-red-300';
+const control = 'ui-control';
 export function Input({ className = '', ...props }: ComponentProps<'input'>) {
   return <input className={`${control} ${className}`} {...props} />;
 }

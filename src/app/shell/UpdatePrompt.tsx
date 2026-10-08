@@ -70,11 +70,20 @@ export function UpdatePrompt() {
       </p>
       <div>
         {needRefresh || controllerUpdated ? (
-          <button type="button" disabled={busy} onClick={() => void safelyUpdate()}>
+          <button
+            className="ui-button ui-button-primary"
+            type="button"
+            disabled={busy}
+            onClick={() => void safelyUpdate()}
+          >
             Update
           </button>
         ) : null}
-        <button className="button-secondary" type="button" onClick={dismiss}>
+        <button
+          className="button-secondary ui-button ui-button-secondary"
+          type="button"
+          onClick={dismiss}
+        >
           Dismiss
         </button>
       </div>

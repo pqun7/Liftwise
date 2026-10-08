@@ -5,8 +5,10 @@ test('five-step PPL builder, seven-day guard and autosave survive reload at iPho
   page,
 }, testInfo) => {
   test.setTimeout(120_000);
+  page.on('dialog', (dialog) => void dialog.accept());
   await page.clock.setFixedTime(new Date(2026, 9, 5, 12));
   await page.goto('/plan');
+  await page.getByRole('radio', { name: 'Program', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Build your training week' })).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath('plan-empty.png'), fullPage: true });
   await page.getByRole('link', { name: 'Create program', exact: true }).click();
@@ -22,9 +24,14 @@ test('five-step PPL builder, seven-day guard and autosave survive reload at iPho
   );
   await page.getByRole('button', { name: /Push \/ Pull \/ Legs/ }).click();
   await page.getByRole('button', { name: 'Next: Schedule' }).click();
-  for (const day of ['Tuesday', 'Thursday', 'Saturday'])
+  for (const day of ['Tuesday', 'Thursday', 'Saturday']) {
     await page.getByRole('button', { name: day, exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('3 training days selected');
+    await expect(page.getByRole('button', { name: day, exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+  }
+  await expect(page.locator('.schedule-summary')).toContainText('3 training days selected');
   for (const width of [320, 375, 393, 430]) {
     await page.setViewportSize({ width, height: 844 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
@@ -43,8 +50,9 @@ test('five-step PPL builder, seven-day guard and autosave survive reload at iPho
   await page.screenshot({ path: testInfo.outputPath('schedule.png'), fullPage: true });
   await page.getByRole('button', { name: 'Next: Exercises' }).click();
   await finishBuilder(page);
+  await page.getByRole('radio', { name: 'Program', exact: true }).click();
   await page.getByRole('link', { name: 'View program details' }).click();
-  await page.getByRole('button', { name: 'Schedule', exact: true }).click();
+  await page.getByRole('link', { name: 'Edit program', exact: true }).click();
   for (const day of ['Tuesday', 'Thursday', 'Saturday', 'Sunday']) {
     await page.getByRole('button', { name: '+ Add Training Day' }).click();
     await page.getByLabel('Choose weekday').selectOption({ label: day });

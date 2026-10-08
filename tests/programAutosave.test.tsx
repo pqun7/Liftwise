@@ -34,7 +34,7 @@ async function fixture() {
       },
       { path: '/plan', element: <h1>Plans</h1> },
     ],
-    { initialEntries: [`/plan/${program.id}`] },
+    { initialEntries: [`/plan/${program.id}?tab=edit`] },
   );
   render(<RouterProvider router={router} />);
   await screen.findByRole('heading', { name: 'Initial' });

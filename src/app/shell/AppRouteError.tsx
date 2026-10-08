@@ -9,13 +9,17 @@ export function AppRouteError() {
         No automatic reset or deletion has been performed. If storage is unavailable, close other
         tabs and try again. Keep a backup before clearing browser data.
       </p>
-      <Link className="primary-link" to="/">
+      <Link className="primary-link ui-button ui-button-primary" to="/">
         Return home
       </Link>
-      <Link className="primary-link" to="/settings/data-safety">
+      <Link className="primary-link ui-button ui-button-primary" to="/settings/data-safety">
         Open Data Safety
       </Link>
-      <button className="primary-link" type="button" onClick={() => window.location.reload()}>
+      <button
+        className="primary-link ui-button ui-button-primary"
+        type="button"
+        onClick={() => window.location.reload()}
+      >
         Retry this screen
       </button>
     </main>

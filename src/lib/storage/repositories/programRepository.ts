@@ -21,6 +21,7 @@ export interface CreateProgramInput {
 }
 
 export interface UpdateProgramInput {
+  cycleStartDate?: Program['cycleStartDate'];
   scheduleType?: Program['scheduleType'];
   name?: string;
   description?: string | null;

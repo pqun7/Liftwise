@@ -46,7 +46,7 @@ export function UnsavedChanges({
   return (
     <dialog
       ref={dialog}
-      className="plan-leave-dialog"
+      className="plan-leave-dialog ui-dialog"
       aria-labelledby="discard-title"
       onCancel={(event) => {
         event.preventDefault();
@@ -58,6 +58,7 @@ export function UnsavedChanges({
       <div>
         <button
           type="button"
+          className="ui-button ui-button-secondary"
           autoFocus
           onClick={() => {
             dialog.current?.close();
@@ -68,6 +69,7 @@ export function UnsavedChanges({
         </button>
         <button
           type="button"
+          className="ui-button ui-button-danger"
           onClick={() => {
             dialog.current?.close();
             if (blocker.state === 'blocked') {

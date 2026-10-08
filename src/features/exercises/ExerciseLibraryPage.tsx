@@ -1,4 +1,7 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { useScreenState } from '../../app/useScreenState';
+import { Input, Select } from '../../components/ui/FormControl';
+import { Search } from 'lucide-react';
+import { useDeferredValue, useEffect, useMemo, useRef } from 'react';
 import { Link, useLoaderData, useSearchParams } from 'react-router-dom';
 
 import type { Exercise } from '../../domain/entities';
@@ -28,14 +31,14 @@ function FilterSelect({ label, value, values, onChange }: FilterSelectProps) {
   return (
     <label className="filter-field">
       <span>{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)}>
+      <Select value={value} onChange={(event) => onChange(event.target.value)}>
         <option value="">All</option>
         {values.map((option) => (
           <option key={option} value={option}>
             {formatExerciseValue(option)}
           </option>
         ))}
-      </select>
+      </Select>
     </label>
   );
 }
@@ -43,13 +46,19 @@ function FilterSelect({ label, value, values, onChange }: FilterSelectProps) {
 export function ExerciseLibraryPage() {
   const { exercises } = useLoaderData<LibraryLoaderData>();
   const [searchParams] = useSearchParams();
-  const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
+  const [query, setQuery] = useScreenState(
+    `query:${searchParams.toString()}`,
+    () => searchParams.get('q') ?? '',
+  );
   const deferredQuery = useDeferredValue(query);
-  const [filters, setFilters] = useState<ExerciseFilters>(() => {
-    const bodyPart = searchParams.get('bodyPart');
-    return bodyPart ? { bodyPart } : {};
-  });
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [filters, setFilters] = useScreenState<ExerciseFilters>(
+    `filters:${searchParams.toString()}`,
+    () => {
+      const bodyPart = searchParams.get('bodyPart');
+      return bodyPart ? { bodyPart } : {};
+    },
+  );
+  const [visibleCount, setVisibleCount] = useScreenState('count', PAGE_SIZE);
 
   const options = useMemo(
     () => ({
@@ -67,7 +76,12 @@ export function ExerciseLibraryPage() {
     [deferredQuery, exercises, filters],
   );
 
-  useEffect(() => setVisibleCount(PAGE_SIZE), [deferredQuery, filters]);
+  const resultKey = JSON.stringify([deferredQuery, filters]);
+  const previousResults = useRef(resultKey);
+  useEffect(() => {
+    if (previousResults.current !== resultKey) setVisibleCount(PAGE_SIZE);
+    previousResults.current = resultKey;
+  }, [resultKey, setVisibleCount]);
 
   const setFilter = (key: keyof ExerciseFilters, value: string) => {
     setFilters((current) => ({ ...current, [key]: value || undefined }));
@@ -84,8 +98,8 @@ export function ExerciseLibraryPage() {
       <div className="library-actions">
         <label className="search-field">
           <span className="sr-only">Search exercises</span>
-          <span aria-hidden="true">⌕</span>
-          <input
+          <Search size={20} strokeWidth={1.7} className="text-mint" aria-hidden="true" />
+          <Input
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
@@ -93,11 +107,11 @@ export function ExerciseLibraryPage() {
             autoComplete="off"
           />
         </label>
-        <Link className="compact-link" to="/exercises/new">
+        <Link className="compact-link ui-button ui-button-primary" to="/exercises/new">
           + Custom
         </Link>
       </div>
-      <details className="filter-panel">
+      <details className="filter-panel ui-card ui-card-subtle">
         <summary>Filters</summary>
         <div className="filter-grid">
           <FilterSelect
@@ -159,7 +173,7 @@ export function ExerciseLibraryPage() {
       ) : null}
       {visibleCount < results.length ? (
         <button
-          className="load-more-button"
+          className="load-more-button ui-button ui-button-primary"
           type="button"
           onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
         >

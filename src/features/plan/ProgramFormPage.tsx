@@ -102,7 +102,7 @@ export function ProgramFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' }>)
         committedNavigation={committedNavigation}
       />
       <form className="builder-basic-form" onSubmit={(event) => void submit(event)} noValidate>
-        <Card as="div" className="exercise-form basics-content grid gap-5">
+        <Card as="div" className="exercise-form ui-card basics-content grid gap-5">
           <h2>Program details</h2>
           <p className="text-secondary">
             Give your program a name and choose your goals to get started.

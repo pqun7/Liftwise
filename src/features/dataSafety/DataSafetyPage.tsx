@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { PageIntro } from '../../components/PageIntro';
+import { Input } from '../../components/ui/FormControl';
 import { backupService, type BackupPreview, type PreparedRestore } from './backupService';
 import { createCsv } from './csv';
 import { backupFilename, downloadTextFile } from './downloads';
@@ -221,7 +222,7 @@ export function DataSafetyPage() {
         </p>
       ) : null}
 
-      <section className="settings-card" aria-labelledby="health-title">
+      <section className="settings-card ui-card" aria-labelledby="health-title">
         <p className="section-kicker">Local database</p>
         <h2 id="health-title">Status</h2>
         {summary ? (
@@ -266,7 +267,7 @@ export function DataSafetyPage() {
         ))}
         {summary?.storage.persistence === 'not-granted' ? (
           <button
-            className="button-secondary"
+            className="button-secondary ui-button ui-button-secondary"
             type="button"
             disabled={busy}
             onClick={() => void requestPersistence()}
@@ -280,7 +281,7 @@ export function DataSafetyPage() {
         </p>
       </section>
 
-      <section className="settings-card" aria-labelledby="backup-title">
+      <section className="settings-card ui-card" aria-labelledby="backup-title">
         <p className="section-kicker">Backup</p>
         <h2 id="backup-title">Create a portable backup</h2>
         <p>
@@ -289,7 +290,7 @@ export function DataSafetyPage() {
         </p>
         <div className="settings-actions">
           <button
-            className="primary-action"
+            className="primary-action ui-button ui-button-primary ui-button-large"
             type="button"
             disabled={busy}
             onClick={() => void createBackup()}
@@ -297,7 +298,7 @@ export function DataSafetyPage() {
             Create Backup
           </button>
           <button
-            className="button-secondary"
+            className="button-secondary ui-button ui-button-secondary"
             type="button"
             disabled={busy}
             onClick={() => void exportCustomExercises()}
@@ -307,14 +308,14 @@ export function DataSafetyPage() {
         </div>
       </section>
 
-      <section className="settings-card" aria-labelledby="restore-title">
+      <section className="settings-card ui-card" aria-labelledby="restore-title">
         <p className="section-kicker">Restore</p>
         <h2 id="restore-title">Validate before replacing</h2>
         <p>
           Liftwise checks the file, checksum, compatibility, records, and relationships before
           current data can be changed.
         </p>
-        <label className="file-action">
+        <label className="file-action ui-button ui-button-primary">
           <span>Restore Backup</span>
           <input
             ref={fileInput}
@@ -344,7 +345,7 @@ export function DataSafetyPage() {
               No existing data will be changed until you confirm Restore.
             </p>
             <button
-              className="button-secondary"
+              className="button-secondary ui-button ui-button-secondary"
               type="button"
               disabled={busy}
               onClick={() => void createBackup()}
@@ -360,7 +361,7 @@ export function DataSafetyPage() {
               <span>Replace my current Liftwise user data with this validated backup.</span>
             </label>
             <button
-              className="danger-action"
+              className="danger-action ui-button ui-button-danger"
               type="button"
               disabled={busy || !confirmed}
               onClick={() => void restore()}
@@ -371,19 +372,19 @@ export function DataSafetyPage() {
         ) : null}
       </section>
 
-      <section className="settings-card" aria-labelledby="media-title">
+      <section className="settings-card ui-card" aria-labelledby="media-title">
         <p className="section-kicker">Downloaded media</p>
         <h2 id="media-title">Exercise images are separate</h2>
         <p>
           Clearing downloaded illustrations never removes programs, custom exercises, workouts,
           settings, or measurements.
         </p>
-        <Link className="compact-link" to="/settings#offline-data">
+        <Link className="compact-link ui-button ui-button-primary" to="/settings#offline-data">
           Manage Offline Exercise Images
         </Link>
       </section>
 
-      <section className="settings-card danger-zone" aria-labelledby="delete-title">
+      <section className="settings-card ui-card danger-zone" aria-labelledby="delete-title">
         <p className="section-kicker">Danger zone</p>
         <h2 id="delete-title">Delete My Liftwise Data</h2>
         <p>
@@ -392,14 +393,14 @@ export function DataSafetyPage() {
         </p>
         <label className="delete-confirmation">
           <span>Type DELETE to confirm</span>
-          <input
+          <Input
             value={deletePhrase}
             onChange={(event) => setDeletePhrase(event.target.value)}
             autoComplete="off"
           />
         </label>
         <button
-          className="danger-action"
+          className="danger-action ui-button ui-button-danger"
           type="button"
           disabled={busy || deletePhrase !== 'DELETE'}
           onClick={() => void deleteData()}

@@ -2,6 +2,8 @@ import { MobilePage } from '../../components/layout/MobilePage';
 import { dateFromKey } from '../../domain/localCalendar';
 
 import { useState } from 'react';
+import { useScreenState } from '../../app/useScreenState';
+import { sessionCalendarDate } from '../../domain/trainingCalendar';
 
 import { Link, useLoaderData, useNavigate } from 'react-router-dom';
 
@@ -36,7 +38,6 @@ import { startPlannedWorkout } from '../workout/workoutService';
 import {
   homeState,
   countLabel,
-  localDateKey,
   programDayMetadata,
   workoutCompletion,
   type HomeData,
@@ -45,7 +46,7 @@ import {
 export function HomePage() {
   const data = useLoaderData<HomeData>();
 
-  const [selection, setSelection] = useState<string | null>(null);
+  const [selection, setSelection] = useScreenState<string | null>('day', null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,13 +57,14 @@ export function HomePage() {
   const state = homeState(data, selected);
 
   const selectedWorkouts = data.weekHistory.filter(
-    ({ session }) => localDateKey(new Date(session.endedAt ?? session.startedAt)) === selected,
+    ({ session }) => sessionCalendarDate(session) === selected,
   );
 
+  const completedToday = data.calendar.getCompletedSession(data.today);
   const upcoming = data.calendar.upcoming.slice(0, 2);
 
   const start = async () => {
-    if (busy || !data.suggestion) return;
+    if (busy || selected !== data.today || completedToday || !data.suggestion) return;
 
     setBusy(true);
     setError(null);
@@ -105,6 +107,7 @@ export function HomePage() {
           }
           scheduled={state === 'scheduled'}
           isToday={selected === data.today}
+          selectedDate={selected}
           busy={busy}
           start={() => void start()}
         />
@@ -117,8 +120,27 @@ export function HomePage() {
             <WorkoutListItem
               title={(data.calendar.scheduledToday ?? data.suggestion)!.day.name}
               metadata={programDayMetadata((data.calendar.scheduledToday ?? data.suggestion)!)}
-              status={data.calendar.dated ? 'Scheduled today' : 'Next in program'}
-              to={`/plan/${(data.calendar.scheduledToday ?? data.suggestion)!.day.programId}/days/${(data.calendar.scheduledToday ?? data.suggestion)!.day.id}`}
+              completed={!!completedToday}
+              status={
+                completedToday
+                  ? 'Completed today'
+                  : data.calendar.dated
+                    ? 'Scheduled today'
+                    : 'Next in program'
+              }
+              to={
+                completedToday
+                  ? `/workout/${completedToday.id}?details=1`
+                  : `/plan/${(data.calendar.scheduledToday ?? data.suggestion)!.day.programId}/days/${(data.calendar.scheduledToday ?? data.suggestion)!.day.id}`
+              }
+            />
+          ) : completedToday ? (
+            <WorkoutListItem
+              title={completedToday.name ?? 'Workout'}
+              metadata="Workout complete · Saved locally"
+              status="Completed today"
+              completed
+              to={`/workout/${completedToday.id}?details=1`}
             />
           ) : (
             <p className="home-muted">
@@ -136,7 +158,7 @@ export function HomePage() {
 
           {upcoming.map(({ entry, date }) => (
             <WorkoutListItem
-              key={entry.day.id}
+              key={`${entry.day.id}-${date ?? 'undated'}`}
               title={entry.day.name}
               metadata={programDayMetadata(entry)}
               to={`/plan/${entry.day.programId}/days/${entry.day.id}`}
@@ -165,7 +187,7 @@ export function HomePage() {
                 />
               ))
           ) : (
-            <div className="home-surface home-empty">
+            <div className="home-surface ui-card home-empty">
               <p>A clear plan starts here.</p>
 
               <Link to="/plan/new">
@@ -197,7 +219,7 @@ export function HomePage() {
               title={workout.session.name ?? 'Workout'}
               metadata={countLabel(workoutCompletion(workout).completedSets, 'completed set')}
               completed
-              to={`/workout/${workout.session.id}`}
+              to={`/workout/${workout.session.id}?details=1`}
             />
           ))}
         </section>

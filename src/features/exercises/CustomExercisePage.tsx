@@ -1,3 +1,4 @@
+import { Input, Textarea } from '../../components/ui/FormControl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
@@ -56,10 +57,10 @@ export function CustomExercisePage() {
         title="Add your own movement"
         description="Custom exercises stay on this device and work alongside the built-in catalog."
       />
-      <form className="exercise-form" onSubmit={(event) => void submit(event)} noValidate>
+      <form className="exercise-form ui-card" onSubmit={(event) => void submit(event)} noValidate>
         <label>
           <span>Name</span>
-          <input
+          <Input
             {...register('name', { required: 'Enter an exercise name.' })}
             aria-invalid={Boolean(errors.name)}
           />
@@ -67,7 +68,7 @@ export function CustomExercisePage() {
         </label>
         <label>
           <span>Primary muscle</span>
-          <input
+          <Input
             {...register('primaryMuscle', { required: 'Enter a primary muscle.' })}
             placeholder="e.g. Chest"
             aria-invalid={Boolean(errors.primaryMuscle)}
@@ -76,22 +77,26 @@ export function CustomExercisePage() {
         </label>
         <label>
           <span>Secondary muscles</span>
-          <input {...register('secondaryMuscles')} placeholder="Comma separated" />
+          <Input {...register('secondaryMuscles')} placeholder="Comma separated" />
         </label>
         <label>
           <span>Equipment</span>
-          <input {...register('equipment')} placeholder="Leave blank for bodyweight" />
+          <Input {...register('equipment')} placeholder="Leave blank for bodyweight" />
         </label>
         <label>
           <span>Notes</span>
-          <textarea {...register('notes')} rows={4} />
+          <Textarea {...register('notes')} rows={4} />
         </label>
         {saveError ? (
           <p className="form-error" role="alert">
             {saveError}
           </p>
         ) : null}
-        <button className="primary-action" type="submit" disabled={isSubmitting}>
+        <button
+          className="primary-action ui-button ui-button-primary ui-button-large"
+          type="submit"
+          disabled={isSubmitting}
+        >
           {isSubmitting ? 'Saving…' : 'Save custom exercise'}
         </button>
       </form>

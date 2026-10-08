@@ -15,7 +15,7 @@ export async function expectProgressCounts(page: Page, workouts: number, sets: n
 export async function finishLogger(page: Page) {
   await expect(page.getByRole('button', { name: 'Saving set…', exact: true })).toHaveCount(0);
   if (await page.getByRole('heading', { name: 'Workout complete', exact: true }).isVisible()) {
-    await page.getByRole('link', { name: 'Done', exact: true }).click();
+    await page.getByRole('button', { name: 'Done', exact: true }).click();
     return;
   }
   const menu = page
@@ -28,7 +28,7 @@ export async function finishLogger(page: Page) {
   const earlyFinish = page.getByRole('button', { name: 'Finish anyway', exact: true });
   if (await earlyFinish.isVisible()) await earlyFinish.click();
   await expect(page.getByText('Workout complete', { exact: true })).toBeVisible();
-  await page.getByRole('link', { name: 'Done', exact: true }).click();
+  await page.getByRole('button', { name: 'Done', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Start training' })).toBeVisible();
 }
 
@@ -85,6 +85,7 @@ export async function openWorkoutMenu(page: Page) {
     await page.getByLabel('Workout menu', { exact: true }).click();
 }
 export async function openWorkoutOverview(page: Page) {
+  if (await page.getByRole('region', { name: 'Workout Overview', exact: true }).isVisible()) return;
   await openWorkoutMenu(page);
   await page.getByRole('button', { name: 'Workout Overview', exact: true }).click();
 }

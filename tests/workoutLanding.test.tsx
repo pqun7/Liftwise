@@ -44,18 +44,21 @@ async function fixture() {
   });
   return { db, programs, workouts, custom, program, day };
 }
-async function renderLanding(data: WorkoutLandingData) {
+async function renderLanding(data: WorkoutLandingData, search = '') {
   render(
     <RouterProvider
-      router={createMemoryRouter([
-        {
-          path: '/',
-          element: <WorkoutPage />,
-          loader: () => data,
-          hydrateFallbackElement: <p>Loading</p>,
-        },
-        { path: '/workout/:id', element: <h1>Logger</h1> },
-      ])}
+      router={createMemoryRouter(
+        [
+          {
+            path: '/',
+            element: <WorkoutPage />,
+            loader: () => data,
+            hydrateFallbackElement: <p>Loading</p>,
+          },
+          { path: '/workout/:id', element: <h1>Logger</h1> },
+        ],
+        { initialEntries: ['/' + search] },
+      )}
     />,
   );
   await screen.findByRole('heading', { name: 'Start training' });
@@ -81,7 +84,7 @@ it('derives no-program, scheduled and rest-day states without creating a session
     `/exercises/${encodeURIComponent(custom.id)}`,
   );
   expect(document.querySelector('input, textarea, select')).toBeNull();
-  fireEvent.click(screen.getByRole('button', { name: 'Push' }));
+  expect(screen.getByRole('button', { name: 'Start Workout' })).toBeEnabled();
   expect(await db.workoutSessions.count()).toBe(0);
 });
 
@@ -167,9 +170,11 @@ it('renders a calm rest day and keeps optional training an explicit choice', asy
   await renderLanding(await getWorkoutLanding(db, new Date(2026, 9, 8, 12)));
   expect(screen.getByRole('heading', { name: 'Rest day' })).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Start Workout' })).toBeNull();
-  expect(screen.getByText('Next: Push · Wednesday')).toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: 'Push' }));
-  expect(screen.getByRole('button', { name: 'Start Workout' })).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'View Program' })).toHaveAttribute(
+    'href',
+    expect.stringMatching(/^\/plan\//),
+  );
+  expect(screen.queryByRole('button', { name: 'Start Workout' })).toBeNull();
   expect(await db.workoutSessions.count()).toBe(0);
 });
 
@@ -217,4 +222,20 @@ it('blocks double taps before rendering pending state and reports a recoverable 
   reject(new Error('Storage unavailable'));
   expect(await screen.findByRole('alert')).toHaveTextContent('Storage unavailable');
   await waitFor(() => expect(start).toBeEnabled());
+});
+
+it('keeps a completed workout selected by query in review mode without offering a duplicate start', async () => {
+  const { db, workouts, day } = await fixture();
+  const session = await workouts.startPlannedWorkout(
+    day.id,
+    new Date(2026, 9, 7, 10).toISOString(),
+  );
+  await workouts.finish(session.session.id, new Date(2026, 9, 7, 11));
+  await renderLanding(await getWorkoutLanding(db, now), '?day=' + day.id);
+  expect(screen.getByRole('link', { name: 'View Completed Workout' })).toHaveAttribute(
+    'href',
+    '/workout/' + session.session.id,
+  );
+  expect(screen.queryByRole('button', { name: 'Start Workout' })).toBeNull();
+  expect(await db.workoutSessions.count()).toBe(1);
 });

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Link, useLoaderData, useNavigate, useRevalidator } from 'react-router-dom';
+import { Link, useLoaderData, useRevalidator, useSearchParams } from 'react-router-dom';
 import {
   ArrowRight,
   CalendarDays,
@@ -18,11 +18,11 @@ import { buttonClasses } from '../../components/ui/controlStyles';
 import { weekdays } from './builderService';
 import { setActiveProgram, type ProgramListData } from './programService';
 import type { ProgramGraph } from '../../lib/storage/repositories/programRepository';
-import { trainingCalendar } from '../../domain/trainingCalendar';
-import { startPlannedWorkout } from '../workout/workoutService';
+import { ScheduleView } from './ScheduleView';
+import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import planArtwork from '../../assets/images/plan/plan-empty-transparent.png';
 
-function SchedulePreview({ graph }: { graph: ProgramGraph }) {
+function ProgramStructurePreview({ graph }: { graph: ProgramGraph }) {
   const cycle = graph.program.scheduleType === 'cycle';
   const entries = cycle
     ? graph.days
@@ -49,23 +49,14 @@ function SchedulePreview({ graph }: { graph: ProgramGraph }) {
 }
 
 export function PlanPage() {
-  const {
-    programs,
-    graphs,
-    activeProgramId,
-    completed = [],
-    now,
-    unfinished,
-  } = useLoaderData<ProgramListData>();
+  const { programs, graphs, activeProgramId } = useLoaderData<ProgramListData>();
   const active = graphs.find(
     ({ program }) => program.id === activeProgramId && !program.draft && !program.archived,
   );
   const others = graphs.filter(({ program }) => program.id !== active?.program.id);
   const revalidator = useRevalidator();
-  const navigate = useNavigate();
-  const calendar = trainingCalendar(active, completed, new Date(now));
-  const next = calendar.next?.entry;
-  const startable = calendar.startableToday ?? next;
+  const [params, setParams] = useSearchParams();
+  const tab = params.get('tab') === 'program' ? 'Program' : 'Schedule';
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const pending = useRef(false);
@@ -88,190 +79,185 @@ export function PlanPage() {
     `${graph.days.filter(({ day }) => day.kind !== 'recovery').length} training days · ${graph.days.reduce((sum, entry) => sum + entry.exercises.length, 0)} exercises`;
   return (
     <section className="grid gap-6 font-ui type-body" aria-labelledby="plan-title">
-      <header className="px-1 pt-2 pb-3">
-        <p className="type-label uppercase text-mint">Programs</p>
-        <h1 id="plan-title" className="mt-1 type-display">
-          My Training Plan
-        </h1>
-      </header>
-      {active ? (
-        <Card
-          variant="glass"
-          padding="spacious"
-          radius="hero"
-          className="plan-active-card grid gap-3"
-        >
-          <div className="flex justify-between items-center">
-            <span className="inline-flex items-center gap-2 justify-self-start rounded-full bg-mint/20 px-4 py-2 type-button">
-              <span className="size-2 rounded-full bg-mint" aria-hidden="true" /> Active
-            </span>
-            <Link
-              className="grid size-11 shrink-0 place-items-center rounded-full text-primary no-underline hover:bg-mint/10"
-              aria-label="Program settings"
-              to={`/plan/${active.program.id}?tab=settings`}
-            >
-              •••
-            </Link>
-          </div>
-          <h2 className="type-page-title wrap-anywhere">{active.program.name}</h2>
-          <p className="text-secondary">{summary(active)}</p>
-          <div className="mt-2 flex items-center gap-2.5 border-t border-border pt-4 text-secondary">
-            <CalendarDays size={19} />
-            {active.program.scheduleType === 'cycle' ? 'Flexible Cycle' : 'Weekly Structure'}
-          </div>
-          <SchedulePreview graph={active} />
-          <div className="grid gap-2">
-            <Link
-              className={buttonClasses('primary', '', 'large')}
-              to={`/plan/${active.program.id}/edit`}
-            >
-              <Pencil size={19} />
-              Edit program
-            </Link>
-            <Link
-              className={buttonClasses('secondary', '', 'large')}
-              to={`/plan/${active.program.id}?tab=preview`}
-            >
-              <Eye size={19} />
-              View program details
-            </Link>
-          </div>
-          {next ? (
-            <section className="grid gap-2 border-t border-border pt-3">
-              <p className="text-secondary">Next scheduled workout</p>
-              <h3>{next.day.name}</h3>
-              <Button
-                disabled={busy}
-                onClick={() => {
-                  if (!startable || pending.current) return;
-                  pending.current = true;
-                  setBusy(true);
-                  void startPlannedWorkout(startable.day.id)
-                    .then((id) => navigate(`/workout/${id}`))
-                    .catch((failure: unknown) =>
-                      setError(
-                        failure instanceof Error ? failure.message : 'Could not start workout.',
-                      ),
-                    )
-                    .finally(() => {
-                      pending.current = false;
-                      setBusy(false);
-                    });
-                }}
-              >
-                {calendar.startableToday ? 'Start today’s workout' : 'Start next workout early'}
-              </Button>
-            </section>
-          ) : null}
-          {unfinished ? (
-            <Button onClick={() => void navigate(`/workout/${unfinished.id}`)}>
-              Resume {unfinished.name ?? 'Workout'}
-            </Button>
-          ) : null}
-        </Card>
-      ) : (
-        <Card variant="glass" padding="spacious" radius="hero" className="grid gap-4 text-center">
-          <img
-            className="plan-empty-artwork mx-auto block h-auto w-[248px] max-w-full object-contain"
-            src={planArtwork}
-            width={1448}
-            height={1086}
-            alt=""
-            decoding="async"
-          />
-          <h2 className="type-section-title text-[21px] leading-tight">
-            {programs.length ? 'Choose your training program' : 'Build your training week'}
-          </h2>
-          <p className="mx-auto max-w-[265px] text-[15px] leading-relaxed text-secondary">
-            {programs.length
-              ? 'Set a saved program active, or create a new training plan.'
-              : 'Create your first plan with guided templates. Fully editable and saved on this device.'}
-          </p>
-          <Link className={buttonClasses('primary')} to="/plan/new">
-            Create program
-            <ArrowRight size={19} />
+      <header className="flex items-center justify-between px-1 pt-2 pb-3">
+        <div>
+          <p className="type-label uppercase text-mint">Training</p>
+          <h1 id="plan-title" className="mt-1 type-display">
+            Plan
+          </h1>
+        </div>
+        {tab === 'Schedule' ? (
+          <Link to="/plan/calendar" aria-label="Open calendar" className={buttonClasses('ghost')}>
+            <CalendarDays size={22} />
           </Link>
-          <div className="mt-1 grid grid-cols-3 gap-2 border-t border-border pt-5 text-secondary [&>span]:grid [&>span]:content-start [&>span]:justify-items-center [&>span]:gap-2 [&>span]:type-label [&_svg]:size-6">
-            <span>
-              <FileText />
-              Templates
-            </span>
-            <span>
-              <SlidersHorizontal />
-              Fully editable
-            </span>
-            <span>
-              <Smartphone />
-              Stored on
-              <br />
-              this device
-            </span>
-          </div>
-        </Card>
-      )}
-      {error ? <p role="alert">{error}</p> : null}
-      {others.length ? (
-        <section className="grid gap-4">
-          <h2 className="px-1 type-section-title">{active ? 'Other Programs' : 'Your Programs'}</h2>
-          {others.map((graph, index) => (
-            <Card key={graph.program.id} variant="glass" className="grid gap-4">
-              <div className="flex items-center gap-3">
-                <span
-                  className={`grid size-12 shrink-0 place-items-center rounded-2xl ${index % 2 === 0 ? 'bg-mint/15 text-mint' : 'bg-violet-400/15 text-violet-400'}`}
-                >
-                  <Dumbbell size={26} />
+        ) : null}
+      </header>
+      <SegmentedControl
+        legend="Plan view"
+        options={['Schedule', 'Program'] as const}
+        value={tab}
+        onChange={(value) => void setParams(value === 'Program' ? { tab: 'program' } : {})}
+      />
+      {tab === 'Schedule' ? (
+        <ScheduleView showWeek={false} />
+      ) : (
+        <>
+          <h2 className="px-1 type-section-title">Current Program</h2>
+          {active ? (
+            <Card
+              variant="glass"
+              padding="spacious"
+              radius="hero"
+              className="plan-active-card grid gap-3"
+            >
+              <div className="flex justify-between items-center">
+                <span className="inline-flex items-center gap-2 justify-self-start rounded-full bg-mint/20 px-4 py-2 type-button">
+                  <span className="size-2 rounded-full bg-mint" aria-hidden="true" /> Active
                 </span>
-                <div className="min-w-0 flex-1">
-                  <h3 className="type-card-title wrap-anywhere">
-                    {graph.program.name}
-                    {graph.program.draft ? ' · Draft' : ''}
-                  </h3>
-                  <p className="mt-1 type-body-small text-secondary">{summary(graph)}</p>
-                </div>
                 <Link
                   className="grid size-11 shrink-0 place-items-center rounded-full text-primary no-underline hover:bg-mint/10"
-                  aria-label={`Options for ${graph.program.name}`}
-                  to={`/plan/${graph.program.id}?tab=settings`}
+                  aria-label="Program settings"
+                  to={`/plan/${active.program.id}?tab=settings`}
                 >
                   •••
                 </Link>
               </div>
-              <SchedulePreview graph={graph} />
-              {graph.program.draft ? (
+              <h2 className="type-page-title wrap-anywhere">{active.program.name}</h2>
+              <p className="text-secondary">{summary(active)}</p>
+              <div className="mt-2 flex items-center gap-2.5 border-t border-border pt-4 text-secondary">
+                <CalendarDays size={19} />
+                {active.program.scheduleType === 'cycle' ? 'Flexible Cycle' : 'Weekly Structure'}
+              </div>
+              <ProgramStructurePreview graph={active} />
+              <div className="grid gap-2">
                 <Link
-                  className={buttonClasses('secondary', 'w-full', 'large')}
-                  to={`/plan/${graph.program.id}/edit`}
+                  className={buttonClasses('secondary', '', 'large')}
+                  to={`/plan/${active.program.id}/edit`}
                 >
-                  Continue building
-                  <ArrowRight size={17} />
+                  <Pencil size={19} />
+                  Edit program
                 </Link>
-              ) : graph.program.archived ? (
                 <Link
-                  className={buttonClasses('secondary', 'w-full')}
-                  to={`/plan/${graph.program.id}?tab=settings`}
+                  className={buttonClasses('primary', '', 'large')}
+                  to={`/plan/${active.program.id}`}
                 >
-                  Archived · Program settings
+                  <Eye size={19} />
+                  View program details
                 </Link>
-              ) : (
-                <Button
-                  disabled={busy}
-                  className="w-full"
-                  onClick={() => void activate(graph.program.id)}
-                >
-                  <Play size={17} fill="currentColor" />
-                  Set as active
-                </Button>
-              )}
+              </div>
             </Card>
-          ))}
-        </section>
-      ) : null}
-      {active ? (
-        <Link className={buttonClasses('secondary', 'w-full')} to="/plan/new">
-          <Plus size={23} />
-          Create another program
-        </Link>
-      ) : null}
+          ) : (
+            <Card
+              variant="glass"
+              padding="spacious"
+              radius="hero"
+              className="grid gap-4 text-center"
+            >
+              <img
+                className="plan-empty-artwork mx-auto block h-auto w-[248px] max-w-full object-contain"
+                src={planArtwork}
+                width={1448}
+                height={1086}
+                alt=""
+                decoding="async"
+              />
+              <h2 className="type-section-title text-[21px] leading-tight">
+                {programs.length ? 'Choose your training program' : 'Build your training week'}
+              </h2>
+              <p className="mx-auto max-w-[265px] text-[15px] leading-relaxed text-secondary">
+                {programs.length
+                  ? 'Set a saved program active, or create a new training plan.'
+                  : 'Create your first plan with guided templates. Fully editable and saved on this device.'}
+              </p>
+              <Link className={buttonClasses('primary')} to="/plan/new">
+                Create program
+                <ArrowRight size={19} />
+              </Link>
+              <div className="mt-1 grid grid-cols-3 gap-2 border-t border-border pt-5 text-secondary [&>span]:grid [&>span]:content-start [&>span]:justify-items-center [&>span]:gap-2 [&>span]:type-label [&_svg]:size-6">
+                <span>
+                  <FileText />
+                  Templates
+                </span>
+                <span>
+                  <SlidersHorizontal />
+                  Fully editable
+                </span>
+                <span>
+                  <Smartphone />
+                  Stored on
+                  <br />
+                  this device
+                </span>
+              </div>
+            </Card>
+          )}
+          {error ? <p role="alert">{error}</p> : null}
+          {others.length ? (
+            <section className="grid gap-4">
+              <h2 className="px-1 type-section-title">
+                {active ? 'Other Programs' : 'Your Programs'}
+              </h2>
+              {others.map((graph, index) => (
+                <Card key={graph.program.id} variant="glass" className="grid gap-4">
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`grid size-12 shrink-0 place-items-center rounded-2xl ${index % 2 === 0 ? 'bg-mint/15 text-mint' : 'bg-violet-400/15 text-violet-400'}`}
+                    >
+                      <Dumbbell size={26} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="type-card-title wrap-anywhere">
+                        {graph.program.name}
+                        {graph.program.draft ? ' · Draft' : ''}
+                      </h3>
+                      <p className="mt-1 type-body-small text-secondary">{summary(graph)}</p>
+                    </div>
+                    <Link
+                      className="grid size-11 shrink-0 place-items-center rounded-full text-primary no-underline hover:bg-mint/10"
+                      aria-label={`Options for ${graph.program.name}`}
+                      to={`/plan/${graph.program.id}?tab=settings`}
+                    >
+                      •••
+                    </Link>
+                  </div>
+                  <ProgramStructurePreview graph={graph} />
+                  {graph.program.draft ? (
+                    <Link
+                      className={buttonClasses('secondary', 'w-full', 'large')}
+                      to={`/plan/${graph.program.id}/edit`}
+                    >
+                      Continue building
+                      <ArrowRight size={17} />
+                    </Link>
+                  ) : graph.program.archived ? (
+                    <Link
+                      className={buttonClasses('secondary', 'w-full')}
+                      to={`/plan/${graph.program.id}?tab=settings`}
+                    >
+                      Archived · Program settings
+                    </Link>
+                  ) : (
+                    <Button
+                      disabled={busy}
+                      className="w-full"
+                      onClick={() => void activate(graph.program.id)}
+                    >
+                      <Play size={17} fill="currentColor" />
+                      Set as active
+                    </Button>
+                  )}
+                </Card>
+              ))}
+            </section>
+          ) : null}
+          {active ? (
+            <Link className={buttonClasses('secondary', 'w-full')} to="/plan/new">
+              <Plus size={23} />
+              Create another program
+            </Link>
+          ) : null}
+        </>
+      )}
     </section>
   );
 }

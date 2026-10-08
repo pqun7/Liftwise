@@ -64,7 +64,7 @@ test('completed history, PRs, charts, measurements and CSV stay usable offline',
   await page.getByLabel('Sort workouts').selectOption('oldest');
   await page.locator('main ul').getByRole('link').first().click();
   await expect(page.getByText('Workout complete', { exact: true })).toBeVisible();
-  await page.getByRole('link', { name: 'Done', exact: true }).click();
+  await page.getByRole('button', { name: 'Done', exact: true }).click();
   await page.getByRole('navigation').getByRole('link', { name: 'Progress', exact: true }).click();
   await page.getByRole('link', { name: /Body Measurements Track/ }).click();
   await page.getByLabel('Weight (kg)', { exact: true }).fill('80');

@@ -1,0 +1,51 @@
+/* Workout Complete is the canonical palette. Existing aliases resolve here. */
+:root {
+  --background: #001a14;
+  --surface: #04221b;
+  --surface-elevated: #06271f;
+  --surface-highlight: #082d23;
+  --surface-highlight-end: #06241c;
+  --accent: #38e8b7;
+  --accent-hover: #65f0c9;
+  --accent-active: #2fd5a7;
+  --accent-foreground: #00251b;
+  --foreground: #f5faf7;
+  --secondary: #adbfba;
+  --muted: #91afa4;
+  --border: rgb(255 255 255 / 7%);
+  --border-strong: rgb(255 255 255 / 10%);
+  --border-input: rgb(255 255 255 / 8%);
+  --border-subtle: rgb(255 255 255 / 6%);
+  --danger: #ffaaa5;
+  --danger-solid: #a83838;
+  --warning: #ffe3a4;
+  --info: #a0b5ff;
+  --series-purple: #bda9f5;
+  --series-orange: #fcad59;
+  --completed: #86cda2;
+  --scrim: rgb(0 0 0 / 65%);
+  --scrim-color: #000;
+  --light: #fff;
+  --accent-rgb: 56 232 183;
+  --shadow-card: inset 0 1px 0 rgb(255 255 255 / 3%);
+  --shadow-overlay: 0 8px 32px rgb(0 0 0 / 40%);
+  --shadow-cta: 0 6px 24px -12px color-mix(in srgb, var(--accent) 45%, transparent);
+  --shadow-success: 0 0 30px -8px color-mix(in srgb, var(--accent) 38%, transparent);
+  --surface-gradient: linear-gradient(
+    110deg,
+    var(--surface-highlight),
+    var(--surface-highlight-end)
+  );
+  --radius-control: 16px;
+  --radius-card: 18px;
+  --radius-elevated: 22px;
+  --radius-button: 19px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --motion-duration: 180ms;
+}

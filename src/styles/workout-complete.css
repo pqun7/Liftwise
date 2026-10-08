@@ -1,0 +1,113 @@
+.workout-complete::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -18px -16px 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 180px 170px at 50% 72px,
+    color-mix(in srgb, var(--accent) 9%, transparent),
+    transparent 85%
+  );
+}
+
+.completion-hero {
+  padding-top: 18px;
+}
+
+.completion-emblem {
+  position: relative;
+  box-shadow:
+    0 0 30px -8px color-mix(in srgb, var(--accent) 38%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--light) 35%, transparent);
+  animation: completion-success 400ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+.completion-emblem::before,
+.completion-emblem::after {
+  content: '';
+  position: absolute;
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
+  border-radius: 50%;
+  inset: -9px;
+  pointer-events: none;
+}
+
+.completion-emblem::after {
+  inset: -19px;
+  border-color: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+.completion-identity {
+  background: var(--surface-gradient);
+  box-shadow: var(--shadow-card);
+}
+.completion-enter {
+  animation: completion-rise 350ms ease-out both;
+}
+.completion-content {
+  animation-delay: 60ms;
+}
+.completion-actions {
+  animation-delay: 100ms;
+}
+
+@keyframes completion-success {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes completion-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (hover: hover) {
+  .completion-chevron {
+    transition: transform 180ms ease;
+  }
+  .group:hover .completion-chevron {
+    transform: translateX(3px);
+  }
+}
+
+@media (max-height: 740px) {
+  .completion-hero {
+    padding-top: 10px;
+  }
+  .completion-emblem {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 22px;
+  }
+  .completion-content {
+    margin-top: 20px;
+  }
+  .completion-actions {
+    margin-top: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workout-complete *,
+  .workout-complete *::before,
+  .workout-complete *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .workout-complete button:active,
+  .group:hover .completion-chevron {
+    transform: none;
+  }
+}

@@ -90,10 +90,9 @@
 
 .workout-current-card {
   padding: 12px;
-  border-radius: 18px;
+
   display: grid;
   gap: 10px;
-  box-shadow: none;
 }
 
 .workout-current-exercise {
@@ -107,7 +106,7 @@
   width: 64px !important;
   height: 56px !important;
   flex-shrink: 0;
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   background: var(--surface-3);
   object-fit: contain;
 }
@@ -131,7 +130,7 @@
   padding: 9px 10px;
   min-height: 44px;
   border: 1px solid var(--border-default);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   background: var(--surface-2);
   font-size: var(--type-size-body);
   line-height: var(--type-leading-body);
@@ -172,7 +171,7 @@
 .workout-set-grid > span {
   height: 46px;
   min-height: 46px;
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   padding: 0 3px;
   font-size: var(--type-size-section);
   line-height: var(--type-leading-heading);
@@ -186,7 +185,7 @@
 .workout-set-grid.is-current input,
 .workout-set-grid.is-current > span {
   border: 1.5px solid var(--mint);
-  background: rgb(72 240 187 / 4%);
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
 }
 
 .workout-set-grid.is-completed input {
@@ -196,7 +195,7 @@
 .workout-set-grid > button {
   width: 44px;
   height: 46px;
-  border-radius: 12px;
+  border-radius: var(--radius-control);
 }
 
 .workout-set-grid > button > span {
@@ -209,20 +208,16 @@
   align-items: center;
   gap: 9px;
   min-height: 54px;
-  border: 0;
-  border-radius: 16px;
-  background: var(--mint);
-  color: var(--app-bg);
+
   font-size: var(--type-size-button);
   font-weight: var(--fw-semibold);
   text-decoration: none;
-  box-shadow: none;
 }
 
 .workout-primary svg {
-  width: 26px;
-  height: 26px;
-  stroke-width: 2.5;
+  width: 22px;
+  height: 22px;
+  stroke-width: 1.7;
 }
 
 .workout-primary:disabled {
@@ -248,7 +243,7 @@
 }
 
 .workout-landing-hero {
-  border-radius: 20px;
+  border-radius: var(--radius-elevated);
   box-shadow: none;
 }
 
@@ -279,13 +274,13 @@
 .workout-landing-hero .workout-primary,
 .workout-landing-hero a[class*='bg-mint'] {
   min-height: 54px;
-  border-radius: 16px;
+  border-radius: var(--radius-control);
   font-size: var(--type-size-card);
 }
 
 .workout-preview ol {
   border: 1px solid var(--border-default);
-  border-radius: 18px;
+  border-radius: var(--radius-card);
   overflow: hidden;
   gap: 0;
 }
@@ -362,7 +357,7 @@
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: rgb(72 240 187 / 10%);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
   color: var(--mint);
   margin-bottom: 4px;
 }
@@ -417,7 +412,7 @@
 
 .workout-summary-exercises article {
   border: 1px solid var(--border-default);
-  border-radius: 16px;
+  border-radius: var(--radius-control);
   padding: 12px;
   background: var(--surface-1);
 }
@@ -560,15 +555,6 @@
 
 .workout-active dialog[open] {
   display: block;
-}
-
-.workout-active .workout-primary,
-.workout-summary .workout-primary {
-  background: var(--mint);
-}
-
-.workout-current-card {
-  background: var(--surface-1);
 }
 
 @media (max-width: 360px) {

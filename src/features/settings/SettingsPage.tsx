@@ -13,18 +13,18 @@ export function SettingsPage() {
         title="Make Liftwise yours"
         description="Manage device storage, backups, recovery, offline media, and app credits."
       />
-      <section className="settings-card" aria-labelledby="data-safety-card-title">
+      <section className="settings-card ui-card" aria-labelledby="data-safety-card-title">
         <p className="section-kicker">Data safety</p>
         <h2 id="data-safety-card-title">Backup and recovery</h2>
         <p>Inspect local storage, create a verified backup, or safely restore user-owned data.</p>
-        <Link className="compact-link" to="/settings/data-safety">
+        <Link className="compact-link ui-button ui-button-primary" to="/settings/data-safety">
           Open Data Safety
         </Link>
       </section>
       <div>
         <OfflineExerciseData />
       </div>
-      <section className="settings-card" aria-labelledby="credits-title">
+      <section className="settings-card ui-card" aria-labelledby="credits-title">
         <p className="section-kicker">About / Credits</p>
         <h2 id="credits-title">Liftwise v{APP_VERSION}</h2>
         <p>

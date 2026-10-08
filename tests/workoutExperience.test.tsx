@@ -53,7 +53,7 @@ async function fixture() {
   );
   return { db, repo, source, session, exercise, sets };
 }
-async function renderSession(repo: WorkoutRepository, id: string) {
+async function renderSession(repo: WorkoutRepository, id: string, details = false) {
   render(
     <RouterProvider
       router={createMemoryRouter(
@@ -78,13 +78,26 @@ async function renderSession(repo: WorkoutRepository, id: string) {
           },
           { path: '/', element: <h1>Home after save</h1> },
         ],
-        { initialEntries: [`/workout/${id}`] },
+        { initialEntries: [`/workout/${id}${details ? '?details=1' : ''}`] },
       )}
     />,
   );
   await screen.findByRole('heading', { name: 'Quick Workout' });
 }
 describe('workout targets, history and next set', () => {
+  it('opens calendar completion links directly into read-only session details', async () => {
+    const { repo, session, sets } = await fixture();
+    await repo.updateSet(sets[0]!.id, { completed: true, reps: 8, weight: 40 });
+    await repo.finish(session.id);
+    await renderSession(repo, session.id, true);
+    expect(screen.getByRole('heading', { name: 'Session recap' })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /Start|Continue|Undo|Finish/ }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Set 1 weight')).not.toBeInTheDocument();
+    expect(screen.getByText('Set 1')).toBeInTheDocument();
+    expect((await repo.get(session.id))!.session.status).toBe('completed');
+  });
   it('holds route departure until a slow draft commits to IndexedDB', async () => {
     const { repo, session, db, sets } = await fixture();
     let release!: () => void;
@@ -311,7 +324,7 @@ describe('canonical workout V2 journey', () => {
       restEndsAt: null,
     });
     expect(await repo.getUnfinished()).toBeUndefined();
-    fireEvent.click(screen.getByRole('button', { name: 'View Workout' }));
+    fireEvent.click(screen.getByRole('button', { name: 'View Workout Details' }));
     expect(screen.getByRole('region', { name: 'Exercise summaries' })).toHaveTextContent('3 of 3');
   });
   it('rejects paused completion and persists the source exercise when completing out of order', async () => {

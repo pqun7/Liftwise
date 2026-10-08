@@ -16,6 +16,7 @@ import { Input, Select, Textarea } from '../../components/ui/FormControl';
 import { buttonClasses } from '../../components/ui/controlStyles';
 import { ProgramWorkoutDay } from './ProgramWorkoutDay';
 import { WeeklySchedule } from './WeeklySchedule';
+import { ProgramOverview } from './ProgramOverview';
 import { chronologicalDays, compactPrescription } from './programDisplay';
 import { UnsavedChanges } from './UnsavedChanges';
 import { weekdays } from './builderService';
@@ -33,7 +34,15 @@ import {
 
 export function ProgramDetailPage() {
   const { graph } = useLoaderData<{ graph: ProgramGraph }>();
-  return <ProgramEditor key={graph.program.id} />;
+  const [params] = useSearchParams();
+  const location = useLocation();
+  return graph.program.draft ||
+    location.hash.startsWith('#day-') ||
+    ['edit', 'settings', 'schedule', 'editor-preview'].includes(params.get('tab') ?? '') ? (
+    <ProgramEditor key={graph.program.id} />
+  ) : (
+    <ProgramOverview />
+  );
 }
 
 function ProgramEditor() {
@@ -49,9 +58,9 @@ function ProgramEditor() {
   const tab =
     params.get('tab') === 'settings'
       ? 'Settings'
-      : params.get('tab') === 'preview'
+      : params.get('tab') === 'preview' || params.get('tab') === 'editor-preview'
         ? 'Preview'
-        : 'Schedule';
+        : 'Training Days';
   const revalidator = useRevalidator();
   const autosave = useProgramAutosave(() => {
     void revalidator.revalidate();
@@ -147,14 +156,14 @@ function ProgramEditor() {
       {program.draft ? (
         <BuilderHeader
           title="Exercises"
-          back="/plan"
+          back="/plan?tab=program"
           backLabel="Back to Programs"
           step={3}
           programId={program.id}
         />
       ) : (
         <header className="plan-editor-header">
-          <Link to="/plan" aria-label="Back to Programs">
+          <Link to="/plan?tab=program" aria-label="Back to Programs">
             <ChevronLeft size={22} />
           </Link>
           <div>
@@ -178,14 +187,18 @@ function ProgramEditor() {
         </h1>
       ) : null}
       <div className="plan-tabs" role="group" aria-label="Editor view">
-        {(['Schedule', 'Settings', 'Preview'] as const).map((label) => (
+        {(['Training Days', 'Settings', 'Preview'] as const).map((label) => (
           <button
             key={label}
             aria-pressed={tab === label}
             disabled={busy}
             onClick={() => {
               if (!dirty) setInfo(false);
-              void setParams(label === 'Schedule' ? {} : { tab: label.toLowerCase() });
+              void setParams(
+                label === 'Training Days'
+                  ? { tab: 'edit' }
+                  : { tab: label === 'Preview' ? 'editor-preview' : label.toLowerCase() },
+              );
             }}
           >
             {label}
@@ -202,7 +215,7 @@ function ProgramEditor() {
           {autosave.error ? <Button onClick={autosave.retry}>Retry save</Button> : null}
         </p>
       ) : null}
-      {tab === 'Schedule' ? (
+      {tab === 'Training Days' ? (
         <>
           <section>
             <h2 className="text-sm font-semibold mb-2">Program info</h2>
@@ -283,16 +296,20 @@ function ProgramEditor() {
               </form>
             ) : null}
           </section>
-          <WeeklySchedule
-            graph={graph}
-            selectDay={selectDay}
-            edit={() => {
-              void navigate(`/plan/${program.id}/build/days`);
-            }}
-          />
+          {program.scheduleType !== 'cycle' ? (
+            <WeeklySchedule
+              graph={graph}
+              selectDay={selectDay}
+              edit={() => {
+                void navigate(`/plan/${program.id}/build/days`);
+              }}
+            />
+          ) : null}
           <div className="plan-section-heading">
             <h2>Training Days</h2>
-            <span className="text-xs text-secondary">Weekday order</span>
+            <span className="text-xs text-secondary">
+              {program.scheduleType === 'cycle' ? 'Cycle order' : 'Weekday order'}
+            </span>
           </div>
           {!days.length ? (
             <Card>
@@ -519,7 +536,7 @@ function ProgramEditor() {
           disabled={busy || autosave.unsettled || dirty || (program.draft && !days.length)}
           className="w-full min-h-12"
           onClick={() =>
-            void navigate(program.draft ? `/plan/${program.id}/build/review` : '/plan')
+            void navigate(program.draft ? `/plan/${program.id}/build/review` : '/plan?tab=program')
           }
         >
           {busy || autosave.pending ? 'Saving…' : program.draft ? 'Next: Review' : 'Done'}

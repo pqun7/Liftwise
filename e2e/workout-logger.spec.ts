@@ -149,7 +149,7 @@ test('focused logger preserves decimal sets, rest, prefill, recovery and canonic
     '3 of 3 sets completed',
   );
   await expect(page.locator('.workout-summary-metrics')).toContainText('Sets completed4');
-  await page.getByRole('link', { name: 'Done', exact: true }).click();
+  await page.getByRole('button', { name: 'Done', exact: true }).click();
   await page.goto('/progress');
   await expectProgressCounts(page, 1, 4);
 });

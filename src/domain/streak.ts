@@ -71,12 +71,15 @@ export function calculateStreakStats(
   periodStart: string,
   now = new Date(),
   trainingWeekdays: readonly number[] | null = null,
+  scheduledRest?: (date: string) => boolean,
 ): StreakStats {
   const scheduled = new Set(
     trainingWeekdays?.filter((day) => Number.isInteger(day) && day >= 0 && day <= 6),
   );
   const isRest = (date: string) =>
-    scheduled.size > 0 && !scheduled.has(weekdayOf(dateFromKey(date)));
+    scheduledRest
+      ? scheduledRest(date)
+      : scheduled.size > 0 && !scheduled.has(weekdayOf(dateFromKey(date)));
   const dates = [
     ...new Set(
       sessions.flatMap((session) => {

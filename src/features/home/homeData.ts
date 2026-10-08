@@ -21,6 +21,7 @@ export interface HomeDay {
   completed: number;
   kind: 'training' | 'rest' | 'future';
   performance: number;
+  status?: ReturnType<ReturnType<typeof trainingCalendar>['getDayState']>['status'];
 }
 
 export interface HomeData {
@@ -72,15 +73,10 @@ export function deriveHomeData(
     records.lastProgramDayId,
   );
   const nextDays = calendar.upcoming.map(({ entry }) => entry);
-  const trainedToday = weekHistory.some(
-    ({ session }) => localDateKey(new Date(session.endedAt ?? session.startedAt)) === today,
-  );
-  const scheduledWeekdays = new Set(
-    days.flatMap(({ day }) => (day.weekday == null ? [] : [day.weekday])),
-  );
+  const trainedToday = weekHistory.some(({ session }) => sessionCalendarDate(session) === today);
   const workoutsByDay = new Map<string, WorkoutGraph[]>();
   for (const workout of weekHistory) {
-    const key = localDateKey(new Date(workout.session.endedAt ?? workout.session.startedAt));
+    const key = sessionCalendarDate(workout.session);
     workoutsByDay.set(key, [...(workoutsByDay.get(key) ?? []), workout]);
   }
   if (records.active) {
@@ -102,10 +98,11 @@ export function deriveHomeData(
     const isFuture = key > today;
     const isTrainingDay =
       workouts.length > 0 ||
-      scheduledWeekdays.has(index) ||
-      (isToday && days.length > 0 && !scheduledWeekdays.size);
+      !!calendar.getScheduledWorkout(key) ||
+      (isToday && days.length > 0 && !calendar.dated);
     return {
       key,
+      status: calendar.getDayState(key).status,
       label: date.toLocaleDateString('en', { weekday: 'short' }),
       date: date.getDate(),
       accessibleDate: date.toLocaleDateString('en', {
@@ -142,6 +139,12 @@ export function deriveHomeData(
 
 export function homeState(data: HomeData, selectedDate: string): HomeState {
   if (data.active) return 'in-progress';
+  if (
+    data.calendar.getCompletedSession(selectedDate) ||
+    (selectedDate !== data.today &&
+      data.week.some((day) => day.key === selectedDate && day.completed > 0))
+  )
+    return 'rest-day';
   return (
     selectedDate === data.today ? data.suggestion : data.calendar.getScheduledWorkout(selectedDate)
   )

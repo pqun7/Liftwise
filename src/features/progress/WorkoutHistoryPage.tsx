@@ -1,3 +1,4 @@
+import { useScreenState } from '../../app/useScreenState';
 import { number } from './format';
 import { useState } from 'react';
 import { Link, useLoaderData } from 'react-router-dom';
@@ -15,8 +16,8 @@ import { downloadTextFile } from '../dataSafety/downloads';
 
 export function WorkoutHistoryPage() {
   const { workouts } = useLoaderData<Awaited<ReturnType<typeof workoutHistoryLoader>>>();
-  const [filter, setFilter] = useState('All');
-  const [order, setOrder] = useState('newest');
+  const [filter, setFilter] = useScreenState('filter', 'All');
+  const [order, setOrder] = useScreenState('order', 'newest');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const names = [...new Set(workouts.map(({ session }) => session.name ?? 'Workout'))];

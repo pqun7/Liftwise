@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
@@ -45,13 +45,14 @@ export function WorkoutExerciseCard({
   onCompleted,
   refresh,
 }: Props) {
+  const location = useLocation();
   const allComplete = entry.sets.length > 0 && entry.sets.every(({ completed }) => completed);
   const completed = entry.sets.filter((set) => set.completed);
   return (
     <Card
       as="article"
       variant={current ? 'active' : 'default'}
-      className="session-exercise-card grid gap-3"
+      className="session-exercise-card ui-card grid gap-3"
       id={'exercise-' + entry.exercise.id}
       aria-label={entry.exercise.exerciseName}
     >
@@ -60,7 +61,19 @@ export function WorkoutExerciseCard({
           <p className="text-xs uppercase tracking-wide text-mint">
             Exercise {entry.exercise.order}
           </p>
-          <h2 className="text-lg font-bold">{entry.exercise.exerciseName}</h2>
+          <h2 className="text-lg font-bold">
+            <Link
+              to={`/exercises/${encodeURIComponent(entry.exercise.exerciseId)}`}
+              state={{
+                returnTo: location.pathname + location.search,
+                returnKey: location.key,
+                returnLabel: 'Workout',
+              }}
+              className="inline-flex min-h-11 items-center"
+            >
+              {entry.exercise.exerciseName}
+            </Link>
+          </h2>
           <p className="text-secondary">{formatWorkoutPrescription(entry.exercise)}</p>
         </div>
         {mutable && !current ? (

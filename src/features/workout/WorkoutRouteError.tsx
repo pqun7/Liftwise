@@ -9,7 +9,7 @@ export function WorkoutRouteError() {
       <p className="section-kicker">Workout</p>
       <h1>{message}</h1>
       <p className="muted">Your saved workout data has not been changed.</p>
-      <Link className="primary-link" to="/workout">
+      <Link className="primary-link ui-button ui-button-primary" to="/workout">
         Return to workouts
       </Link>
     </section>

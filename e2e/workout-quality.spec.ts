@@ -10,8 +10,22 @@ test('Workout keeps one thumb action clear of navigation across mobile widths', 
   await page.goto('/plan/new');
   await page.getByLabel('Program name').fill('Workout quality');
   await openSavedEditor(page, 'Upper / Lower');
-  await page.goto('/workout');
-  await page.getByRole('button', { name: 'Upper A', exact: true }).click();
+  const dayId = await page.evaluate(async () => {
+    const request = indexedDB.open('liftwise');
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error ?? new Error('Could not open fixture data'));
+    });
+    const days = await new Promise<Array<{ id: string; name: string }>>((resolve, reject) => {
+      const read = db.transaction('programDays').objectStore('programDays').getAll();
+      read.onsuccess = () => resolve(read.result as Array<{ id: string; name: string }>);
+      read.onerror = () => reject(read.error ?? new Error('Could not read fixture days'));
+    });
+    db.close();
+    return days.find((day) => day.name === 'Upper A')?.id;
+  });
+  expect(dayId).toBeTruthy();
+  await page.goto(`/workout?day=${dayId!}`);
   const start = page.getByRole('button', { name: 'Start Workout', exact: true });
   for (const width of [320, 360, 375, 390, 430, 768, 1280]) {
     await page.setViewportSize({ width, height: 844 });

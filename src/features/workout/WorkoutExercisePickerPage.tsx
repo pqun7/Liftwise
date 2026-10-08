@@ -1,3 +1,6 @@
+import { Search } from 'lucide-react';
+import { Input, Select } from '../../components/ui/FormControl';
+import { useScreenState } from '../../app/useScreenState';
 import { useDeferredValue, useMemo, useState } from 'react';
 import { Link, useLoaderData, useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -19,9 +22,9 @@ export function WorkoutExercisePickerPage() {
   const [params] = useSearchParams();
   const replaceId = params.get('replace');
   const [error, setError] = useState<string | null>(null);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useScreenState('query', '');
   const deferredQuery = useDeferredValue(query);
-  const [bodyPart, setBodyPart] = useState('');
+  const [bodyPart, setBodyPart] = useScreenState('body-part', '');
   const [busyId, setBusyId] = useState<string | null>(null);
   const bodyParts = useMemo(
     () =>
@@ -69,8 +72,8 @@ export function WorkoutExercisePickerPage() {
       ) : null}
       <label className="search-field">
         <span className="sr-only">Search exercises</span>
-        <span aria-hidden="true">⌕</span>
-        <input
+        <Search size={20} aria-hidden="true" className="text-mint" />
+        <Input
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -80,14 +83,14 @@ export function WorkoutExercisePickerPage() {
       </label>
       <label className="filter-field">
         <span>Body part</span>
-        <select value={bodyPart} onChange={(event) => setBodyPart(event.target.value)}>
+        <Select value={bodyPart} onChange={(event) => setBodyPart(event.target.value)}>
           <option value="">All</option>
           {bodyParts.map((value) => (
             <option key={value} value={value}>
               {formatExerciseValue(value)}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
       <p className="result-count" aria-live="polite">
         Showing {results.length} matching exercises

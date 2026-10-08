@@ -26,7 +26,7 @@ export function ProgramDayFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' 
   const [params] = useSearchParams();
   const returnTo =
     params.get('return') === 'editor' && day
-      ? `/plan/${graph.program.id}#day-${day.id}`
+      ? `/plan/${graph.program.id}?tab=edit#day-${day.id}`
       : day
         ? `/plan/${graph.program.id}/days/${day.id}`
         : `/plan/${graph.program.id}`;
@@ -66,7 +66,7 @@ export function ProgramDayFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' 
       committedNavigation.current = true;
       await navigate(
         params.get('return') === 'editor'
-          ? `/plan/${graph.program.id}#day-${saved.id}`
+          ? `/plan/${graph.program.id}?tab=edit#day-${saved.id}`
           : `/plan/${graph.program.id}/days/${saved.id}`,
         { replace: true },
       );
@@ -90,7 +90,7 @@ export function ProgramDayFormPage({ mode }: Readonly<{ mode: 'create' | 'edit' 
         {day ? `Edit ${day.name}` : 'Add a training day'}
       </h2>
       <form
-        className="builder-card exercise-form"
+        className="builder-card ui-card exercise-form ui-card"
         onSubmit={(event) => void submit(event)}
         noValidate
       >

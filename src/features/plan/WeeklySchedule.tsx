@@ -51,7 +51,7 @@ export function WeeklySchedule({
               <Link
                 key={name}
                 className="plan-schedule-row"
-                to={`/plan/${graph.program.id}#day-${entry.day.id}`}
+                to={`/plan/${graph.program.id}/days/${entry.day.id}?mode=preview`}
               >
                 {content}
               </Link>

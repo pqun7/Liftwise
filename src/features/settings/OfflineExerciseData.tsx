@@ -76,7 +76,11 @@ export function OfflineExerciseData() {
   const complete = total > 0 && cached >= total;
 
   return (
-    <section id="offline-data" className="settings-card" aria-labelledby="offline-data-title">
+    <section
+      id="offline-data"
+      className="settings-card ui-card"
+      aria-labelledby="offline-data-title"
+    >
       <div>
         <p className="section-kicker">Offline data</p>
         <h2 id="offline-data-title">Exercise images</h2>
@@ -105,7 +109,7 @@ export function OfflineExerciseData() {
       ) : null}
       <div className="settings-actions">
         <button
-          className="primary-action"
+          className="primary-action ui-button ui-button-primary ui-button-large"
           type="button"
           disabled={state.kind === 'loading' || state.kind === 'downloading' || complete}
           onClick={() => void download()}
@@ -117,7 +121,7 @@ export function OfflineExerciseData() {
               : 'Download exercise images'}
         </button>
         <button
-          className="button-secondary"
+          className="button-secondary ui-button ui-button-secondary"
           type="button"
           disabled={state.kind === 'downloading' || cached === 0}
           onClick={() => void clear()}

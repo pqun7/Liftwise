@@ -1,4 +1,5 @@
 import { ActiveWorkoutLogger } from './ActiveWorkoutLogger';
+import { useScreenState } from '../../app/useScreenState';
 import { WorkoutSummary } from './WorkoutSummary';
 import { MobilePage } from '../../components/layout/MobilePage';
 import { Textarea } from '../../components/ui/FormControl';
@@ -30,9 +31,9 @@ export function WorkoutSessionPage() {
   const [now, setNow] = useState(Date.now());
   const [busy, setBusy] = useState(false);
   const operationInFlight = useRef(false);
-  const [undo, setUndo] = useState<SetCompletionUndo | null>(null);
-  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
-  const [showOverview, setShowOverview] = useState(false);
+  const [undo, setUndo] = useScreenState<SetCompletionUndo | null>('undo', null);
+  const [collapsed, setCollapsed] = useScreenState<Set<string>>('collapsed', () => new Set());
+  const [showOverview, setShowOverview] = useScreenState('overview', false);
   const [pageError, setPageError] = useState<string | null>(null);
   const refresh = async () => {
     await revalidator.revalidate();
@@ -99,6 +100,12 @@ export function WorkoutSessionPage() {
     }
   };
   const session = workout.session;
+  const previousStatus = useRef(session.status);
+  useEffect(() => {
+    if (session.status === 'completed' && previousStatus.current !== 'completed')
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    previousStatus.current = session.status;
+  }, [session.status]);
   const mutable = session.status === 'active' || session.status === 'paused';
 
   const overview = (
@@ -152,7 +159,7 @@ export function WorkoutSessionPage() {
     return (
       <WorkoutSaveContext.Provider value={saves}>
         {saves.error ? (
-          <div role="alert" className="rounded-xl border border-red-300 p-3 text-sm text-red-300">
+          <div role="alert" className="rounded-xl border border-danger p-3 text-sm text-danger">
             {saves.error}
             <Button
               disabled={busy || saves.pending > 0}
@@ -229,7 +236,7 @@ export function WorkoutSessionPage() {
         </strong>
       </header>
       {pageError ? (
-        <p role="alert" className="text-red-300">
+        <p role="alert" className="text-danger">
           {pageError}
         </p>
       ) : null}

@@ -32,8 +32,10 @@ export async function openSavedEditor(page: Page, choice = 'Custom', basicsSubmi
   }
   await page.getByRole('button', { name: 'Next: Exercises' }).click();
   await finishBuilder(page);
+  await page.getByRole('radio', { name: 'Program', exact: true }).click();
+  await expect(page.getByRole('radio', { name: 'Program', exact: true })).toBeChecked();
   await page.getByRole('link', { name: 'View program details' }).click();
-  await page.getByRole('button', { name: 'Schedule', exact: true }).click();
+  await page.getByRole('link', { name: 'Edit program', exact: true }).click();
 }
 
 // Create only isolated regression data through the real builder and canonical save.

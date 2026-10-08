@@ -90,7 +90,7 @@ export function RestTimer({
             strokeDasharray={Math.PI * 90}
             strokeDashoffset={Math.PI * 90 * (1 - progress)}
             className={`transition-[stroke-dashoffset] duration-500 motion-reduce:transition-none ${
-              ending ? 'text-amber' : 'text-mint'
+              ending ? 'text-warning' : 'text-mint'
             }`}
           />
         </svg>
@@ -180,7 +180,7 @@ export function RestTimer({
         <Button
           variant="primary"
           size="large"
-          className="workout-primary"
+          className="workout-primary ui-button ui-button-primary ui-button-large"
           disabled={disabled}
           onClick={onEnd}
         >

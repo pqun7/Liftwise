@@ -1,3 +1,4 @@
+import { useScreenState } from '../../app/useScreenState';
 import { useDeferredValue, useMemo, useRef, useState } from 'react';
 import { Link, useLoaderData, useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -50,7 +51,7 @@ export function ExercisePickerPage() {
   const pending = useRef(false);
   const returnTo =
     params.get('return') === 'editor'
-      ? `/plan/${day.program.id}#day-${day.day.id}`
+      ? `/plan/${day.program.id}?tab=edit#day-${day.day.id}`
       : `/plan/${day.program.id}/days/${day.day.id}${reviewSuffix(params)}`;
   const [error, setError] = useState<string | null>(null);
   const add = async (exercise: Exercise) => {
@@ -71,9 +72,9 @@ export function ExercisePickerPage() {
       pending.current = false;
     }
   };
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useScreenState('query', '');
   const deferredQuery = useDeferredValue(query);
-  const [filters, setFilters] = useState<ExerciseFilters>({});
+  const [filters, setFilters] = useScreenState<ExerciseFilters>('filters', {});
   const options = useMemo(
     () => ({
       bodyParts: uniqueExerciseFilterValues(exercises, (exercise) => exercise.bodyPart),
@@ -122,7 +123,7 @@ export function ExercisePickerPage() {
           autoComplete="off"
         />
       </label>
-      <details className="filter-panel">
+      <details className="filter-panel ui-card ui-card-subtle">
         <summary>Filters</summary>
         <div className="filter-grid">
           <SelectFilter

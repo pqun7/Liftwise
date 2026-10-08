@@ -1,12 +1,7 @@
 import { estimatedProgramMinutes } from '../plan/programDisplay';
-import {
-  addLocalCalendarDays,
-  dateFromKey,
-  localDateKey,
-  weekdayNames,
-} from '../../domain/localCalendar';
+import { dateFromKey, localDateKey } from '../../domain/localCalendar';
 import { useRef, useState } from 'react';
-import { Link, useLoaderData, useNavigate } from 'react-router-dom';
+import { Link, useLoaderData, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Check, ChevronRight, Play, ShieldCheck } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { buttonClasses } from '../../components/ui/controlStyles';
@@ -22,20 +17,20 @@ import { startPlannedWorkout, type WorkoutLandingData } from './workoutService';
 export function WorkoutPage() {
   const data = useLoaderData<WorkoutLandingData>();
   const navigate = useNavigate();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [params] = useSearchParams();
   const [busy, setBusy] = useState(false);
   const pending = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const selected = data.previews.find(
-    ({ day }) => day.id === (selectedId ?? (data.state === 'scheduled' ? data.todayDayId : null)),
+    ({ day }) =>
+      day.id === (params.get('day') ?? (data.state === 'scheduled' ? data.todayDayId : null)),
   );
   const state =
-    selected && !data.unfinished
+    selected && !data.unfinished && selected.day.id !== data.completedToday?.programDayId
       ? selected.entries.length
         ? 'scheduled'
         : 'empty-workout'
       : data.state;
-  const next = data.previews.find(({ day }) => day.id === data.nextDayId);
   const sets =
     selected?.entries.reduce((sum, { prescription }) => sum + (prescription.targetSets ?? 0), 0) ??
     0;
@@ -96,7 +91,7 @@ export function WorkoutPage() {
     <Button
       variant="primary"
       size="large"
-      className="workout-primary"
+      className="workout-primary ui-button ui-button-primary ui-button-large"
       disabled={busy || missing}
       onClick={() => void start(() => startPlannedWorkout(selected!.day.id))}
     >
@@ -131,11 +126,9 @@ export function WorkoutPage() {
       <WorkoutLandingHero
         eyebrow={
           state === 'scheduled'
-            ? selectedId
-              ? 'Selected workout'
-              : selected?.day.weekday == null
-                ? 'Next in your program'
-                : 'Today’s workout'
+            ? selected?.day.weekday == null
+              ? 'Next in your program'
+              : 'Today’s workout'
             : state.replaceAll('-', ' ')
         }
         title={title}
@@ -211,65 +204,16 @@ export function WorkoutPage() {
       ) : null}
 
       {selected && !data.unfinished ? <WorkoutPreview entries={selected.entries} /> : null}
-      {!data.unfinished ? (
-        <>
-          {data.activeProgram && data.previews.length ? (
-            <Card className="grid gap-3" aria-label="Program context">
-              <SectionHeader
-                title="Your program"
-                trailing={
-                  <Link
-                    to={`/plan/${data.activeProgram.id}`}
-                    aria-label="View program"
-                    className="flex min-h-11 min-w-11 items-center justify-center text-mint"
-                  >
-                    <ChevronRight size={20} aria-hidden="true" />
-                  </Link>
-                }
-              />
-              <p className="text-sm font-semibold">{data.activeProgram.name}</p>
-              {state === 'rest-day' && next ? (
-                <p className="text-sm text-secondary">
-                  Next: {next.day.name}
-                  {next.day.weekday != null
-                    ? ` · ${data.todayDate && data.nextDate === addLocalCalendarDays(data.todayDate, 1) ? 'Tomorrow' : weekdayNames[next.day.weekday]}`
-                    : ' · next in your program'}
-                </p>
-              ) : null}
-              <p className="text-xs text-muted">
-                {state === 'scheduled' ? 'Choose another day' : 'Choose Different Workout'} ·
-                selection does not start a session
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {data.previews.map(({ day }) => (
-                  <Button
-                    key={day.id}
-                    variant={selected?.day.id === day.id ? 'outline' : 'secondary'}
-                    aria-pressed={selected?.day.id === day.id}
-                    disabled={busy}
-                    onClick={() => {
-                      setSelectedId(day.id);
-                      setError(null);
-                    }}
-                  >
-                    {day.name}
-                  </Button>
-                ))}
-              </div>
-            </Card>
-          ) : null}
-          <Link className={buttonClasses('secondary')} to="/progress">
-            View Progress
-          </Link>
-        </>
-      ) : null}
       {data.recent.length ? (
         <section aria-labelledby="history-title" className="grid gap-2">
           <SectionHeader
             id="history-title"
             title="Recent workouts"
             trailing={
-              <Link to="/progress" className="flex min-h-11 items-center text-sm text-mint">
+              <Link
+                to="/progress"
+                className="flex min-h-11 min-w-11 items-center text-sm text-mint"
+              >
                 See all
               </Link>
             }

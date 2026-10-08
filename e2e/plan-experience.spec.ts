@@ -46,8 +46,8 @@ test('reference plan editor keeps weekday integrity, context, targets and overvi
   await expect(page.getByText('✓ Saved', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Preview', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Reference QA', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Schedule', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Schedule', exact: true })).toHaveAttribute(
+  await page.getByRole('button', { name: 'Training Days', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Training Days', exact: true })).toHaveAttribute(
     'aria-pressed',
     'true',
   );
@@ -62,9 +62,10 @@ test('reference plan editor keeps weekday integrity, context, targets and overvi
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: testInfo.outputPath('reference-editor.png'), fullPage: true });
   await page.getByRole('link', { name: 'Back to Programs' }).click();
-  await expect(page.getByRole('heading', { name: 'My Training Plan' })).toBeVisible();
-  await expect(page.getByRole('button', { name: /Start (today’s|next) workout/ })).toBeEnabled();
+  await expect(page.getByRole('heading', { name: 'Plan', exact: true })).toBeVisible();
+  await page.getByRole('radio', { name: 'Schedule', exact: true }).click();
   await page.screenshot({ path: testInfo.outputPath('reference-overview.png'), fullPage: true });
-  await page.getByRole('button', { name: /Start (today’s|next) workout/ }).click();
+  await page.locator('a[href^="/workout?day="]').first().click();
+  await page.getByRole('button', { name: 'Start Workout', exact: true }).click();
   await expect(page.getByRole('link', { name: 'Leave workout, keep session saved' })).toBeVisible();
 });

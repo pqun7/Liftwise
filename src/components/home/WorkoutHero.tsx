@@ -5,7 +5,8 @@ import { ArrowRight, Dumbbell, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import bench from '../../assets/images/workout-bench.webp';
 import rest from '../../assets/images/rest-day.webp';
-import { localDateKey, programDayMetadata, type HomeData } from '../../features/home/homeData';
+import { sessionCalendarDate } from '../../domain/trainingCalendar';
+import { programDayMetadata, type HomeData } from '../../features/home/homeData';
 
 export function WorkoutHero({
   data,
@@ -13,21 +14,21 @@ export function WorkoutHero({
   busy,
   start,
   isToday,
+  selectedDate = data.today,
 }: {
   data: HomeData;
   scheduled: boolean;
   busy: boolean;
   start: () => void;
   isToday: boolean;
+  selectedDate?: string;
 }) {
-  const day = scheduled ? data.suggestion : null;
-  const completed =
-    isToday && !day
-      ? data.weekHistory.find(
-          ({ session }) =>
-            localDateKey(new Date(session.endedAt ?? session.startedAt)) === data.today,
-        )
-      : null;
+  const completed = data.weekHistory.find(
+    ({ session }) =>
+      sessionCalendarDate(session) === selectedDate &&
+      (!scheduled || !data.suggestion || session.programDayId === data.suggestion.day.id),
+  );
+  const day = scheduled && !completed ? data.suggestion : null;
   return (
     <Card
       as="article"
@@ -54,7 +55,9 @@ export function WorkoutHero({
                   : 'Selected date’s workout'
                 : 'Next in your program'
               : completed
-                ? 'Completed today'
+                ? isToday
+                  ? 'Completed today'
+                  : 'Completed workout'
                 : 'Time to recharge'}
           </p>
           {day && data.activeProgramId ? (
@@ -114,7 +117,7 @@ export function WorkoutHero({
           ) : completed ? (
             <Link
               className={buttonClasses('primary', 'flex-1', 'large')}
-              to={`/workout/${completed.session.id}`}
+              to={`/workout/${completed.session.id}?details=1`}
             >
               View Completed Workout
             </Link>
@@ -129,7 +132,11 @@ export function WorkoutHero({
             </Link>
           )}
           {day ? (
-            <Link className="home-icon-link" aria-label="Choose a different workout" to="/workout">
+            <Link
+              className="home-icon-link ui-button ui-button-secondary"
+              aria-label="Choose a different workout"
+              to="/workout"
+            >
               <ArrowRight size={22} aria-hidden="true" />
             </Link>
           ) : (

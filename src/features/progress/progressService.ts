@@ -1,6 +1,7 @@
 import { ProgramRepository } from '../../lib/storage/repositories/programRepository';
 import { calculateStreakStats, scheduledTrainingWeekdays } from '../../domain/streak';
 import { localDateKey } from '../../domain/localCalendar';
+import { trainingCalendar } from '../../domain/trainingCalendar';
 import { database, type LiftwiseDatabase } from '../../lib/storage/database';
 import { WorkoutRepository } from '../../lib/storage/repositories/workoutRepository';
 import {
@@ -33,7 +34,19 @@ export class ProgressRepository {
           trainingWeekdays === undefined ? this.trainingWeekdays() : trainingWeekdays,
         ]);
         const sessions = rawSessions.map((session) => workoutSessionSchema.parse(session));
-        return calculateStreakStats(sessions, localDateKey(now), now, weekdays);
+        const programs = new ProgramRepository(this.db);
+        const id = await programs.getActiveId();
+        const graph = id ? await programs.get(id) : undefined;
+        const calendar = trainingCalendar(graph, sessions, now);
+        return calculateStreakStats(
+          sessions,
+          localDateKey(now),
+          now,
+          weekdays,
+          graph?.program.scheduleType === 'cycle' && calendar.dated
+            ? calendar.isRestDay
+            : undefined,
+        );
       },
     );
   }

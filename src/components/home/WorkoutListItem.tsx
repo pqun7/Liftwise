@@ -15,7 +15,7 @@ export function WorkoutListItem({
   completed?: boolean;
 }) {
   return (
-    <Link to={to} className="home-list-item">
+    <Link to={to} className="home-list-item ui-card ui-card-interactive">
       <span className={`home-tile-icon${completed ? ' home-tile-icon-completed' : ''}`}>
         {completed ? (
           <Check size={20} aria-hidden="true" />
