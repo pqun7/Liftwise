@@ -14,11 +14,19 @@ export function AppHeader({
 }) {
   return (
     <header className="app-header" aria-label="Liftwise application header">
-      <div className="app-header-title">
-        <StreakBadge currentStreak={currentStreak} />
-        {title ? <h1 id={titleId}>{title}</h1> : null}
-        {action}
-      </div>
+      {/* <div className="app-header-status">
+      </div> */}
+      {title ? (
+        <div className="app-header-title">
+          <h1 id={titleId}>{title}</h1>
+          {currentStreak !== undefined || action ? (
+            <div className="app-header-actions">
+              {currentStreak !== undefined ? <StreakBadge currentStreak={currentStreak} /> : null}
+              {action}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </header>
   );
 }
