@@ -66,7 +66,7 @@ export function AppShell() {
           <AppHeader
             title={page?.[0]}
             titleId={page?.[1]}
-            currentStreak={streak?.currentStreak ?? (page ? 0 : undefined)}
+            currentStreak={streak?.currentStreak}
             action={
               pathname === '/plan' ? (
                 <Link

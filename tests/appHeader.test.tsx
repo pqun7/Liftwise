@@ -24,4 +24,15 @@ describe('shared application header', () => {
     expect(screen.getByRole('link', { name: 'Workout streak' })).toHaveTextContent('0 days');
     expect(screen.queryByRole('heading')).not.toBeInTheDocument();
   });
+  it('does not invent a zero streak when the owning loader has no snapshot', () => {
+    render(
+      <MemoryRouter>
+        <AppHeader title="Plan" />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('link', { name: 'Workout streak unavailable' })).toHaveTextContent(
+      'Unavailable',
+    );
+    expect(screen.queryByText('0 days')).not.toBeInTheDocument();
+  });
 });

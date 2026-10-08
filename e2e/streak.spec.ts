@@ -116,7 +116,13 @@ test.describe('local calendar streak lifecycle', () => {
     await page.clock.install({ time: new Date('2026-10-08T12:00:00-04:00') });
     await page.goto('/progress');
     await seedSchedule(page, true);
-    await seedCompletions(page, ['2026-10-05', '2026-10-07', '2026-10-07']);
+    await seedCompletions(page, [
+      '2026-10-01',
+      '2026-10-03',
+      '2026-10-05',
+      '2026-10-07',
+      '2026-10-07',
+    ]);
     for (const route of ['/', '/plan', '/workout', '/settings', '/exercises', '/progress']) {
       await page.goto(route);
       await expect(page.getByRole('link', { name: '2 days streak', exact: true })).toHaveText(
@@ -126,6 +132,7 @@ test.describe('local calendar streak lifecycle', () => {
     }
     await expect(page.locator('.streak-current strong')).toHaveText('2');
     await expect(page.locator('.streak-best strong')).toHaveText('2');
+    await expect(page.locator('.streak-missed strong')).toHaveText('2');
     await expect(page.locator('.streak-day-completed')).toHaveCount(2);
     await expect(page.locator('.streak-day-rest')).toContainText(['Tue', 'Fri']);
     await expect(page.locator('.streak-day-connected')).toHaveCount(0);

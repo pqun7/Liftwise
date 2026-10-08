@@ -42,13 +42,15 @@ export class ProgressRepository {
         const id = await programs.getActiveId();
         const graph = id ? await programs.get(id) : undefined;
         const calendar = trainingCalendar(graph, sessions, now);
+        const cycleStart =
+          graph?.program.scheduleType === 'cycle' ? graph.program.cycleStartDate : null;
         return calculateStreakStats(
           sessions,
           periodStart,
           now,
           weekdays,
-          graph?.program.scheduleType === 'cycle' && calendar.dated
-            ? calendar.isRestDay
+          cycleStart && calendar.dated
+            ? (date) => date >= cycleStart && calendar.isRestDay(date)
             : undefined,
         );
       },

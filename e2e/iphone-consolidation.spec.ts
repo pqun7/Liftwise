@@ -39,13 +39,14 @@ async function geometry(page: Page) {
     )
     .toBeGreaterThan(0);
   // At the end of the page, the last content/action clears the fixed navigation.
+  await expect(page.locator('main > section, main > article').last()).toBeVisible();
   await expect
     .poll(async () => {
       await page.evaluate(() =>
         scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }),
       );
       const content = await page.locator('main > section, main > article').last().boundingBox();
-      return !content || content.y + content.height <= (await nav.boundingBox())!.y + 1;
+      return !!content && content.y + content.height <= (await nav.boundingBox())!.y + 1;
     })
     .toBe(true);
   await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
@@ -206,11 +207,19 @@ test('shared shell remains available offline with the existing standalone manife
   expect(manifest).toMatchObject({ id: '/', start_url: '/', scope: '/', display: 'standalone' });
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
   await setOffline(context, browserName, true);
-  for (const route of ['Home', 'Plan', 'Workout', 'Progress', 'More']) {
+  for (const [route, path, title] of [
+    ['Home', '/', 'Welcome to Liftwise'],
+    ['Plan', '/plan', 'Plan'],
+    ['Workout', '/workout', 'Start training'],
+    ['Progress', '/progress', 'Progress'],
+    ['More', '/settings', 'Make Liftwise yours'],
+  ] as const) {
     await page
       .getByRole('navigation', { name: 'Primary navigation' })
       .getByRole('link', { name: route, exact: true })
       .click();
+    await expect.poll(() => new URL(page.url()).pathname).toBe(path);
+    await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
     await expect(page.locator('.app-header')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Workout streak', exact: true })).toHaveText(
       '0 days',

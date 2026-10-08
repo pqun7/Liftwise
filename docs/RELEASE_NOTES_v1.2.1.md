@@ -37,6 +37,12 @@ streak while Home correctly preserved it. Those loaders now call the repository
 with the same clock and an optional missed-day period boundary. Lifetime current
 and best counts, local completion dates and duplicate-day handling are unchanged.
 
+Historical dates before a cycle's start are not excused as rest, so starting a new
+program cannot inflate past or current runs. An unavailable loader snapshot is
+shown as unavailable rather than a genuine-looking zero. Regression coverage also
+requires real destination navigation offline and actual content/nav-clearance
+checks, avoiding empty matches that could pass without checking the screen.
+
 Eligible attendance is a valid completed workout; opening/reloading the app does
 not write attendance. Calendar date labels and connections reflect real completed
 days only. The schedule calendar retains its deliberately assigned workout dates,

@@ -138,7 +138,7 @@ describe('persisted streak data and route rendering', () => {
     expect((await new ProgressRepository(reopened).streak(now)).week[3]?.status).toBe('today');
     reopened.close();
   });
-  it('shares cycle recovery rules across Home, Progress ranges, History and reopen without inventing attendance', async () => {
+  it('shares cycle recovery rules without excusing pre-program gaps or inventing attendance', async () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     const now = new Date(2026, 9, 8, 18);
     vi.setSystemTime(now);
@@ -164,7 +164,7 @@ describe('persisted streak data and route rendering', () => {
         });
     }
     const workouts = new WorkoutRepository(db);
-    for (const day of [5, 7, 7]) {
+    for (const day of [1, 3, 5, 7, 7]) {
       const session = await workouts.createSession({
         startedAt: new Date(2026, 9, day, 10).toISOString(),
       });
@@ -191,16 +191,36 @@ describe('persisted streak data and route rendering', () => {
       expect(result.streak).toMatchObject({
         currentStreak: 2,
         bestStreak: 2,
-        missedDays: 0,
+        missedDays: 2,
         week: expected.week,
       });
     }
     expect((await workoutHistoryLoader()).streak.week).toEqual(expected.week);
-    expect(await db.workoutSessions.count()).toBe(3);
+    expect(await db.workoutSessions.count()).toBe(5);
     db.close();
     const reopened = new LiftwiseDatabase(db.name);
     expect(await new ProgressRepository(reopened).streak(now)).toEqual(expected);
     reopened.close();
+  });
+  it('keeps a failed shell streak read unavailable instead of showing zero', async () => {
+    const router = createMemoryRouter(
+      [
+        {
+          path: '/plan',
+          loader: () => ({ streak: null }),
+          element: <AppShell />,
+          hydrateFallbackElement: <p>Loading</p>,
+          children: [{ index: true, element: <p>Local program</p> }],
+        },
+      ],
+      { initialEntries: ['/plan'] },
+    );
+    render(<RouterProvider router={router} />);
+    expect(
+      await screen.findByRole('link', { name: 'Workout streak unavailable' }),
+    ).toHaveTextContent('Unavailable');
+    expect(screen.queryByText('0 days')).not.toBeInTheDocument();
+    router.dispose();
   });
   it('revalidates an open screen at local midnight without a refresh', async () => {
     vi.useFakeTimers();

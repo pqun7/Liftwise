@@ -17,6 +17,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Fixed
 
 - Progress and History now use ProgressRepository.streak() like Home and the shared header, including flexible-cycle recovery dates. Current/best streaks remain lifetime values; the selected period affects missed-day counts only. Reopening the app adds no attendance, and multiple workouts on one local completion date count once.
+- Dates before a cycle starts no longer excuse historical gaps; failed streak reads show an unavailable state instead of an invented zero.
 - Opening existing local programs no longer fails on known `scheduleType`/day `kind` metadata from the scheduling build. Strict validation, IDs, stored data and backup round trips are preserved; database v6 and backup v2 remain unchanged.
 
 ## [1.1.0] - 2026-10-05

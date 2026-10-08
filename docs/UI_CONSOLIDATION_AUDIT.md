@@ -47,7 +47,7 @@ No second app, navigation, design system, persistence path or streak store exist
 
 ## Verification record
 
-Formatting, lint, TypeScript, 241 unit tests in 41 files, catalog verification,
+Formatting, lint, TypeScript, the 241-test full unit round, catalog verification,
 the normal build and the deployment build pass. The deployment build preserves
 601 exercise records, 1,056 media files and the existing service-worker strategy.
 Existing dependency annotation/chunk-size warnings are non-fatal.
@@ -82,3 +82,14 @@ backup and invalid-record tests remain in force.
 The final header omits the wordmark and keeps the existing mint Flame badge beside
 the optional page title. The streak calendar uses actual date numbers and joins
 only adjacent completed days; scheduled rest never becomes invented attendance.
+
+PR review identified that the schedule calendar intentionally treats pre-anchor
+dates as rest, which must not excuse attendance gaps. The repository now limits
+cycle rest forgiveness to dates on/after the cycle's start. The fixture preserves
+five stored sessions, including pre-program gaps and a duplicate date. Failed
+loader snapshots remain unavailable, with explicit header and shell regressions.
+All 47 affected unit tests pass, including the two additional unavailable-state
+cases; unchanged tests retain their preceding successful results. Navigation and
+clearance browser assertions now require real destinations and visible content.
+All 14 affected browser cases pass on WebKit and Chrome against the rebuilt
+deployment artifact, including the full eight-width matrix and offline destinations.
