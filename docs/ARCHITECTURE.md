@@ -113,3 +113,5 @@ Three supplied decorative Home photos are locally bundled and precached (220,448
 ## Security and privacy
 
 No data leaves the browser. The static deployment should use HTTPS, restrictive security headers, immutable hashed assets, and `index.html` with revalidation. Dependency updates are reviewed rather than automatically trusted.
+
+The critical WorkoutSessionPage is statically imported by the router, as before the v1 release-hardening split. Opening or resuming a local session does not require a separate logger module download. Other feature screens retain their existing lazy boundaries. Persistence, save queues, database v6 and backup v2 are unchanged.
