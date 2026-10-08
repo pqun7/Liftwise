@@ -1,3 +1,4 @@
+import { ContextToolbar } from '../../components/layout/ContextToolbar';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { iconButtonClasses } from '../../components/ui/controlStyles';
 import { Check, ArrowLeft, ArrowRight } from 'lucide-react';
@@ -31,13 +32,14 @@ export function BuilderHeader({
     : [];
   return (
     <>
-      <header className="builder-header">
-        <Link to={back} aria-label={backLabel} className={iconButtonClasses()}>
-          <ArrowLeft size={20} aria-hidden="true" />
-        </Link>
-        <h1>{title}</h1>
-        <span />
-      </header>
+      <ContextToolbar
+        title={title}
+        back={
+          <Link to={back} aria-label={backLabel} className={iconButtonClasses()}>
+            <ArrowLeft size={20} aria-hidden="true" />
+          </Link>
+        }
+      />
       {step !== undefined ? (
         <nav aria-label="Program builder steps">
           <ol className="builder-stepper">

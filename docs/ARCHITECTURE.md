@@ -2,7 +2,7 @@
 
 ## Shared UI boundary
 
-`components/ui` contains Tailwind-only presentational controls; `components/layout` owns page composition helpers and the single route-aware bottom navigation. AppShell owns 430px width, safe-area padding and navigation clearance for every feature. Button/link appearance uses the same small style helper without putting routing in generic controls. Feature pages retain loaders, state and domain actions; workout exercise/timer views receive callbacks and persisted-data-derived values.
+`components/ui` contains Tailwind-only presentational controls; `components/layout` owns AppHeader, ContextToolbar, page composition helpers and the single route-aware bottom navigation. AppShell owns 430px width, horizontal safe areas and content clearance. AppHeader owns the top inset; focused logger routes apply it to main instead. BottomNavigation measures its height, including the bottom inset, and supplies the frame's clearance variable. Button/link appearance uses the same small style helper without putting routing in generic controls. Feature pages retain loaders, state and domain actions; workout exercise/timer views receive callbacks and persisted-data-derived values.
 
 `styles/index.css` defines semantic CSS variables and Tailwind aliases. Unmigrated styles are quarantined in `legacy.css`, existing `home.css` and `plan.css`, all in the base cascade layer below utilities. These are compatibility styles, not a pattern for new UI. See ADR-007. No database, backup, IDs or domain behavior changes.
 

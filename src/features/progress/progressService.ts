@@ -18,7 +18,11 @@ export class ProgressRepository {
     const activeId = await programs.getActiveId();
     return scheduledTrainingWeekdays(activeId ? await programs.get(activeId) : undefined);
   }
-  async streak(now = new Date(), trainingWeekdays?: readonly number[] | null) {
+  async streak(
+    now = new Date(),
+    trainingWeekdays?: readonly number[] | null,
+    periodStart = localDateKey(now),
+  ) {
     return this.db.transaction(
       'r',
       [
@@ -38,13 +42,15 @@ export class ProgressRepository {
         const id = await programs.getActiveId();
         const graph = id ? await programs.get(id) : undefined;
         const calendar = trainingCalendar(graph, sessions, now);
+        const cycleStart =
+          graph?.program.scheduleType === 'cycle' ? graph.program.cycleStartDate : null;
         return calculateStreakStats(
           sessions,
-          localDateKey(now),
+          periodStart,
           now,
           weekdays,
-          graph?.program.scheduleType === 'cycle' && calendar.dated
-            ? calendar.isRestDay
+          cycleStart && calendar.dated
+            ? (date) => date >= cycleStart && calendar.isRestDay(date)
             : undefined,
         );
       },

@@ -33,14 +33,6 @@
   line-height: var(--type-leading-heading);
 }
 
-.home-brand-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
 .home-local {
   display: inline-flex;
   gap: 9px;
@@ -63,29 +55,6 @@
   background: var(--home-mint);
 }
 
-.home-greeting {
-  margin-top: 17px;
-}
-
-.home-greeting > p,
-.home-subtitle {
-  color: var(--home-secondary);
-  font-size: var(--type-size-card);
-  line-height: var(--type-leading-heading);
-}
-
-.home-greeting h1 {
-  margin-top: 3px;
-  font-size: var(--type-size-display);
-  line-height: var(--type-leading-heading);
-  font-weight: var(--fw-bold);
-  letter-spacing: var(--type-tracking-tight);
-}
-
-.home-header-active .home-subtitle {
-  margin-top: 5px;
-}
-
 .home-week-scroll {
   overflow-x: auto;
   padding: 3px;
@@ -97,6 +66,14 @@
   grid-template-columns: repeat(7, minmax(44px, 1fr));
   min-width: 308px;
   gap: 0;
+}
+
+@media (max-width: 339px) {
+  .home-week-scroll {
+    margin-inline: -10px;
+    padding: 0;
+    overflow: visible;
+  }
 }
 
 .home-week-legend {

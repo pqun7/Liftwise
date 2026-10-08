@@ -9,8 +9,6 @@ import { Link, useLoaderData, useNavigate } from 'react-router-dom';
 
 import { ChevronRight } from 'lucide-react';
 
-import { HomeHeader } from '../../components/home/HomeHeader';
-
 import { WeekSelector } from '../../components/home/WeekSelector';
 
 import { WorkoutHero } from '../../components/home/WorkoutHero';
@@ -84,7 +82,7 @@ export function HomePage() {
 
   return (
     <MobilePage className="home-page grid gap-4" data-home-state={state}>
-      <HomeHeader greeting={data.greeting} active={state === 'in-progress'} />
+      <p className="type-body-small text-secondary">{data.greeting}</p>
 
       {state !== 'in-progress' ? (
         <WeekSelector days={data.week} selected={selected} onSelect={setSelection} />

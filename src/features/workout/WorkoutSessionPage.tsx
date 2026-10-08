@@ -1,10 +1,11 @@
+import { ContextBackLink } from '../../components/ContextBackLink';
 import { ActiveWorkoutLogger } from './ActiveWorkoutLogger';
 import { useScreenState } from '../../app/useScreenState';
 import { WorkoutSummary } from './WorkoutSummary';
 import { MobilePage } from '../../components/layout/MobilePage';
 import { Textarea } from '../../components/ui/FormControl';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { Link, useBlocker, useLoaderData, useRevalidator } from 'react-router-dom';
+import { useBlocker, useLoaderData, useRevalidator } from 'react-router-dom';
 import { WorkoutSaveContext } from './WorkoutSaveContext';
 import { WorkoutSaveQueue } from './workoutSaveQueue';
 import { Button } from '../../components/ui/Button';
@@ -221,9 +222,7 @@ export function WorkoutSessionPage() {
 
   return (
     <MobilePage className="grid gap-4" aria-labelledby="session-title">
-      <Link className="back-link" to="/workout">
-        ← Workouts
-      </Link>
+      <ContextBackLink fallback="/workout" label="Workouts" />
       <header className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs uppercase text-mint">{session.status} · saved locally</p>

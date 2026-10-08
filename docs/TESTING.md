@@ -47,3 +47,20 @@ Emulation does not replace a physical iPhone. Follow `docs/IPHONE_TESTING.md` be
 ## Future release requirements
 
 Future workout changes must retain tests for immediate writes, interruption recovery, duplicate-action safety, schema migration, validation failure, timer lifecycle, backup round trips, and calculations. A failed workout or data-safety test blocks release.
+
+## v1.2 automated iPhone regression coverage
+
+The shared-header suite checks six main routes at 320×844, 360×800, 375×844,
+390×844, 393×852, 402×874, 414×896 and 430×932. It checks document and control
+bounds, measured navigation clearance, long titles, Recovery Day fit, date-label
+association, 150% text, reduced motion, keyboard focus and a shortened viewport.
+The existing hardening suite also checks 200% text. Software-keyboard behavior is
+approximated by viewport reduction; real keyboard/VoiceOver/installation acceptance
+remains in IPHONE_TESTING.md.
+
+Builder helpers wait for the destination's content after route changes, so they
+do not act on the previous screen while a lazy route resolves. The retained weekly
+editor fixtures select Weekly Schedule explicitly. Public workout day queries are
+also exercised without issuing a new document request in WebKit's offline harness.
+Browser workers are bounded to two and assertions allow cold local-catalog startup.
+No behavior assertions or test cases are removed by these changes.

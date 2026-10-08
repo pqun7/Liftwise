@@ -65,6 +65,7 @@ test('Home adapts to local program, active workout and rest states with cached p
     .click();
   await page.getByLabel('Target sets').fill('3');
   await page.getByRole('button', { name: 'Add to day' }).press('Enter');
+  await expect(page.locator('.builder-exercises')).toContainText('Barbell Bench Press');
   await expect(
     page.getByRole('heading', { name: 'Barbell Bench Press', exact: true }),
   ).toBeVisible();

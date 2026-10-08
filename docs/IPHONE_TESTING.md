@@ -174,3 +174,13 @@ Record the iPhone model, iOS version, deployed commit, date, and any deviations 
 Create Upper/Lower → preview four real days → apply → rename a day → change its weekday → edit targets inline → add a custom exercise from its clearly named day → move/copy/reorder → Save Program → reopen offline and verify exact data. Check widths 375/390/393/402/430, visible focus, VoiceOver labels, 44px targets and 16px inputs; pinch zoom remains enabled.
 
 Check Home no-program/scheduled/active/rest/completed priorities; only one dominant action. No new Quick Workout creation. Choose a different active-program day, start once, log actual values, resume after suspension and confirm program targets/history remain independent. Verify an old unplanned session still resumes. Automated WebKit is not physical PWA/keyboard/suspension testing.
+
+## v1.2 device acceptance
+
+Automated WebKit does not establish physical-device acceptance. On an installed
+Home Screen PWA, check the shared brand/title/streak header on all six main routes;
+complete a workout and confirm the same streak on Home, Plan and Progress. Check
+Recovery Day both at the end and in the middle of a cycle, Schedule Settings,
+long exercise/program names, builder footer actions and navigation with larger
+text. Verify notch and Home Indicator clearance, real keyboard/date picker,
+pinch zoom, reduced motion, VoiceOver and the prompted update from v1.1.0.

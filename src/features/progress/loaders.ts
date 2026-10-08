@@ -1,4 +1,4 @@
-import { calculateStreakStats, completionDate } from '../../domain/streak';
+import { completionDate } from '../../domain/streak';
 import { localPeriodStart } from '../../domain/localCalendar';
 import type { LoaderFunctionArgs } from 'react-router-dom';
 import { ranges, rangeStart, type DateRange } from '../../domain/analytics';
@@ -13,36 +13,25 @@ export async function progressLoader({ request }: LoaderFunctionArgs) {
   const range = selectedRange(request.url);
   const now = new Date();
   const start = localPeriodStart(range, now);
-  const [history, trainingWeekdays] = await Promise.all([
+  const [history, streak] = await Promise.all([
     progressRepository.history(rangeStart('ALL'), now.toISOString()),
-    progressRepository.trainingWeekdays(),
+    progressRepository.streak(now, undefined, start),
   ]);
   const workouts = history.filter(({ session }) => {
     const date = completionDate(session, now);
     return date !== null && date >= start;
   });
-  const streak = calculateStreakStats(
-    history.map(({ session }) => session),
-    start,
-    now,
-    trainingWeekdays,
-  );
   return { workouts, range, now: now.toISOString(), start, streak };
 }
 export async function workoutHistoryLoader() {
   const now = new Date();
-  const [workouts, trainingWeekdays] = await Promise.all([
+  const [workouts, streak] = await Promise.all([
     progressRepository.history(rangeStart('ALL'), now.toISOString()),
-    progressRepository.trainingWeekdays(),
+    progressRepository.streak(now, undefined, localPeriodStart('ALL', now)),
   ]);
   return {
     workouts,
-    streak: calculateStreakStats(
-      workouts.map(({ session }) => session),
-      localPeriodStart('ALL', now),
-      now,
-      trainingWeekdays,
-    ),
+    streak,
   };
 }
 export async function bodyMeasurementsLoader() {

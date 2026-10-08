@@ -159,9 +159,7 @@ export const routeObjects: RouteObject[] = [
       return {
         streak:
           path === '/' ||
-          ['/progress', '/plan', '/workout'].some(
-            (route) => path === route || path.startsWith(`${route}/`),
-          )
+          ['/progress'].some((route) => path === route || path.startsWith(`${route}/`))
             ? null
             : await progressRepository.streak().catch(() => null),
       };

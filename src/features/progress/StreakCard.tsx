@@ -37,7 +37,7 @@ export function StreakCard({ streak }: { streak: StreakStats }) {
         </div>
       </div>
       <ol className="streak-week" aria-label="Current week workout streak">
-        {streak.week.map((day) => {
+        {streak.week.map((day, index) => {
           const date = dateFromKey(day.date);
           const label = date.toLocaleDateString('en', { weekday: 'short' });
           const description =
@@ -61,7 +61,7 @@ export function StreakCard({ streak }: { streak: StreakStats }) {
           return (
             <li
               key={day.date}
-              className={`streak-day streak-day-${day.status}${day.isToday ? ' streak-day-current' : ''}`}
+              className={`streak-day streak-day-${day.status}${day.isToday ? ' streak-day-current' : ''}${day.status === 'completed' && streak.week[index + 1]?.status === 'completed' ? ' streak-day-connected' : ''}`}
               aria-current={day.isToday ? 'date' : undefined}
               aria-label={`${date.toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}: ${description}${day.isToday && day.status === 'completed' ? ', today' : ''}`}
             >
@@ -69,7 +69,7 @@ export function StreakCard({ streak }: { streak: StreakStats }) {
               <span className="streak-day-circle">
                 <Icon size={19} strokeWidth={3} aria-hidden="true" />
               </span>
-              <span>{day.isToday ? 'Today' : label}</span>
+              <span>{day.isToday ? 'Today' : date.getDate()}</span>
             </li>
           );
         })}

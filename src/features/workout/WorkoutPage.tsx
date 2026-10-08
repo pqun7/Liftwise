@@ -8,7 +8,6 @@ import { buttonClasses } from '../../components/ui/controlStyles';
 import { Card } from '../../components/ui/Card';
 import { SectionHeader } from '../../components/ui/SectionHeader';
 import { MobilePage } from '../../components/layout/MobilePage';
-import { PageIntro } from '../../components/PageIntro';
 import { WorkoutLandingHero } from './WorkoutLandingHero';
 import { WorkoutPreview } from './WorkoutPreview';
 import { countLabel } from '../home/homeData';
@@ -105,16 +104,11 @@ export function WorkoutPage() {
       className={`workout-flow workout-landing grid gap-4 ${pinned ? 'pb-20' : ''}`}
       aria-labelledby="workout-title"
     >
-      <PageIntro
-        titleId="workout-title"
-        eyebrow="Workout"
-        title="Start training"
-        description={
-          data.unfinished
-            ? 'Resume your saved session.'
-            : 'Your training schedule and saved sessions.'
-        }
-      />
+      <p className="type-body text-secondary">
+        {data.unfinished
+          ? 'Resume your saved session.'
+          : 'Your training schedule and saved sessions.'}
+      </p>
       {error ? (
         <p
           className="rounded-xl border border-border bg-surface p-3 text-sm text-secondary"

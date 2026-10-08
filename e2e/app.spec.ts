@@ -222,9 +222,8 @@ test('builds and reloads an exact program prescription offline', async ({
   await setOffline(context, browserName, true);
   try {
     if (browserName === 'webkit') {
-      await page.getByRole('link', { name: /Push Pull Legs/ }).click();
-      await page.getByRole('button', { name: 'Options for Push Day' }).click();
-      await page.getByRole('link', { name: 'View day details' }).click();
+      await page.getByRole('link', { name: 'Back', exact: true }).click();
+      await page.getByRole('link', { name: 'Edit training day', exact: true }).click();
     } else {
       await page.reload();
     }

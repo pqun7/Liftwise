@@ -38,8 +38,8 @@ async function seedCompletions(page: Page, days: string[]) {
   }, days);
 }
 
-async function seedSchedule(page: Page) {
-  await page.evaluate(async () => {
+async function seedSchedule(page: Page, cycle = false) {
+  await page.evaluate(async (cycle) => {
     const request = indexedDB.open('liftwise');
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
       request.onsuccess = () => resolve(request.result);
@@ -54,6 +54,8 @@ async function seedSchedule(page: Page) {
     tx.objectStore('programs').put({
       id: programId,
       name: 'Monday Wednesday Friday',
+      scheduleType: cycle ? 'cycle' : 'weekly',
+      cycleStartDate: cycle ? '2026-10-05' : null,
       description: null,
       archived: false,
       draft: false,
@@ -74,10 +76,12 @@ async function seedSchedule(page: Page) {
         name: ['Monday', 'Wednesday', 'Friday'][order],
         order: order + 1,
         notes: null,
-        weekday,
+        weekday: cycle ? null : weekday,
+        kind: cycle && order === 1 ? 'recovery' : 'workout',
         createdAt: stamp,
         updatedAt: stamp,
       });
+      if (cycle && order === 1) continue;
       tx.objectStore('programExercises').put({
         id: crypto.randomUUID(),
         programDayId: dayId,
@@ -99,11 +103,57 @@ async function seedSchedule(page: Page) {
       tx.onerror = () => reject(new Error('Could not save schedule fixture'));
     });
     db.close();
-  });
+  }, cycle);
 }
 
 test.describe('local calendar streak lifecycle', () => {
   test.use({ timezoneId: 'America/New_York' });
+
+  test('cycle recovery uses one streak across headers, Progress and actual attendance calendar after reload', async ({
+    page,
+  }) => {
+    test.setTimeout(90_000);
+    await page.clock.install({ time: new Date('2026-10-08T12:00:00-04:00') });
+    await page.goto('/progress');
+    await seedSchedule(page, true);
+    await seedCompletions(page, [
+      '2026-10-01',
+      '2026-10-03',
+      '2026-10-05',
+      '2026-10-07',
+      '2026-10-07',
+    ]);
+    for (const route of ['/', '/plan', '/workout', '/settings', '/exercises', '/progress']) {
+      await page.goto(route);
+      await expect(page.getByRole('link', { name: '2 days streak', exact: true })).toHaveText(
+        '2 days',
+      );
+      await expect(page.locator('.app-wordmark')).toHaveCount(0);
+    }
+    await expect(page.locator('.streak-current strong')).toHaveText('2');
+    await expect(page.locator('.streak-best strong')).toHaveText('2');
+    await expect(page.locator('.streak-missed strong')).toHaveText('2');
+    await expect(page.locator('.streak-day-completed')).toHaveCount(2);
+    await expect(page.locator('.streak-day-rest')).toContainText(['Tue', 'Fri']);
+    await expect(page.locator('.streak-day-connected')).toHaveCount(0);
+    await page.reload();
+    await expect(page.locator('.streak-current strong')).toHaveText('2');
+    await page.getByRole('radio', { name: '7D', exact: true }).click();
+    await expect(page.locator('.streak-current strong')).toHaveText('2');
+    await page.goto('/progress/history');
+    await expect(page.getByRole('link', { name: '2 days streak', exact: true })).toBeVisible();
+    await seedCompletions(page, ['2026-10-08']);
+    await page.goto('/progress');
+    await expect(page.locator('.streak-current strong')).toHaveText('3');
+    await expect(page.getByRole('link', { name: '3 days streak', exact: true })).toHaveText(
+      '3 days',
+    );
+    await expect(page.locator('.streak-day-completed')).toHaveCount(3);
+    await expect(page.locator('.streak-day-connected')).toHaveCount(1);
+    await expect(page.locator('.streak-day-completed[aria-current="date"]')).toHaveAccessibleName(
+      /completed, today/,
+    );
+  });
 
   test('reconstructs lifetime runs, keeps today open, and updates at local midnight', async ({
     page,
@@ -162,7 +212,7 @@ test.describe('local calendar streak lifecycle', () => {
     await expect(page.locator('.streak-current strong')).toHaveText('0');
     await expect(page.locator('.streak-best strong')).toHaveText('18');
     await expect(page.locator('.streak-missed strong')).toHaveText('2');
-    await expect(page.locator('.streak-badge-copy')).toHaveText('');
+    await expect(page.locator('.streak-badge-copy')).toHaveText('0 days');
   });
 
   test('scheduled rest is blue, preserves the streak, and never counts as missed', async ({

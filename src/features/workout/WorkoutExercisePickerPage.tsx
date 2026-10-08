@@ -1,8 +1,9 @@
+import { ContextBackLink } from '../../components/ContextBackLink';
 import { Search } from 'lucide-react';
 import { Input, Select } from '../../components/ui/FormControl';
 import { useScreenState } from '../../app/useScreenState';
 import { useDeferredValue, useMemo, useState } from 'react';
-import { Link, useLoaderData, useNavigate, useSearchParams } from 'react-router-dom';
+import { useLoaderData, useNavigate, useSearchParams } from 'react-router-dom';
 
 import type { Exercise } from '../../domain/entities';
 import { searchExercises } from '../../domain/exerciseSearch';
@@ -55,9 +56,10 @@ export function WorkoutExercisePickerPage() {
 
   return (
     <section className="page-stack" aria-labelledby="workout-picker-title">
-      <Link className="back-link" to={`/workout/${workout.session.id}`}>
-        ← {workout.session.name ?? 'Quick Workout'}
-      </Link>
+      <ContextBackLink
+        fallback={`/workout/${workout.session.id}`}
+        label={workout.session.name ?? 'Quick Workout'}
+      />
       <header className="program-header">
         <p className="section-kicker">Session exercise</p>
         <h1 id="workout-picker-title">

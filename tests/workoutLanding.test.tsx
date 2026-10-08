@@ -1,3 +1,4 @@
+import { AppShell } from '../src/app/shell/AppShell';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, expect, it, vi } from 'vitest';
@@ -17,6 +18,13 @@ import { createTestDatabase, cleanupTestDatabases } from './helpers/database';
 vi.mock('../src/features/workout/workoutService', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../src/features/workout/workoutService')>()),
   startPlannedWorkout: vi.fn(),
+}));
+vi.mock('virtual:pwa-register/react', () => ({
+  useRegisterSW: () => ({
+    needRefresh: [false, vi.fn()],
+    offlineReady: [false, vi.fn()],
+    updateServiceWorker: vi.fn(),
+  }),
 }));
 afterEach(async () => {
   vi.clearAllMocks();
@@ -50,14 +58,14 @@ async function renderLanding(data: WorkoutLandingData, search = '') {
       router={createMemoryRouter(
         [
           {
-            path: '/',
-            element: <WorkoutPage />,
-            loader: () => data,
+            path: '/workout',
+            element: <AppShell />,
+            children: [{ index: true, element: <WorkoutPage />, loader: () => data }],
             hydrateFallbackElement: <p>Loading</p>,
           },
           { path: '/workout/:id', element: <h1>Logger</h1> },
         ],
-        { initialEntries: ['/' + search] },
+        { initialEntries: ['/workout' + search] },
       )}
     />,
   );

@@ -39,21 +39,16 @@ async function review(page: Page, info: TestInfo, screen: string, branded = fals
           await input.evaluate((el) => parseFloat(getComputedStyle(el).fontSize)),
         ).toBeGreaterThanOrEqual(16);
     }
-    if (branded) {
-      const logo = page.getByRole('img', { name: 'Liftwise', exact: true });
-      await expect(logo).toBeVisible();
-      expect(await logo.evaluate((el) => (el as HTMLImageElement).naturalWidth)).toBe(617);
-      const box = await logo.boundingBox();
-      expect(box!.width / box!.height).toBeCloseTo(617 / 230, 2);
-      await expect.poll(async () => (await logo.boundingBox())!.width).toBeCloseTo(152, 0);
-    } else await expect(page.locator('.app-wordmark')).toHaveCount(0);
+    await expect(page.locator('.app-wordmark')).toHaveCount(0);
+    if (branded)
+      await expect(page.getByRole('banner', { name: 'Liftwise application header' })).toBeVisible();
     await page.screenshot({ path: info.outputPath(`${screen}-${width}.png`), fullPage: true });
   }
   await page.setViewportSize({ width: 390, height: 844 });
 }
 
 test.use({ timezoneId: 'Asia/Riyadh', actionTimeout: 20_000 });
-test('one local font family, original wordmark, long names, stable numbers and workout flow', async ({
+test('one local font family, shared header without wordmark, long names, stable numbers and workout flow', async ({
   page,
   context,
   browserName,
@@ -226,7 +221,7 @@ test('one local font family, original wordmark, long names, stable numbers and w
   await expect(page.getByRole('heading', { name: programName, exact: true })).toBeVisible({
     timeout: 20_000,
   });
-  await review(page, info, 'program');
+  await review(page, info, 'program', true);
   await page.goto(`/exercises/${exerciseId}`);
   await expect(page.getByRole('heading', { name: exerciseName, exact: true })).toBeVisible();
   await review(page, info, 'exercise-detail', true);
@@ -243,11 +238,10 @@ test('one local font family, original wordmark, long names, stable numbers and w
   await page.goto('/progress/measurements');
   await expect(page.getByLabel('Weight (kg)', { exact: true })).toBeVisible();
   await page.getByLabel('Weight (kg)', { exact: true }).fill('100');
-  await review(page, info, 'measurements');
-  await page.goto('/workout');
-  await page.getByRole('button', { name: programName, exact: true }).click();
+  await review(page, info, 'measurements', true);
+  await page.goto(`/workout?day=${ids.dayId}`);
   await expect(page.getByRole('button', { name: 'Start Workout', exact: true })).toBeVisible();
-  await review(page, info, 'workout-landing');
+  await review(page, info, 'workout-landing', true);
   await page.getByRole('button', { name: 'Start Workout', exact: true }).click();
   const logger = page.getByRole('region', { name: 'Set logger' });
   await expect(logger).toBeVisible();
@@ -322,12 +316,20 @@ test('one local font family, original wordmark, long names, stable numbers and w
     await navigator.serviceWorker.ready;
   });
   await page.reload();
-  await expect(page.getByRole('img', { name: 'Liftwise', exact: true })).toBeVisible();
-  const logoUrl = await page.locator('.app-wordmark').getAttribute('src');
-  expect(await page.evaluate(async (url) => !!(await caches.match(url!)), logoUrl)).toBe(true);
+  await expect(page.getByRole('banner', { name: 'Liftwise application header' })).toBeVisible();
+  expect(
+    await page.evaluate(async () => {
+      for (const name of await caches.keys()) {
+        const keys = await (await caches.open(name)).keys();
+        if (keys.some((request) => new URL(request.url).pathname === '/pwa-192x192.png'))
+          return true;
+      }
+      return false;
+    }),
+  ).toBe(true);
   await setOffline(context, browserName, true);
   if (browserName !== 'webkit') await page.reload();
-  await expect(page.getByRole('img', { name: 'Liftwise', exact: true })).toBeVisible();
+  await expect(page.locator('.app-wordmark')).toHaveCount(0);
   await page.evaluate(async () => {
     await document.fonts.load('700 26px Manrope');
   });

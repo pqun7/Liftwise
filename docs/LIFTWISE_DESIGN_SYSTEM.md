@@ -54,3 +54,26 @@ The migration retains the locally bundled font and installed dependencies. Exist
 ## Final navigation/completion follow-up
 
 See `NAVIGATION_AND_COMPLETION_REVIEW.md` for the final architecture, regression coverage and verification results. The two initial unit failures are resolved; the complete suite now passes 238 tests. Production browser checks now pass exact program editing, backup/delete/restore, Home states, Plan/calendar responsibilities, retained navigation, completion persistence and mobile form typography. Rest duration remains visible once in training-day metadata. Shared navigation typography accommodates 150% text sizing without splitting labels at 360px.
+
+## v1.2 shared header and iPhone layout
+
+AppHeader renders compact streak and optional page title once in AppShell, without
+the App Wordmark per the v1.2.1 request. All displayed streaks use ProgressRepository.
+Home, Plan, Workout landing, Progress, Settings and Exercise Library use it.
+ContextToolbar standardizes builder, saved-program editor and Progress detail
+headers; ContextBackLink preserves origin-aware return behavior. The focused
+workout logger keeps its training controls within the same shell and navigation.
+
+Page titles use 28px, sections 20px, card titles 16px, body 15px, secondary 13px
+and captions 12px. Normal cards keep 16px padding/18px radius, heroes 20px/22px.
+Editable controls use 48px height and at least 16px type. Large actions use 52px;
+the pinned Start Workout action retains its established 54px touch target.
+
+AppHeader applies top safe area once. AppShell reserves measured navigation height
+plus 16px; BottomNavigation includes the bottom inset and lets labels wrap under
+larger text. Builder actions remain in document flow. Artwork uses natural aspect
+ratios and shared 210px hero / 190px recovery widths where appropriate. Decorative background
+photography retains intentional cover composition.
+
+See UI_CONSOLIDATION_AUDIT.md for the current release's complete quality gate and
+WebKit matrix. Earlier migration verification above describes its original state.

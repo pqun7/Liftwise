@@ -116,14 +116,14 @@
     --fw-semibold: 600;
     --fw-bold: 700;
     --fw-display: 800;
-    --type-size-display: 2.125rem;
-    --type-size-page: 2rem;
+    --type-size-display: 1.75rem;
+    --type-size-page: 1.75rem;
     --type-size-section: 1.25rem;
     --type-size-card: 1rem;
-    --type-size-body: 0.875rem;
+    --type-size-body: 0.9375rem;
     --type-size-body-small: 0.8125rem;
     --type-size-label: 0.75rem;
-    --type-size-caption: 0.6875rem;
+    --type-size-caption: 0.75rem;
     --type-size-metric-lg: 2rem;
     --type-size-metric-md: 1.5rem;
     --type-size-timer: clamp(3rem, 15vw, 4.5rem);
@@ -307,7 +307,7 @@
 
 .app-wordmark {
   display: block;
-  width: 9.5rem;
+  width: 120px;
   height: auto;
   max-width: 100%;
   flex-shrink: 0;

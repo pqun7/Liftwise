@@ -17,8 +17,6 @@ import {
   ChevronRight,
   ArrowUp,
   ArrowDown,
-  BedDouble,
-  Dumbbell,
   ChevronLeft,
   FileText,
 } from 'lucide-react';
@@ -71,7 +69,7 @@ function ProgramDayPreview() {
         <Card variant="glass" padding="spacious" radius="hero" className="grid gap-4 text-center">
           <img
             src={recoveryArtwork}
-            className="recovery-artwork mx-auto w-[248px] max-w-full"
+            className="recovery-artwork mx-auto h-auto w-[var(--recovery-artwork-width)] max-w-full object-contain"
             alt=""
           />
           <h2 className="type-section-title">Rest day</h2>
@@ -159,7 +157,10 @@ function ProgramDayEditor() {
     }
   };
   return (
-    <section className="builder-page" aria-label={`${data.day.name} exercise management`}>
+    <section
+      className={`builder-page ${recovery ? 'recovery-page' : ''}`}
+      aria-label={`${data.day.name} exercise management`}
+    >
       <UnsavedChanges
         dirty={note !== noteSaved}
         saving={busy}
@@ -193,20 +194,7 @@ function ProgramDayEditor() {
           <span />
         )}
       </nav>
-      <h2
-        className={`flex items-center gap-3 type-page-title ${recovery ? 'justify-center py-2' : ''}`}
-      >
-        {recovery ? (
-          <>
-            <span className="grid size-12 shrink-0 place-items-center rounded-2xl border border-mint/25 bg-mint/10">
-              <BedDouble size={26} aria-hidden="true" />
-            </span>{' '}
-            Recovery Day
-          </>
-        ) : (
-          data.day.name
-        )}
-      </h2>
+      {!recovery ? <h2 className="type-page-title">{data.day.name}</h2> : null}
       {!recovery ? (
         <p className="text-secondary">
           {data.exercises.length} exercises{minutes == null ? '' : ` · ~${minutes} min`}
@@ -218,9 +206,9 @@ function ProgramDayEditor() {
         </p>
       ) : null}
       {recovery ? (
-        <section className="grid justify-items-center gap-5 text-center">
+        <section className="grid justify-items-center gap-3 text-center">
           <img
-            className="recovery-artwork mx-auto block h-auto w-[310px] max-w-full object-contain"
+            className="recovery-artwork mx-auto block h-auto w-[var(--recovery-artwork-width)] max-w-full object-contain"
             src={recoveryArtwork}
             width={1448}
             height={1086}
@@ -229,35 +217,23 @@ function ProgramDayEditor() {
           />
           <h2 className="type-page-title">Take the day off</h2>
           <p className="max-w-[310px] text-[16px] leading-relaxed text-secondary">
-            Rest and recover as part of your training cycle. This helps you build strength, prevent
-            injury, and perform better in the days ahead.
+            Recovery is part of your training cycle.
           </p>
           {upNext ? (
-            <Card variant="glass" className="recovery-up-next grid w-full gap-3 text-left">
-              <small className="type-label tracking-wider text-mint">UP NEXT</small>
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="grid size-12 shrink-0 place-items-center rounded-2xl border border-border bg-surface-2 text-mint">
-                  <Dumbbell size={27} aria-hidden="true" />
+            <Card variant="glass" className="recovery-up-next w-full text-left">
+              <Link
+                className="flex min-h-11 items-center justify-between gap-3"
+                aria-label={`View Day ${graph.days.indexOf(upNext) + 1}`}
+                to={`${base}/days/${upNext.day.id}${suffix}`}
+              >
+                <span className="min-w-0">
+                  <small className="block type-label text-mint">
+                    Up next · Day {graph.days.indexOf(upNext) + 1}
+                  </small>
+                  <strong className="type-card-title wrap-anywhere">{upNext.day.name}</strong>
                 </span>
-                <div className="min-w-0 flex-1">
-                  <strong className="type-card-title">
-                    Day {graph.days.indexOf(upNext) + 1} · {upNext.day.name}
-                  </strong>
-                  <p className="type-body-small text-secondary">
-                    {upNext.exercises.length} exercises
-                    {estimatedProgramMinutes(upNext.exercises) == null
-                      ? ''
-                      : ` · ~${estimatedProgramMinutes(upNext.exercises)} min`}
-                  </p>
-                </div>
-                <Link
-                  className={buttonClasses('outline', 'text-sm')}
-                  to={`${base}/days/${upNext.day.id}${suffix}`}
-                >
-                  View Day {graph.days.indexOf(upNext) + 1}
-                  <ChevronRight size={16} />
-                </Link>
-              </div>
+                <ChevronRight size={20} className="shrink-0" aria-hidden="true" />
+              </Link>
             </Card>
           ) : (
             <p>Your cycle continues with Day 1.</p>

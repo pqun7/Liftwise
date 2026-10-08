@@ -1,4 +1,72 @@
 /* Shared appearance; feature styles retain layout and information architecture. */
+.app-frame {
+  /* Resolve on the frame so the measured navigation height remains authoritative. */
+  --navigation-clearance: calc(var(--navigation-height) + var(--space-4));
+}
+.app-header {
+  padding-top: calc(var(--space-3) + var(--safe-top));
+  display: grid;
+  gap: var(--space-2);
+}
+.app-header-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.app-header-title h1 {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.context-toolbar {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: var(--space-2);
+}
+.context-toolbar h1 {
+  margin: 0;
+  text-align: center;
+  font-size: var(--type-size-card);
+  line-height: var(--type-leading-heading);
+  overflow-wrap: anywhere;
+}
+.context-toolbar .back-link {
+  justify-content: center;
+  width: 44px;
+}
+.back-link {
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+}
+.exercise-detail {
+  gap: var(--space-3);
+}
+.exercise-detail-header h1 {
+  overflow-wrap: anywhere;
+}
+.builder-stepper li {
+  overflow-wrap: anywhere;
+}
+.plan-frame .recovery-page {
+  gap: var(--space-3);
+  padding-bottom: 0;
+}
+.recovery-page > h2 {
+  font-size: var(--type-size-section);
+}
+.recovery-page .builder-footer {
+  margin-top: 0;
+  padding-top: 0;
+}
+.recovery-page .recovery-up-next {
+  padding: var(--space-3);
+}
+.streak-badge {
+  gap: 0;
+  box-shadow: none;
+}
 .ui-card {
   min-width: 0;
   border: 1px solid var(--border);
@@ -35,7 +103,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  min-height: 44px;
+  min-height: var(--control-height);
   border: 1px solid transparent;
   border-radius: var(--radius-control);
   padding: 8px 16px;
@@ -94,13 +162,14 @@
   background: color-mix(in srgb, var(--danger-solid) 85%, var(--danger));
 }
 .ui-button-large {
-  min-height: 58px;
+  min-height: var(--action-height);
   border-radius: var(--radius-button);
   font-size: 17px;
   font-weight: 700;
   padding: 12px 16px;
 }
 .ui-button-icon {
+  min-height: 44px;
   width: 44px;
   height: 44px;
   padding: 0;
@@ -116,7 +185,7 @@
 .ui-control {
   width: 100%;
   min-width: 0;
-  min-height: 44px;
+  min-height: var(--control-height);
   border-radius: var(--radius-control);
   border: 1px solid var(--border-input);
   background: var(--surface);

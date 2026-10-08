@@ -1,6 +1,8 @@
-import { StreakBadge } from '../../components/ui/StreakBadge';
+import { AppHeader } from '../../components/layout/AppHeader';
+import { CalendarDays } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { iconButtonClasses } from '../../components/ui/controlStyles';
 import { ScreenStateProvider } from '../ScreenStateProvider';
-import { AppWordmark } from '../../components/ui/AppWordmark';
 import { useRouteStreak } from '../../features/progress/useRouteStreak';
 import { useCalendarRevalidation } from './useCalendarRevalidation';
 import { Suspense, useEffect, useState } from 'react';
@@ -42,28 +44,46 @@ export function AppShell() {
       (status === 'active' || status === 'paused' || status === 'completed')
     );
   });
+  const pages: Record<string, [string, string]> = {
+    '/': ['Welcome to Liftwise', 'home-title'],
+    '/plan': ['Plan', 'plan-title'],
+    '/workout': ['Start training', 'workout-title'],
+    '/progress': ['Progress', 'progress-title'],
+    '/settings': ['Make Liftwise yours', 'settings-title'],
+    '/exercises': ['Find your next movement', 'exercise-library-title'],
+  };
+  const page = pages[pathname];
   return (
     <ScreenStateProvider>
       <div
-        className={`app-frame mx-auto min-h-dvh w-full max-w-[430px] ${plan ? 'plan-frame' : ''} pl-[max(20px,var(--safe-left))] pr-[max(20px,var(--safe-right))] text-primary${home ? ' home-frame' : ''}`}
+        className={`app-frame mx-auto min-h-dvh w-full max-w-[430px] ${plan ? 'plan-frame' : ''} pl-[max(16px,var(--safe-left))] pr-[max(16px,var(--safe-right))] text-primary${home ? ' home-frame' : ''}`}
       >
         <a className="skip-link" href="#main-content">
           Skip to content
         </a>
 
-        {!home && !plan && !progress && !pathname.startsWith('/workout') && !focused ? (
-          <header className="top-bar flex flex-wrap items-center justify-between gap-3 pt-[calc(22px+var(--safe-top))] pb-2">
-            <div>
-              <p className="eyebrow">Your private training space</p>
-              <AppWordmark />
-            </div>
-            <StreakBadge currentStreak={streak?.currentStreak ?? 0} />
-          </header>
+        {!focused ? (
+          <AppHeader
+            title={page?.[0]}
+            titleId={page?.[1]}
+            currentStreak={streak?.currentStreak}
+            action={
+              pathname === '/plan' ? (
+                <Link
+                  to="/plan/calendar"
+                  aria-label="Open calendar"
+                  className={iconButtonClasses()}
+                >
+                  <CalendarDays size={22} aria-hidden="true" />
+                </Link>
+              ) : undefined
+            }
+          />
         ) : null}
 
         <main
           id="main-content"
-          className="main-content min-w-0 pb-[calc(112px+var(--safe-bottom))] pt-[calc(18px+var(--safe-top))]"
+          className={`main-content min-w-0 pb-[var(--navigation-clearance)] ${focused ? 'pt-[calc(12px+var(--safe-top))]' : 'pt-3'}`}
           tabIndex={-1}
         >
           <UpdatePrompt />

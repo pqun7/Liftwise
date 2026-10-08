@@ -10,7 +10,6 @@ import {
   uniqueExerciseFilterValues,
   type ExerciseFilters,
 } from '../../domain/exerciseSearch';
-import { PageIntro } from '../../components/PageIntro';
 import { ExerciseCard } from './ExerciseCard';
 import { formatExerciseValue } from './formatters';
 
@@ -89,12 +88,7 @@ export function ExerciseLibraryPage() {
 
   return (
     <section className="page-stack exercise-library" aria-labelledby="exercise-library-title">
-      <PageIntro
-        titleId="exercise-library-title"
-        eyebrow="Exercise library"
-        title="Find your next movement"
-        description="Browse a local catalog that stays available without a connection."
-      />
+      <p className="type-body text-secondary">Browse your offline exercise catalog.</p>
       <div className="library-actions">
         <label className="search-field">
           <span className="sr-only">Search exercises</span>
