@@ -256,6 +256,11 @@ test('all core training, charts, backup and CSV flows work with network disabled
     await page.getByRole('link', { name: 'Done', exact: true }).click();
     await page.getByRole('link', { name: 'Plan', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Offline Push', exact: true })).toBeVisible();
+    await expect(
+      page
+        .getByRole('navigation', { name: 'Primary navigation' })
+        .getByRole('link', { name: 'Plan', exact: true }),
+    ).toHaveAttribute('href', '/plan');
     await page.getByRole('link', { name: 'Plan', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Plan', exact: true })).toBeVisible();
     await page.getByRole('radio', { name: 'Program', exact: true }).click();

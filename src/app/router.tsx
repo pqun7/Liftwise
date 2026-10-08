@@ -137,11 +137,8 @@ const WorkoutExercisePickerPage = lazy(() =>
     default: module.WorkoutExercisePickerPage,
   })),
 );
-const WorkoutSessionPage = lazy(() =>
-  import('../features/workout/WorkoutSessionPage').then((module) => ({
-    default: module.WorkoutSessionPage,
-  })),
-);
+// Keep the critical logger in the initial bundle so opening a saved session needs no route chunk.
+import { WorkoutSessionPage } from '../features/workout/WorkoutSessionPage';
 import {
   workoutExercisePickerLoader,
   workoutLandingLoader,
