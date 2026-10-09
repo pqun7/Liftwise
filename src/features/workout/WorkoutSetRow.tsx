@@ -173,7 +173,13 @@ export function WorkoutSetRow({
           aria-label={'Set ' + set.setNumber + ' type'}
           onChange={(event) => {
             const setType = event.target.value as WorkoutSetType;
-            perform(() => updateWorkoutSet(set.id, { setType }));
+            perform(() =>
+              updateWorkoutSet(
+                set.id,
+                { setType },
+                editor.queue.committedRevisions.get(set.id) ?? set.updatedAt,
+              ),
+            );
           }}
         >
           <option value="warmup">Warmup</option>
@@ -190,12 +196,21 @@ export function WorkoutSetRow({
         aria-pressed={set.completed}
         onClick={() =>
           perform(async () => {
-            if (set.completed) await updateWorkoutSet(set.id, { completed: false });
+            if (set.completed)
+              await updateWorkoutSet(
+                set.id,
+                { completed: false },
+                editor.queue.committedRevisions.get(set.id) ?? set.updatedAt,
+              );
             else
               completed(
-                await completeWorkoutSet(set.id, {
-                  ...editor.values(set, true),
-                }),
+                await completeWorkoutSet(
+                  set.id,
+                  {
+                    ...editor.values(set, true),
+                  },
+                  editor.queue.committedRevisions.get(set.id) ?? set.updatedAt,
+                ),
               );
           })
         }
@@ -209,7 +224,6 @@ export function WorkoutSetRow({
             disabled={busy}
             onClick={() =>
               perform(async () => {
-                await updateWorkoutSet(set.id, editor.values(set));
                 await duplicateWorkoutSet(set.id);
               })
             }

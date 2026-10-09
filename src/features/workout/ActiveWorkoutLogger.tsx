@@ -9,15 +9,11 @@ import { iconButtonClasses, buttonClasses } from '../../components/ui/controlSty
 import { WorkoutExerciseProgress } from './WorkoutExerciseProgress';
 import { CurrentExerciseCard } from './CurrentExerciseCard';
 import { SetLogger } from './SetLogger';
-import { RestTimer } from './RestTimer';
+import { WorkoutElapsed, WorkoutRestClock } from './WorkoutClock';
+import { WorkoutDurationCorrection } from './WorkoutDurationCorrection';
 import { calculateWorkoutVolume } from '../../domain/calculations';
 import { formatPreviousSets } from './workoutFormat';
 import { KeepAwake } from './KeepAwake';
-import {
-  formatDuration,
-  restRemainingSeconds,
-  workoutElapsedSeconds,
-} from '../../domain/workoutTime';
 import type { SetCompletionUndo } from '../../lib/storage/repositories/workoutRepository';
 import {
   clearWorkoutRest,
@@ -62,6 +58,8 @@ export function ActiveWorkoutLogger({
 }) {
   const navigate = useNavigate();
   const [leave, setLeave] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const [leaveError, setLeaveError] = useState<string | null>(null);
   const leaveDialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     if (leave) leaveDialog.current?.showModal();
@@ -101,7 +99,6 @@ export function ActiveWorkoutLogger({
       !item.exercise.skipped &&
       (!item.sets.length || item.sets.some((set) => !set.completed)),
   );
-  const rest = restRemainingSeconds(session, now);
   const incompleteSets = workout.exercises
     .filter((item) => !item.exercise.skipped)
     .flatMap((item) => item.sets)
@@ -129,11 +126,11 @@ export function ActiveWorkoutLogger({
     .filter((set) => set.completed && set.weight !== null && set.reps !== null)
     .sort((a, b) => b.weight! * b.reps! - a.weight! * a.reps!)[0];
   const timer = resting ? (
-    <RestTimer
+    <WorkoutRestClock
+      session={session}
       entry={entry}
       refresh={refresh}
       onCompleted={onCompleted}
-      remaining={rest}
       duration={Math.max(
         1,
         (Date.parse(session.restEndsAt!) -
@@ -228,7 +225,7 @@ export function ActiveWorkoutLogger({
         {session.status === 'paused'
           ? 'Paused'
           : `${completedSets}/${completedSets + incompleteSets} sets completed`}{' '}
-        · {formatDuration(workoutElapsedSeconds(session, now))}
+        · <WorkoutElapsed session={session} />
       </p>
       {error ? (
         <p role="alert" className="text-sm text-danger">
@@ -236,8 +233,19 @@ export function ActiveWorkoutLogger({
         </p>
       ) : null}
       {session.status === 'paused' ? (
-        <div className="flex items-center justify-between gap-2 rounded-xl border border-mint p-3">
-          <p className="text-sm">Workout paused</p>
+        <div className="grid gap-3 rounded-xl border border-mint p-3">
+          <div className="text-sm">
+            <p>
+              {session.pauseReason === 'away' || session.pauseReason === 'recovery'
+                ? 'Your progress is saved. Time away was excluded.'
+                : 'Workout paused'}
+            </p>
+            {session.durationEstimated ? (
+              <p className="text-secondary">
+                Duration is estimated from the last saved checkpoint.
+              </p>
+            ) : null}
+          </div>
           <Button
             variant="primary"
             disabled={busy}
@@ -245,6 +253,9 @@ export function ActiveWorkoutLogger({
           >
             Resume Workout
           </Button>
+          {session.durationEstimated ? (
+            <WorkoutDurationCorrection session={session} busy={busy} run={run} />
+          ) : null}
         </div>
       ) : null}
       {reviewFinish ? (
@@ -370,7 +381,7 @@ export function ActiveWorkoutLogger({
               <Button
                 variant="primary"
                 size="large"
-                className="workout-primary ui-button ui-button-primary ui-button-large"
+                className="workout-primary ui-button ui-button-primary ui-button-large workout-active-action"
                 onClick={() =>
                   void run(() =>
                     setCurrentWorkoutExercise(session.id, (next ?? unfinished)!.exercise.id),
@@ -420,37 +431,72 @@ export function ActiveWorkoutLogger({
       >
         <h2 className="text-xl font-bold">Leave Workout?</h2>
         <p className="my-3 text-sm text-secondary">
-          Your progress is saved on this device. Pending changes will save before you leave.
+          Your progress is saved on this device. Pending changes will save before you leave. Workout
+          and rest timers will pause.
         </p>
-        {error || saves?.error ? (
+        {leaveError || error || saves?.error ? (
           <p role="alert" className="my-3 text-sm text-danger">
-            {error ?? saves?.error}
+            {leaveError ?? error ?? saves?.error}
           </p>
         ) : null}
         <div className="grid gap-2">
-          <Button variant="primary" onClick={() => setLeave(false)}>
+          <Button variant="primary" disabled={leaving} onClick={() => setLeave(false)}>
             Continue Workout
           </Button>
           <Button
-            disabled={busy}
+            disabled={busy || leaving}
             onClick={() => {
-              void (saves?.flush() ?? Promise.resolve()).then(() => navigate('/')).catch(() => {});
+              setLeaving(true);
+              setLeaveError(null);
+              void (saves?.perform(() => pauseWorkout(session.id)) ?? pauseWorkout(session.id))
+                .then(() => {
+                  if (saves) saves.departureCommitted = true;
+                  return navigate('/');
+                })
+                .catch((failure: unknown) =>
+                  setLeaveError(
+                    failure instanceof Error
+                      ? failure.message
+                      : 'The workout could not be paused. Retry before leaving.',
+                  ),
+                )
+                .finally(() => {
+                  if (saves) saves.departureCommitted = false;
+                  setLeaving(false);
+                });
             }}
           >
-            Save &amp; Exit
+            Save &amp; Pause
           </Button>
           <Button
-            disabled={busy}
+            disabled={busy || leaving}
             onClick={() => {
               if (
                 window.confirm(
                   'Discard this workout? This ends the session; recorded sets stay saved.',
                 )
-              )
-                void run(async () => {
-                  await discardWorkout(session.id);
-                  void navigate('/');
-                });
+              ) {
+                setLeaving(true);
+                setLeaveError(null);
+                void (
+                  saves?.perform(() => discardWorkout(session.id)) ?? discardWorkout(session.id)
+                )
+                  .then(() => {
+                    if (saves) saves.departureCommitted = true;
+                    return navigate('/');
+                  })
+                  .catch((failure: unknown) =>
+                    setLeaveError(
+                      failure instanceof Error
+                        ? failure.message
+                        : 'The workout could not be discarded. Retry before leaving.',
+                    ),
+                  )
+                  .finally(() => {
+                    if (saves) saves.departureCommitted = false;
+                    setLeaving(false);
+                  });
+              }
             }}
           >
             Discard Workout
@@ -466,6 +512,7 @@ export function ActiveWorkoutLogger({
               defaultValue={session.notes ?? ''}
               onChange={(event) => {
                 const notes = event.target.value;
+                if (saves) saves.notesDraft = notes;
                 void saves
                   ?.save('workout-notes', () =>
                     updateWorkoutNotes(session.id, notes.trim() || null),

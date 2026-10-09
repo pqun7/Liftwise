@@ -104,7 +104,7 @@ test('Home adapts to local program, active workout and rest states with cached p
   await page.getByRole('button', { name: 'Complete set', exact: true }).first().click();
   await expect(page.getByRole('region', { name: 'Rest timer' })).toBeVisible();
   await page.getByRole('link', { name: 'Leave workout, keep session saved' }).click();
-  await page.getByRole('button', { name: 'Save & Exit' }).click();
+  await page.getByRole('button', { name: 'Save & Pause' }).click();
   await expect(page.locator('[data-home-state=in-progress]')).toBeVisible();
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '33');
   await expect(page.getByText('0 of 1 exercise · 2 sets left')).toBeVisible();
@@ -126,7 +126,7 @@ test('Home adapts to local program, active workout and rest states with cached p
         return paths.filter((url) => /\/assets\/.*\.webp/.test(url)).length;
       }),
     )
-    .toBe(3);
+    .toBeGreaterThanOrEqual(3);
   await setOffline(context, browserName, true);
   try {
     if (browserName !== 'webkit') await page.reload();

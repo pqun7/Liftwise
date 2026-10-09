@@ -188,10 +188,10 @@ export function ScheduleView({
               <small className="mt-1 block type-body-small text-secondary">
                 {calendar.next.date
                   ? dateFromKey(calendar.next.date).toLocaleDateString('en', {
-                    weekday: 'short',
-                    month: 'short',
-                    day: 'numeric',
-                  })
+                      weekday: 'short',
+                      month: 'short',
+                      day: 'numeric',
+                    })
                   : 'Flexible cycle · no date assigned'}
               </small>
             </span>

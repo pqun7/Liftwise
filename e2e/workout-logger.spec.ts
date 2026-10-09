@@ -137,9 +137,10 @@ test('focused logger preserves decimal sets, rest, prefill, recovery and canonic
   await logger.getByLabel('Set 1 reps', { exact: true }).fill('10');
   await page.screenshot({ path: testInfo.outputPath('active.png') });
   await page.getByRole('link', { name: 'Leave workout, keep session saved' }).click();
-  await page.getByRole('button', { name: 'Save & Exit' }).click();
+  await page.getByRole('button', { name: 'Save & Pause' }).click();
   await page.getByRole('link', { name: 'Workout', exact: true }).click();
   await page.getByRole('link', { name: 'Resume Workout', exact: true }).click();
+  await page.getByRole('button', { name: 'Resume Workout', exact: true }).click();
   await expect(logger.getByLabel('Set 1 weight', { exact: true })).toHaveValue('0');
   await complete.click();
   await expect(page.getByRole('heading', { name: 'Workout complete', exact: true })).toBeVisible();

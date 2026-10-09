@@ -45,7 +45,11 @@ describe('Workout set speed controls', () => {
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: 'Copy Previous Set' }));
     await waitFor(() => expect(screen.getByLabelText('Set 1 weight')).toHaveValue('100'));
-    expect(updateWorkoutSet).toHaveBeenLastCalledWith('set', { weight: 100, reps: 8, rir: 2 });
+    expect(updateWorkoutSet).toHaveBeenLastCalledWith(
+      'set',
+      { weight: 100, reps: 8, rir: 2 },
+      set.updatedAt,
+    );
     expect(completeWorkoutSet).not.toHaveBeenCalled();
     await user.click(screen.getByRole('button', { name: 'Set 1 weight plus 2.5 kg' }));
     await waitFor(() => expect(screen.getByLabelText('Set 1 weight')).toHaveValue('102.5'));
@@ -55,10 +59,18 @@ describe('Workout set speed controls', () => {
     await user.type(screen.getByLabelText('Set 1 weight'), '105');
     await user.click(screen.getByRole('button', { name: 'Duplicate Set' }));
     await waitFor(() => expect(duplicateWorkoutSet).toHaveBeenCalledWith('set'));
-    expect(updateWorkoutSet).toHaveBeenLastCalledWith('set', { weight: 105, reps: 9, rir: 2 });
+    expect(updateWorkoutSet).toHaveBeenLastCalledWith(
+      'set',
+      { weight: 105, reps: 9, rir: 2 },
+      set.updatedAt,
+    );
     await user.click(screen.getByRole('button', { name: 'Complete set' }));
     await waitFor(() =>
-      expect(completeWorkoutSet).toHaveBeenCalledWith('set', { weight: 105, reps: 9, rir: 2 }),
+      expect(completeWorkoutSet).toHaveBeenCalledWith(
+        'set',
+        { weight: 105, reps: 9, rir: 2 },
+        set.updatedAt,
+      ),
     );
     expect(completed).toHaveBeenCalledOnce();
   });

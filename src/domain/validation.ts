@@ -227,6 +227,15 @@ export const workoutSessionSchema: z.ZodType<WorkoutSession> = z
     programDayId: entityIdSchema.nullable(),
     name: z.string().trim().min(1).max(120).nullable(),
     status: z.enum(workoutSessionStatuses),
+    presence: z
+      .record(
+        z.string(),
+        z.object({ seenAt: isoTimestampSchema, hiddenAt: isoTimestampSchema.nullable() }).strict(),
+      )
+      .optional(),
+    pauseReason: z.enum(['manual', 'away', 'recovery']).optional(),
+    durationEstimated: z.boolean().optional(),
+    durationCorrectionSeconds: z.number().int().optional(),
     startedAt: isoTimestampSchema,
     endedAt: isoTimestampSchema.nullable(),
     pausedAt: isoTimestampSchema.nullable(),

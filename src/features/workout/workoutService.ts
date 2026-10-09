@@ -46,6 +46,7 @@ export interface WorkoutListSummary {
 }
 
 export interface WorkoutRecoverySummary {
+  pauseReason?: 'manual' | 'away' | 'recovery' | undefined;
   scheduledDate?: string;
   id: string;
   name: string;
@@ -75,6 +76,7 @@ function recoverySummary(graph: WorkoutGraph): WorkoutRecoverySummary {
     completedSets: completion.completedSets,
     totalSets: completion.totalSets,
     status: graph.session.status as 'active' | 'paused',
+    pauseReason: graph.session.pauseReason,
   };
 }
 
@@ -100,6 +102,12 @@ export async function getWorkoutLanding(
       totalSets: sets.length,
     };
   };
+  const previousExercises = await history.getPreviousCompletedExercises(
+    (activeGraph?.days ?? []).flatMap(({ exercises }) =>
+      exercises.map((entry) => entry.exerciseId),
+    ),
+    now.toISOString(),
+  );
   const previews = await Promise.all(
     (activeGraph?.days ?? []).map(async ({ day, exercises: prescriptions }) => ({
       day,
@@ -107,11 +115,7 @@ export async function getWorkoutLanding(
         prescriptions.map(async (prescription) => ({
           prescription,
           exercise: (await catalog.get(prescription.exerciseId)) ?? null,
-          previous:
-            (await history.getPreviousCompletedExercise(
-              prescription.exerciseId,
-              now.toISOString(),
-            )) ?? null,
+          previous: previousExercises.get(prescription.exerciseId) ?? null,
         })),
       ),
     })),
@@ -132,6 +136,7 @@ export async function getWorkoutLanding(
 }
 
 export async function getRecoverySummary(): Promise<WorkoutRecoverySummary | null> {
+  await workouts.recoverInterrupted();
   const graph = await workouts.getUnfinished();
   return graph ? recoverySummary(graph) : null;
 }
@@ -142,6 +147,7 @@ export async function getOrStartWorkout(
   db: LiftwiseDatabase = database,
 ): Promise<string> {
   const repository = new WorkoutRepository(db);
+  await repository.recoverInterrupted();
   return db.transaction(
     'rw',
     [
@@ -167,17 +173,18 @@ export const startQuickWorkout = () => getOrStartWorkout(null);
 export const startPlannedWorkout = (programDayId: string) => getOrStartWorkout(programDayId);
 
 export async function getHydratedWorkout(id: string): Promise<HydratedWorkoutGraph | undefined> {
+  await workouts.recoverInterrupted();
   const graph = await workouts.get(id);
   if (!graph) return undefined;
+  const previousExercises = await workouts.getPreviousCompletedExercises(
+    graph.exercises.map((entry) => entry.exercise.exerciseId),
+    graph.session.startedAt,
+  );
   const hydrated = await Promise.all(
     graph.exercises.map(async (entry) => ({
       ...entry,
       displayExercise: (await exercises.get(entry.exercise.exerciseId)) ?? null,
-      previous:
-        (await workouts.getPreviousCompletedExercise(
-          entry.exercise.exerciseId,
-          graph.session.startedAt,
-        )) ?? null,
+      previous: previousExercises.get(entry.exercise.exerciseId) ?? null,
     })),
   );
   return { session: graph.session, exercises: hydrated };
@@ -208,8 +215,11 @@ export async function addExerciseToWorkout(workoutId: string, exerciseId: string
 
 export const addWorkoutSet = (workoutExerciseId: string) =>
   workouts.addSet({ workoutExerciseId, setType: 'working' });
-export const updateWorkoutSet = (id: string, input: UpdateWorkoutSetInput) =>
-  workouts.updateSet(id, input);
+export const updateWorkoutSet = (
+  id: string,
+  input: UpdateWorkoutSetInput,
+  expectedRevision?: string,
+) => workouts.updateSet(id, input, expectedRevision);
 export const deleteWorkoutSet = (id: string) => workouts.deleteSet(id);
 export const removeWorkoutExercise = (id: string) => workouts.removeExercise(id);
 export const reorderWorkoutExercises = (sessionId: string, orderedIds: readonly string[]) =>
@@ -223,11 +233,18 @@ export const startWorkoutRest = (sessionId: string, seconds: number) =>
 export const clearWorkoutRest = (sessionId: string) => workouts.clearRest(sessionId);
 export const extendWorkoutRest = (sessionId: string) => workouts.extendRest(sessionId);
 export const pauseWorkout = (sessionId: string) => workouts.pause(sessionId);
+export const pauseWorkoutForDeparture = (sessionId: string) =>
+  workouts.pauseForDeparture(sessionId);
+export const correctWorkoutDuration = (sessionId: string, seconds: number) =>
+  workouts.correctDuration(sessionId, seconds);
 export const resumeWorkout = (sessionId: string) => workouts.resume(sessionId);
 export const finishWorkout = (sessionId: string) => workouts.finish(sessionId);
 export const discardWorkout = (sessionId: string) => workouts.discard(sessionId);
-export const completeWorkoutSet = (id: string, input: UpdateWorkoutSetInput) =>
-  workouts.completeSet(id, input, true);
+export const completeWorkoutSet = (
+  id: string,
+  input: UpdateWorkoutSetInput,
+  expectedRevision?: string,
+) => workouts.completeSet(id, input, true, expectedRevision);
 export const undoWorkoutCompletion = (
   undo: import('../../lib/storage/repositories/workoutRepository').SetCompletionUndo,
 ) => workouts.undoCompletion(undo);

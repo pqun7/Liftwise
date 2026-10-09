@@ -10,7 +10,7 @@ test('Plan, Program, calendar and Workout share a durable cycle with summary-onl
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/plan');
   await expect(page.getByRole('heading', { name: 'Build your training week' })).toBeVisible();
-  await page.getByRole('radio', { name: 'Details', exact: true }).click();
+  await expect(page.getByRole('radio', { name: 'Details', exact: true })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Build your training week' })).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath('existing-empty.png'), fullPage: true });
   await page.getByRole('link', { name: 'Create program', exact: true }).click();

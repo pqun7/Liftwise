@@ -180,7 +180,7 @@ test('all core training, charts, backup and CSV flows work with network disabled
     if (browserName !== 'webkit') await page.reload();
     else {
       await page.getByRole('link', { name: 'Leave workout, keep session saved' }).click();
-      await page.getByRole('button', { name: 'Save & Exit' }).click();
+      await page.getByRole('button', { name: 'Save & Pause' }).click();
       await expect(page.locator('[data-home-state=in-progress]')).toBeVisible();
       await page.getByRole('link', { name: 'Continue Workout', exact: true }).click();
     }

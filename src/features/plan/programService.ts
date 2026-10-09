@@ -42,6 +42,7 @@ export async function listPrograms(
   now = new Date(),
 ): Promise<ProgramListData> {
   const repository = new ProgramRepository(db);
+  await new WorkoutRepository(db).recoverInterrupted(now);
   return db.transaction(
     'r',
     [

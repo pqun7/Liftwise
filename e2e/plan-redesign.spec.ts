@@ -11,7 +11,10 @@ test('unified Plan shows real training and recovery states and shares the Home w
   await page.goto('/plan');
   await expect(page.getByRole('heading', { name: 'Build your training week' })).toBeVisible();
   await expect(page.locator('.plan-page img')).toHaveCount(1);
-  await expect(page.locator('.plan-empty-artwork')).toHaveAttribute('src', /program-orb.*\.webp/);
+  await expect(page.locator('.plan-empty-artwork')).toHaveAttribute(
+    'src',
+    /plan-empty-transparent.*\.webp/,
+  );
   await page.screenshot({ path: testInfo.outputPath('empty.png'), fullPage: true });
   await page.getByRole('link', { name: 'Create program', exact: true }).click();
   await page.getByLabel('Program name').fill('Balanced Strength');
@@ -45,12 +48,8 @@ test('unified Plan shows real training and recovery states and shares the Home w
   }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('radio', { name: 'Details' }).click();
-  await expect(page.locator('.plan-page img')).toHaveCount(1);
-  await expect(page.locator('.plan-details-art')).toHaveAttribute(
-    'src',
-    /program-dumbbell.*\.webp/,
-  );
   await expect(page.getByRole('link', { name: 'Edit program', exact: true })).toBeVisible();
+  await expect(page.locator('.plan-page img')).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'View program details', exact: true })).toBeVisible();
   await expect(
     page.getByRole('link', { name: 'Create another program', exact: true }),

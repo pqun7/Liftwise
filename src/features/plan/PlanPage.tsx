@@ -22,9 +22,7 @@ import { ScheduleView } from './ScheduleView';
 import { WeekSelector } from '../../components/home/WeekSelector';
 import { planCalendar } from './scheduleData';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
-import programArtwork from '../../assets/images/plan/program-dumbbell.webp';
-import planArtwork from '../../assets/images/plan/plan-empty-transparent.png';
-
+import planArtwork from '../../assets/images/plan/plan-empty-transparent.webp';
 
 function ProgramStructurePreview({ graph }: { graph: ProgramGraph }) {
   const cycle = graph.program.scheduleType === 'cycle';
@@ -62,7 +60,7 @@ export function PlanPage() {
   const others = graphs.filter(({ program }) => program.id !== active?.program.id);
   const revalidator = useRevalidator();
   const [params, setParams] = useSearchParams();
-  const tab = params.get('tab') === 'program' ? 'Details' : 'Overview';
+  const tab = active && params.get('tab') === 'program' ? 'Details' : 'Overview';
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const pending = useRef(false);
@@ -85,13 +83,20 @@ export function PlanPage() {
     `${graph.days.filter(({ day }) => day.kind !== 'recovery').length} training days · ${graph.days.reduce((sum, entry) => sum + entry.exercises.length, 0)} exercises`;
   return (
     <section className="plan-page grid gap-3 type-body" aria-labelledby="plan-title">
-      <SegmentedControl
-        variant="pill"
-        legend="Plan view"
-        options={['Overview', 'Details'] as const}
-        value={tab}
-        onChange={(value) => void setParams(value === 'Details' ? { tab: 'program' } : {})}
-      />
+      {data.unfinished ? (
+        <p className="text-sm text-secondary">
+          Your saved workout stays unchanged. Program changes apply to future sessions.
+        </p>
+      ) : null}
+      {active ? (
+        <SegmentedControl
+          variant="pill"
+          legend="Plan view"
+          options={['Overview', 'Details'] as const}
+          value={tab}
+          onChange={(value) => void setParams(value === 'Details' ? { tab: 'program' } : {})}
+        />
+      ) : null}
       {tab === 'Overview' && active ? (
         <>
           <ScheduleView overview />

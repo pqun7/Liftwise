@@ -51,7 +51,7 @@ async function fixture(cycle = false) {
   return { db, programs, workouts, program, day, rest, exercise, prescription };
 }
 
-it('shows the guided empty state in Overview and Details without creating workouts', async () => {
+it('shows one guided empty state without empty tabs or creating workouts', async () => {
   const db = createTestDatabase();
   render(
     <RouterProvider
@@ -64,9 +64,9 @@ it('shows the guided empty state in Overview and Details without creating workou
   expect(
     await screen.findByRole('heading', { name: 'Build your training week' }),
   ).toBeInTheDocument();
-  expect(screen.getByRole('radio', { name: 'Overview' })).toBeChecked();
+  expect(screen.queryByRole('radio', { name: 'Overview' })).not.toBeInTheDocument();
   expect(screen.queryByLabelText('Scheduled week')).not.toBeInTheDocument();
-  fireEvent.click(screen.getByRole('radio', { name: 'Details' }));
+  expect(screen.queryByRole('radio', { name: 'Details' })).not.toBeInTheDocument();
   expect(
     await screen.findByRole('heading', { name: 'Build your training week' }),
   ).toBeInTheDocument();

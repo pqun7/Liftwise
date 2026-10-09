@@ -245,7 +245,8 @@ export function ProgramReviewPage() {
       <p className="builder-info">
         <Info size={20} />
         {first ? `Your plan starts with Day 1 · ${first.name}. ` : ''}Saving does not start a
-        workout. Recovery days stay in your schedule.
+        workout. Recovery days stay in your schedule. Any workout already in progress keeps its
+        recorded exercises and targets.
       </p>
       {error ? <p role="alert">{error}</p> : null}
       <BuilderFooter>

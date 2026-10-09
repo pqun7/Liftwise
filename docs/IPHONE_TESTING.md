@@ -2,6 +2,26 @@
 
 ## Focused workout logger acceptance
 
+### Version 1.3.0 recovery acceptance
+
+1. Complete a set, start rest, then Save & Pause. Return using the pinned Continue
+   control after scrolling Home. Both durations must remain frozen until Resume.
+2. Background or lock for two minutes, then for at least six minutes. A short absence
+   continues the session; the longer absence recovers paused at departure. Reopen
+   after force-closing the app and verify saved sets, the estimated-duration notice
+   when needed, and duration correction before Resume.
+3. Leave through bottom navigation from the logger, workout exercise picker and
+   exercise detail. Verify the saved session is paused and can be resumed or finished.
+4. While a session is saved, switch programs, edit its original targets, archive it,
+   then delete it. Existing recorded names, targets and sets must stay intact. Finish
+   that session and verify the next workout uses the newly selected program.
+5. Open a second Safari window for the same workout. Verify pause/resume and completed
+   sets synchronize, a background window does not pause a visible one, and simultaneous
+   field edits show a conflict instead of silently replacing values.
+6. At 320–430px widths, larger text and with the keyboard open, confirm Continue,
+   Back, Complete Set, Start Set and builder Continue are reachable without scrolling
+   to the end. Check actual keyboard/home-indicator spacing and pinch zoom.
+
 On a real installed iPhone PWA, start a planned workout; enter a decimal load and actual RIR outside the prescription range (within 0–10); complete a set, add 30 seconds, lock/background and reopen. Verify the same session, one completed set and wall-clock rest remaining. Skip rest, finish all sets, advance exercises and finish the workout. Inspect its historical prescription and Progress. Repeat with a Quick Workout and with prior history: prefilled sets must remain incomplete. Verify Back preserves the session, Overview manages it, pinch zoom remains available, and the keyboard does not auto-zoom inputs. Repeat without network after installation. This checklist is not evidence of physical-device testing.
 
 Run this plan on a physical, supported iPhone before releasing an installable build.

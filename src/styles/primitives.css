@@ -29,10 +29,45 @@
   overflow-wrap: anywhere;
 }
 .context-toolbar {
+  position: sticky;
+  top: calc(var(--safe-top) + var(--session-return-clearance, 0px));
+  z-index: 34;
+  background: var(--background);
+  padding-block: 8px;
   display: grid;
   grid-template-columns: 44px minmax(0, 1fr) 44px;
   align-items: center;
   gap: var(--space-2);
+}
+
+.app-frame:has(.session-return-bar) {
+  --session-return-clearance: 62px;
+}
+.plan-frame .builder-page {
+  padding-bottom: 112px;
+}
+.builder-page .builder-footer {
+  position: fixed;
+  left: max(16px, calc((100vw - 398px) / 2));
+  right: max(16px, calc((100vw - 398px) / 2));
+  bottom: calc(var(--navigation-height) + 8px);
+  z-index: 30;
+  padding: 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+}
+.app-frame[data-keyboard-open='true'] .bottom-nav {
+  visibility: hidden;
+}
+.app-frame[data-keyboard-open='true'] .builder-footer {
+  bottom: calc(var(--keyboard-offset) + 8px);
+}
+.app-frame[data-keyboard-open='true'] .workout-active-action {
+  bottom: calc(var(--keyboard-offset) + 8px);
+}
+.app-frame[data-keyboard-open='true'] .workout-rest-actions {
+  bottom: calc(var(--keyboard-offset) + 8px);
 }
 .context-toolbar h1 {
   margin: 0;

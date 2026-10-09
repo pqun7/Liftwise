@@ -8,7 +8,7 @@ test('five-step PPL builder, seven-day guard and autosave survive reload at iPho
   page.on('dialog', (dialog) => void dialog.accept());
   await page.clock.setFixedTime(new Date(2026, 9, 5, 12));
   await page.goto('/plan');
-  await page.getByRole('radio', { name: 'Details', exact: true }).click();
+  await expect(page.getByRole('radio', { name: 'Details', exact: true })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Build your training week' })).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath('plan-empty.png'), fullPage: true });
   await page.getByRole('link', { name: 'Create program', exact: true }).click();

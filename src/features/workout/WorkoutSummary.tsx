@@ -24,22 +24,29 @@ export function WorkoutSummary({
   const rirs = completed.flatMap((set) => (set.rir === null ? [] : [set.rir]));
   if (!review && params.get('details') !== '1')
     return (
-      <WorkoutComplete
-        workout={{
-          name: workout.session.name ?? 'Quick Workout',
-          exercises: exercises.length,
-          completedSets: completed.length,
-          totalSets: allSets.length,
-          duration: Math.ceil(workoutElapsedSeconds(workout.session) / 60),
-          totalVolume: calculateWorkoutVolume(completed),
-          rir: rirs.length ? rirs.reduce((sum, value) => sum + value, 0) / rirs.length : null,
-        }}
-        onDone={() => {
-          void navigate('/workout');
-        }}
-        onViewDetails={() => setReview(true)}
-        onUndo={onUndo}
-      />
+      <div className="grid gap-3">
+        {workout.session.durationEstimated ? (
+          <p className="text-sm text-secondary">
+            Duration is estimated from the last saved checkpoint.
+          </p>
+        ) : null}
+        <WorkoutComplete
+          workout={{
+            name: workout.session.name ?? 'Quick Workout',
+            exercises: exercises.length,
+            completedSets: completed.length,
+            totalSets: allSets.length,
+            duration: Math.ceil(workoutElapsedSeconds(workout.session) / 60),
+            totalVolume: calculateWorkoutVolume(completed),
+            rir: rirs.length ? rirs.reduce((sum, value) => sum + value, 0) / rirs.length : null,
+          }}
+          onDone={() => {
+            void navigate('/workout');
+          }}
+          onViewDetails={() => setReview(true)}
+          onUndo={onUndo}
+        />
+      </div>
     );
   return (
     <section className="workout-flow workout-summary" aria-labelledby="session-title">
@@ -53,7 +60,7 @@ export function WorkoutSummary({
       </header>
       <dl className="workout-summary-metrics">
         <div>
-          <dt>Duration</dt>
+          <dt>{workout.session.durationEstimated ? 'Estimated duration' : 'Duration'}</dt>
           <dd>{formatDuration(workoutElapsedSeconds(workout.session))}</dd>
         </div>
         <div>

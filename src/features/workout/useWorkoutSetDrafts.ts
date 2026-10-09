@@ -3,6 +3,7 @@ import type { WorkoutSet } from '../../domain/entities';
 import { updateWorkoutSet } from './workoutService';
 import { WorkoutSaveContext } from './WorkoutSaveContext';
 import { WorkoutSaveQueue } from './workoutSaveQueue';
+import { SetRevisionConflict } from '../../lib/storage/repositories/workoutRepository';
 
 export type SetField = 'weight' | 'reps' | 'rir';
 export type SetDraft = Record<SetField, string>;
@@ -43,7 +44,21 @@ export function useWorkoutSetDrafts(sets: WorkoutSet[]) {
     redraw((value) => value + 1);
     void queue
       .save(set.id, async () => {
-        await updateWorkoutSet(set.id, valuesFor(draft));
+        try {
+          const conflict = queue.conflictingRevisions.get(set.id);
+          if (conflict) throw new SetRevisionConflict(conflict);
+          const updated = await updateWorkoutSet(
+            set.id,
+            valuesFor(draft),
+            queue.committedRevisions.get(set.id) ?? set.updatedAt,
+          );
+          if (updated) queue.committedRevisions.set(set.id, updated.updatedAt);
+        } catch (failure) {
+          // Explicit Retry acknowledges the conflict; an automatic write never overwrites it.
+          if (failure instanceof SetRevisionConflict)
+            queue.conflictingRevisions.set(set.id, failure.currentRevision);
+          throw failure;
+        }
         // Once committed, repository refreshes (including another tab) can become authoritative.
         // Keep this draft until props reflect the write to avoid a flash of stale loader values.
       })
@@ -52,6 +67,8 @@ export function useWorkoutSetDrafts(sets: WorkoutSet[]) {
   // A loader refresh is authoritative only once the latest draft has committed and matches it.
   for (const set of sets) {
     const draft = queue.drafts.get(set.id);
+    if (!draft && !queue.unsettled && !queue.conflictingRevisions.has(set.id))
+      queue.committedRevisions.set(set.id, set.updatedAt);
     const persisted = draftFor(set);
     if (
       draft &&
@@ -60,8 +77,10 @@ export function useWorkoutSetDrafts(sets: WorkoutSet[]) {
         Object.keys(persisted).every(
           (key) => persisted[key as SetField] === draft.value[key as SetField],
         ))
-    )
+    ) {
       queue.drafts.delete(set.id);
+      queue.committedRevisions.set(set.id, set.updatedAt);
+    }
   }
   return {
     queue,

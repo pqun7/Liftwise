@@ -123,6 +123,11 @@ export const workoutSessionStatuses = ['active', 'paused', 'completed', 'discard
 export type WorkoutSessionStatus = (typeof workoutSessionStatuses)[number];
 
 export interface WorkoutSession extends TimestampedEntity {
+  /** Per-window checkpoints; heartbeat writes do not change updatedAt. */
+  presence?: Record<string, { seenAt: IsoTimestamp; hiddenAt: IsoTimestamp | null }> | undefined;
+  pauseReason?: 'manual' | 'away' | 'recovery' | undefined;
+  durationEstimated?: boolean | undefined;
+  durationCorrectionSeconds?: number | undefined;
   /** Local calendar date captured on creation, independent of timestamp or reopening date. */
   scheduledDate?: string | undefined;
   id: string;

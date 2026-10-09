@@ -59,7 +59,7 @@ test('first Custom program: five stages, no seeded exercises, notes, targets, re
   page.on('pageerror', (error) => errors.push(error.message));
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/plan');
-  await page.getByRole('radio', { name: 'Details', exact: true }).click();
+  await expect(page.getByRole('radio', { name: 'Details', exact: true })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Build your training week' })).toBeVisible();
   const art = page.locator('.plan-empty-artwork');
   await expect(art).toBeVisible();

@@ -10,6 +10,9 @@ import {
   extendWorkoutRest,
   setCurrentWorkoutExercise,
   undoWorkoutCompletion,
+  pauseWorkout,
+  pauseWorkoutForDeparture,
+  discardWorkout,
 } from '../src/features/workout/workoutService';
 import { CurrentExerciseCard } from '../src/features/workout/CurrentExerciseCard';
 import { targetRange } from '../src/features/workout/workoutFormat';
@@ -26,6 +29,9 @@ vi.mock('../src/features/workout/workoutService', async (importOriginal) => ({
   extendWorkoutRest: vi.fn(),
   setCurrentWorkoutExercise: vi.fn(),
   undoWorkoutCompletion: vi.fn(),
+  pauseWorkout: vi.fn(),
+  pauseWorkoutForDeparture: vi.fn(),
+  discardWorkout: vi.fn(),
 }));
 afterEach(async () => {
   vi.resetAllMocks();
@@ -54,37 +60,59 @@ async function fixture() {
   return { db, repo, source, session, exercise, sets };
 }
 async function renderSession(repo: WorkoutRepository, id: string, details = false) {
-  render(
-    <RouterProvider
-      router={createMemoryRouter(
-        [
-          {
-            path: '/workout/:id',
-            element: <WorkoutSessionPage />,
-            hydrateFallbackElement: <p>Opening</p>,
-            loader: async () => {
-              const graph = (await repo.get(id))!;
-              return {
-                workout: {
-                  ...graph,
-                  exercises: graph.exercises.map((item) => ({
-                    ...item,
-                    previous: null,
-                    displayExercise: null,
-                  })),
-                },
-              };
-            },
-          },
-          { path: '/', element: <h1>Home after save</h1> },
-        ],
-        { initialEntries: [`/workout/${id}${details ? '?details=1' : ''}`] },
-      )}
-    />,
+  vi.mocked(pauseWorkout).mockImplementation((sessionId) => repo.pause(sessionId));
+  vi.mocked(pauseWorkoutForDeparture).mockImplementation((sessionId) =>
+    repo.pauseForDeparture(sessionId),
   );
+  const router = createMemoryRouter(
+    [
+      {
+        path: '/workout/:id',
+        element: <WorkoutSessionPage />,
+        hydrateFallbackElement: <p>Opening</p>,
+        loader: async () => {
+          const graph = (await repo.get(id))!;
+          return {
+            workout: {
+              ...graph,
+              exercises: graph.exercises.map((item) => ({
+                ...item,
+                previous: null,
+                displayExercise: null,
+              })),
+            },
+          };
+        },
+      },
+      { path: '/', element: <h1>Home after save</h1> },
+      { path: '/workout', element: <h1>Home after save</h1> },
+    ],
+    { initialEntries: [`/workout/${id}${details ? '?details=1' : ''}`] },
+  );
+  render(<RouterProvider router={router} />);
   await screen.findByRole('heading', { name: 'Quick Workout' });
+  return router;
 }
 describe('workout targets, history and next set', () => {
+  it('retains unsaved values and allows acknowledged departure after another window finalizes', async () => {
+    const { repo, session, db, sets } = await fixture();
+    vi.mocked(updateWorkoutSet).mockRejectedValue(new Error('Storage unavailable'));
+    const router = await renderSession(repo, session.id);
+    fireEvent.change(screen.getByLabelText('Set 1 weight'), { target: { value: '77.5' } });
+    await screen.findByRole('button', { name: 'Retry save' });
+    await repo.finish(session.id);
+    await act(async () => {
+      await router.revalidate();
+    });
+    await screen.findByRole('button', { name: 'Leave without unsaved edits' });
+    expect(screen.getByText(/Set 1: 77.5 kg/)).toBeInTheDocument();
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Leave without unsaved edits' }));
+    await screen.findByRole('heading', { name: 'Home after save' });
+    expect((await repo.get(session.id))?.session.status).toBe('completed');
+    expect((await db.workoutSets.get(sets[0]!.id))?.weight).toBeNull();
+    confirm.mockRestore();
+  });
   it('opens calendar completion links directly into read-only session details', async () => {
     const { repo, session, sets } = await fixture();
     await repo.updateSet(sets[0]!.id, { completed: true, reps: 8, weight: 40 });
@@ -111,7 +139,7 @@ describe('workout targets, history and next set', () => {
     await renderSession(repo, session.id);
     fireEvent.change(screen.getByLabelText('Set 1 weight'), { target: { value: '82.5' } });
     fireEvent.click(screen.getByRole('link', { name: 'Leave workout, keep session saved' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Save & Exit' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save & Pause' }));
     expect(screen.queryByRole('heading', { name: 'Home after save' })).toBeNull();
     await act(async () => {
       release();
@@ -119,6 +147,36 @@ describe('workout targets, history and next set', () => {
     });
     await screen.findByRole('heading', { name: 'Home after save' });
     expect(await db.workoutSets.get(sets[0]!.id)).toMatchObject({ weight: 82.5, completed: false });
+    expect((await repo.get(session.id))?.session.status).toBe('paused');
+  });
+  it('keeps the session open when pausing fails and permits an explicit retry', async () => {
+    const { repo, session } = await fixture();
+    await renderSession(repo, session.id);
+    vi.mocked(pauseWorkout).mockRejectedValueOnce(new Error('Storage unavailable'));
+    fireEvent.click(screen.getByRole('link', { name: 'Leave workout, keep session saved' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save & Pause' }));
+    await screen.findByText('Storage unavailable');
+    expect(screen.queryByRole('heading', { name: 'Home after save' })).toBeNull();
+    expect((await repo.get(session.id))?.session.status).toBe('active');
+    fireEvent.click(screen.getByRole('button', { name: 'Save & Pause' }));
+    await screen.findByRole('heading', { name: 'Home after save' });
+    expect((await repo.get(session.id))?.session.status).toBe('paused');
+  });
+  it('discards only after pending edits commit and then leaves without blocking', async () => {
+    const { repo, session, db, sets } = await fixture();
+    vi.mocked(updateWorkoutSet).mockImplementation((id, input) => repo.updateSet(id, input));
+    vi.mocked(discardWorkout).mockImplementation((id) => repo.discard(id));
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    await renderSession(repo, session.id);
+    fireEvent.change(screen.getByLabelText('Set 1 weight'), { target: { value: '77.5' } });
+    fireEvent.click(screen.getByRole('link', { name: 'Leave workout, keep session saved' }));
+    fireEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Discard Workout' }),
+    );
+    await screen.findByRole('heading', { name: 'Home after save' });
+    expect((await repo.get(session.id))?.session.status).toBe('discarded');
+    expect((await db.workoutSets.get(sets[0]!.id))?.weight).toBe(77.5);
+    confirm.mockRestore();
   });
   it('keeps failed edits available through finish review and blocks leaving or finishing until saved', async () => {
     const { repo, session } = await fixture();
@@ -130,7 +188,7 @@ describe('workout targets, history and next set', () => {
     fireEvent.change(screen.getByLabelText('Set 1 weight'), { target: { value: '77.5' } });
     await screen.findByRole('button', { name: 'Retry save' });
     fireEvent.click(screen.getByRole('link', { name: 'Leave workout, keep session saved' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Save & Exit' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save & Pause' }));
     await waitFor(() =>
       expect(screen.queryByRole('heading', { name: 'Home after save' })).toBeNull(),
     );
