@@ -33,7 +33,7 @@ import { BuilderHeader, BuilderFooter, NextLabel } from './BuilderChrome';
 import { estimatedProgramMinutes } from './programDisplay';
 import { UnsavedChanges } from './UnsavedChanges';
 import { reviewDestination, reviewSuffix } from './reviewNavigation';
-import recoveryArtwork from '../../assets/images/plan/recovery-transparent.png';
+import recoveryArtwork from '../../assets/images/plan/recovery-transparent.webp';
 import { ScheduleEmpty } from './ScheduleView';
 
 export function ProgramDayPage() {

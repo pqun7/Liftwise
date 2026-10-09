@@ -7,6 +7,7 @@ import { countLabel, workoutCompletion } from '../../features/home/homeData';
 import type { WorkoutGraph } from '../../lib/storage/repositories/workoutRepository';
 import { sessionCalendarDate } from '../../domain/trainingCalendar';
 import { dateFromKey } from '../../domain/localCalendar';
+import { WorkoutRecoveryActions } from '../../features/workout/WorkoutRecoveryActions';
 
 export function ActiveWorkoutCard({ workout }: { workout: WorkoutGraph }) {
   const completion = workoutCompletion(workout);
@@ -74,6 +75,12 @@ export function ActiveWorkoutCard({ workout }: { workout: WorkoutGraph }) {
             <ChevronRight size={16} aria-hidden="true" />
           </Link>
         </div>
+        {workout.session.status === 'paused' ? (
+          <WorkoutRecoveryActions
+            sessionId={workout.session.id}
+            completedSets={completion.completedSets}
+          />
+        ) : null}
       </div>
     </Card>
   );

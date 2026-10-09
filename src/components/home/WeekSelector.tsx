@@ -1,19 +1,28 @@
 import { CalendarDayButton } from '../ui/CalendarDayButton';
-import type { HomeDay } from '../../features/home/homeData';
-
+import { calendarWeek, type HomeDay } from '../../features/home/homeData';
+import type { trainingCalendar } from '../../domain/trainingCalendar';
 export function WeekSelector({
   days,
   selected,
   onSelect,
+  calendar,
+  variant = 'compact',
 }: {
-  days: HomeDay[];
   selected: string;
   onSelect: (date: string) => void;
-}) {
+  variant?: 'compact' | 'detailed';
+} & (
+  | { days: HomeDay[]; calendar?: ReturnType<typeof trainingCalendar> }
+  | { days?: never; calendar: ReturnType<typeof trainingCalendar> }
+)) {
+  const week = days ?? calendarWeek(calendar, selected);
   return (
-    <div className="home-week-scroll">
+    <div className={`home-week-scroll ${variant === 'detailed' ? 'week-selector-detailed' : ''}`}>
       <div className="home-week" role="group" aria-label="Select a day this week">
-        {days.map((day) => {
+        {week.map((day) => {
+          const state = calendar?.getDayState(day.key);
+          const training = !!state?.entry && state.entry.day.kind !== 'recovery';
+          const workoutLabel = training ? state.entry!.day.name : calendar?.dated ? 'Rest' : '�';
           const status = day.completed
             ? 'completed'
             : day.status === 'no-program' || day.status === 'unscheduled'
@@ -44,37 +53,23 @@ export function WeekSelector({
               selected={selected === day.key}
               status={status}
               future={day.kind === 'future'}
+              variant={variant}
+              training={training}
+              caption={variant === 'detailed' ? workoutLabel : undefined}
               accessibleLabel={
                 day.accessibleDate +
                 (day.isToday ? ', today' : '') +
                 ', ' +
                 (day.completed ? day.completed + ' completed workouts' : 'no completed workouts') +
                 ', ' +
-                caption
+                caption +
+                (variant === 'detailed' ? ', ' + workoutLabel : '')
               }
               onSelect={() => onSelect(day.key)}
             />
           );
         })}
       </div>
-      {/* <div className="home-week-legend" aria-label="Week status colors">
-        <span>
-          <CalendarDayMarker status="completed" />
-          Completed
-        </span>
-        <span>
-          <CalendarDayMarker status="rest" />
-          Rest
-        </span>
-        <span>
-          <CalendarDayMarker status="missed" />
-          Missed
-        </span>
-        <span>
-          <CalendarDayMarker status="future" />
-          Upcoming
-        </span>
-      </div> */}
     </div>
   );
 }

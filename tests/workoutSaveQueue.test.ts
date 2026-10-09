@@ -28,7 +28,7 @@ describe('session save coordination', () => {
     expect(complete).not.toHaveBeenCalled();
     slow.resolve();
     await Promise.all([first, second, completion, leave]);
-    expect(saved).toEqual([60, 62.5]);
+    expect(saved).toEqual([62.5]);
     expect(complete).toHaveBeenCalledOnce();
     expect(queue.unsettled).toBe(false);
   });
@@ -56,7 +56,7 @@ describe('session save coordination', () => {
     await Promise.allSettled([queue.save('one', old), queue.save('one', latest)]);
     expect(queue.error).toBe('Latest');
     await queue.retry();
-    expect(old).toHaveBeenCalledOnce();
+    expect(old).not.toHaveBeenCalled();
     expect(latest).toHaveBeenCalledTimes(2);
     expect(queue.error).toBeNull();
   });

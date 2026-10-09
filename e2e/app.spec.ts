@@ -303,7 +303,7 @@ test('backs up, deletes, restores, and verifies an exact program offline', async
   await setOffline(context, browserName, true);
   try {
     await page.getByRole('link', { name: 'Plan' }).click();
-    await page.getByRole('radio', { name: 'Program', exact: true }).click();
+    await page.getByRole('radio', { name: 'Details', exact: true }).click();
     await page.getByRole('link', { name: 'View program details', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Program details', exact: true })).toBeVisible();
     await page.getByRole('link', { name: 'Edit program', exact: true }).click();

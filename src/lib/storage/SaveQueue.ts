@@ -44,6 +44,8 @@ export class SaveQueue {
     const version = (this.versions.get(key) ?? 0) + 1;
     this.versions.set(key, version);
     return this.append(async () => {
+      // Replace writes that have not started yet with the latest field revision.
+      if (this.versions.get(key) !== version) return;
       try {
         const result = await action();
         if (this.versions.get(key) === version) this.failures.delete(key);

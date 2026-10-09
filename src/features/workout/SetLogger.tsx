@@ -52,7 +52,13 @@ export function SetLogger({
     setError(null);
     void editor.queue
       .perform(async () => {
-        onCompleted(await completeWorkoutSet(current.id, editor.values(current, true)));
+        onCompleted(
+          await completeWorkoutSet(
+            current.id,
+            editor.values(current, true),
+            editor.queue.committedRevisions.get(current.id) ?? current.updatedAt,
+          ),
+        );
         await refresh();
       })
       .catch((failure: Error) => setError(failure.message))

@@ -62,9 +62,12 @@ test('one app header and navigation across the complete iPhone viewport matrix',
     await page.goto(route);
     await expect(page.getByRole('banner', { name: 'Liftwise application header' })).toHaveCount(1);
     await expect(page.locator('h1')).toHaveCount(1);
-    await expect(page.getByRole('link', { name: 'Workout streak', exact: true })).toHaveText(
-      '0 days',
-    );
+    if (route === '/settings')
+      await expect(page.getByRole('link', { name: 'Workout streak', exact: true })).toHaveCount(0);
+    else
+      await expect(page.getByRole('link', { name: 'Workout streak', exact: true })).toHaveText(
+        '0 days',
+      );
     for (const [width, height] of viewports) {
       await page.setViewportSize({ width: width!, height: height! });
       await geometry(page);
@@ -221,9 +224,12 @@ test('shared shell remains available offline with the existing standalone manife
     await expect.poll(() => new URL(page.url()).pathname).toBe(path);
     await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
     await expect(page.locator('.app-header')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Workout streak', exact: true })).toHaveText(
-      '0 days',
-    );
+    if (path === '/settings')
+      await expect(page.getByRole('link', { name: 'Workout streak', exact: true })).toHaveCount(0);
+    else
+      await expect(page.getByRole('link', { name: 'Workout streak', exact: true })).toHaveText(
+        '0 days',
+      );
   }
   await setOffline(context, browserName, false);
 });

@@ -15,10 +15,34 @@
 }
 
 .workout-session-header {
+  position: sticky;
+  top: var(--safe-top);
+  z-index: 35;
+  background: var(--background);
+  padding-block: 8px;
   display: grid;
   grid-template-columns: 44px minmax(0, 1fr) 44px;
   align-items: center;
   gap: 8px;
+}
+
+.session-return-bar {
+  position: sticky;
+  top: var(--safe-top);
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+}
+
+.session-return-bar a {
+  min-height: 44px;
+  flex-shrink: 0;
 }
 
 .workout-session-header h1 {
@@ -225,11 +249,33 @@
 }
 
 .workout-active-action {
-  position: sticky;
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
   bottom: calc(var(--navigation-height) + 12px);
-  width: 100%;
+  width: calc(100% - 32px);
+  max-width: 398px;
   z-index: 25;
   margin-top: auto;
+}
+
+.workout-active:has(.workout-active-action) {
+  padding-bottom: 88px;
+}
+.workout-active:has(.workout-rest-actions) {
+  padding-bottom: 156px;
+}
+.workout-rest-actions {
+  position: fixed;
+  bottom: calc(var(--navigation-height) + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 398px;
+  z-index: 30;
+  background: var(--background);
+  border-radius: var(--radius-control);
+  padding: 8px;
 }
 
 .workout-set-logger-focused {
@@ -542,7 +588,7 @@
 }
 
 .workout-active:has(.workout-rest-large-ring) {
-  padding-bottom: 0;
+  padding-bottom: 156px;
 }
 
 .workout-set-logger > .grid.grid-cols-3 {

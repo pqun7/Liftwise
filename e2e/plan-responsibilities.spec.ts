@@ -9,8 +9,8 @@ test('Plan, Program, calendar and Workout share a durable cycle with summary-onl
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/plan');
-  await expect(page.getByRole('heading', { name: 'No program yet' })).toBeVisible();
-  await page.getByRole('radio', { name: 'Program', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Build your training week' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'Details', exact: true })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Build your training week' })).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath('existing-empty.png'), fullPage: true });
   await page.getByRole('link', { name: 'Create program', exact: true }).click();
@@ -53,7 +53,7 @@ test('Plan, Program, calendar and Workout share a durable cycle with summary-onl
   await expect(page.getByRole('link', { name: /View in Workout/ })).toBeVisible();
   await page.getByRole('link', { name: 'Back to Calendar' }).click();
   await page.getByRole('link', { name: 'Back to Schedule' }).click();
-  await page.getByRole('radio', { name: 'Program', exact: true }).click();
+  await page.getByRole('radio', { name: 'Details', exact: true }).click();
   await expect(page.locator('.plan-active-card')).not.toContainText('Next workout');
   await page.getByRole('link', { name: 'View program details' }).click();
   await expect(page.getByRole('heading', { name: 'Program Cycle' })).toBeVisible();

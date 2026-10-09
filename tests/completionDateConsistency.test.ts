@@ -42,7 +42,7 @@ it('keeps a workout completed after midnight on its scheduled date across databa
   expect(home.calendar.getCompletedSession(home.today)).toBeNull();
   expect((await getWorkoutLanding(db, now)).state).toBe('rest-day');
   expect(await db.workoutSessions.count()).toBe(1);
-  await expect(workouts.finish(session.session.id, now)).rejects.toThrow();
+  expect(await workouts.finish(session.session.id, now)).toEqual(completed.session);
   expect(await db.workoutSessions.count()).toBe(1);
 });
 

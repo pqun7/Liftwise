@@ -176,7 +176,7 @@ export function RestTimer({
       )}
 
       {/* Actions: one primary, one secondary, one escape hatch */}
-      <div className="grid gap-2">
+      <div className="workout-rest-actions grid gap-2">
         <Button
           variant="primary"
           size="large"

@@ -12,6 +12,7 @@ import { WorkoutLandingHero } from './WorkoutLandingHero';
 import { WorkoutPreview } from './WorkoutPreview';
 import { countLabel } from '../home/homeData';
 import { startPlannedWorkout, type WorkoutLandingData } from './workoutService';
+import { WorkoutRecoveryActions } from './WorkoutRecoveryActions';
 
 export function WorkoutPage() {
   const data = useLoaderData<WorkoutLandingData>();
@@ -144,6 +145,13 @@ export function WorkoutPage() {
               <Play size={18} aria-hidden="true" />
               Resume Workout
             </Link>
+            {data.unfinished!.status === 'paused' ||
+            data.unfinished!.scheduledDate !== data.todayDate ? (
+              <WorkoutRecoveryActions
+                sessionId={data.unfinished!.id}
+                completedSets={data.unfinished!.completedSets}
+              />
+            ) : null}
           </>
         ) : state === 'scheduled' ? (
           <>

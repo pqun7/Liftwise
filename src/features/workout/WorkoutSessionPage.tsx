@@ -5,14 +5,14 @@ import { WorkoutSummary } from './WorkoutSummary';
 import { MobilePage } from '../../components/layout/MobilePage';
 import { Textarea } from '../../components/ui/FormControl';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { useBlocker, useLoaderData, useRevalidator } from 'react-router-dom';
+import { useBlocker, useLoaderData, useNavigate, useRevalidator } from 'react-router-dom';
 import { WorkoutSaveContext } from './WorkoutSaveContext';
 import { WorkoutSaveQueue } from './workoutSaveQueue';
 import { Button } from '../../components/ui/Button';
 
 import type { SetCompletionUndo } from '../../lib/storage/repositories/workoutRepository';
 import { WorkoutExerciseCard } from './WorkoutExerciseCard';
-import { formatDuration, workoutElapsedSeconds } from '../../domain/workoutTime';
+import { WorkoutElapsed } from './WorkoutClock';
 import {
   addWorkoutSet,
   removeWorkoutExercise,
@@ -20,15 +20,23 @@ import {
   setCurrentWorkoutExercise,
   skipWorkoutExercise,
   undoWorkoutCompletion,
+  pauseWorkoutForDeparture,
   type HydratedWorkoutGraph,
 } from './workoutService';
 
 export function WorkoutSessionPage() {
   const { workout } = useLoaderData<{ workout: HydratedWorkoutGraph }>();
   const revalidator = useRevalidator();
+  const navigate = useNavigate();
   const [saves] = useState(() => new WorkoutSaveQueue());
   useSyncExternalStore(saves.subscribe, saves.snapshot);
-  const blocker = useBlocker(() => saves.unsettled);
+  const blocker = useBlocker(({ nextLocation }) => {
+    if (saves.departureCommitted) return false;
+    const continuing =
+      nextLocation.pathname.startsWith(`/workout/${workout.session.id}`) ||
+      nextLocation.pathname.startsWith('/exercises/');
+    return saves.unsettled || (workout.session.status === 'active' && !continuing);
+  });
   const [now, setNow] = useState(Date.now());
   const [busy, setBusy] = useState(false);
   const operationInFlight = useRef(false);
@@ -36,27 +44,34 @@ export function WorkoutSessionPage() {
   const [collapsed, setCollapsed] = useScreenState<Set<string>>('collapsed', () => new Set());
   const [showOverview, setShowOverview] = useScreenState('overview', false);
   const [pageError, setPageError] = useState<string | null>(null);
+  const leavingFor = useRef<string | null>(null);
   const refresh = async () => {
     await revalidator.revalidate();
   };
   useEffect(() => {
-    if (blocker.state !== 'blocked') return;
-    let cancelled = false;
+    if (blocker.state !== 'blocked') {
+      leavingFor.current = null;
+      return;
+    }
+    if (leavingFor.current === blocker.location.key) return;
+    leavingFor.current = blocker.location.key;
     void saves
       .flush()
-      .then(() => {
-        if (!cancelled) blocker.proceed();
+      .then(async () => {
+        const destination = blocker.location?.pathname ?? '';
+        const continuing =
+          destination.startsWith(`/workout/${workout.session.id}`) ||
+          destination.startsWith('/exercises/');
+        if (workout.session.status === 'active' && !continuing)
+          await pauseWorkoutForDeparture(workout.session.id);
+        blocker.proceed();
       })
       .catch(() => {
-        if (!cancelled) {
-          blocker.reset();
-          setPageError('Save your changes before leaving. Retry the save below.');
-        }
+        leavingFor.current = null;
+        blocker.reset();
+        setPageError('Save your changes before leaving. Retry the save below.');
       });
-    return () => {
-      cancelled = true;
-    };
-  }, [blocker, saves]);
+  }, [blocker, saves, workout.session.id, workout.session.status]);
   useEffect(() => {
     const beforeUnload = (event: BeforeUnloadEvent) => {
       if (saves.unsettled) {
@@ -78,9 +93,13 @@ export function WorkoutSessionPage() {
     };
   }, [saves, revalidator]);
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 1_000);
-    return () => window.clearInterval(timer);
-  }, []);
+    if (!undo) return;
+    const timer = window.setTimeout(
+      () => setNow(Date.now()),
+      Math.max(0, undo.expiresAt - Date.now() + 1),
+    );
+    return () => window.clearTimeout(timer);
+  }, [undo]);
   const run = async (action: () => Promise<unknown>) => {
     if (operationInFlight.current) return;
     operationInFlight.current = true;
@@ -108,6 +127,45 @@ export function WorkoutSessionPage() {
     previousStatus.current = session.status;
   }, [session.status]);
   const mutable = session.status === 'active' || session.status === 'paused';
+  const closedDrafts =
+    !mutable && saves.error ? (
+      <div role="alert" className="grid gap-2 rounded-xl border border-danger p-3 text-sm">
+        <p>
+          This workout has ended. Your unsaved edits cannot change the saved record. Copy any values
+          you need before leaving.
+        </p>
+        {workout.exercises.flatMap(({ exercise, sets }) =>
+          sets.flatMap((set) => {
+            const draft = saves.drafts.get(set.id)?.value;
+            return draft ? (
+              <p key={set.id}>
+                {exercise.exerciseName} · Set {set.setNumber}: {draft.weight || '—'} kg ·{' '}
+                {draft.reps || '—'} reps · RIR {draft.rir || '—'}
+              </p>
+            ) : (
+              []
+            );
+          }),
+        )}
+        {saves.notesDraft !== undefined ? <p>Unsaved notes: {saves.notesDraft}</p> : null}
+        <Button
+          onClick={() => {
+            if (
+              !window.confirm(
+                'Leave without these unsaved edits? The finished workout record stays saved.',
+              )
+            )
+              return;
+            saves.departureCommitted = true;
+            void Promise.resolve(navigate('/workout')).finally(() => {
+              saves.departureCommitted = false;
+            });
+          }}
+        >
+          Leave without unsaved edits
+        </Button>
+      </div>
+    ) : null;
 
   const overview = (
     <div className="grid gap-4">
@@ -205,23 +263,27 @@ export function WorkoutSessionPage() {
 
   if (session.status === 'completed')
     return (
-      <WorkoutSummary
-        workout={workout}
-        onUndo={
-          undo && now <= undo.expiresAt
-            ? () => {
-                void run(async () => {
-                  await undoWorkoutCompletion(undo);
-                  setUndo(null);
-                });
-              }
-            : undefined
-        }
-      />
+      <div className="grid gap-3">
+        {closedDrafts}
+        <WorkoutSummary
+          workout={workout}
+          onUndo={
+            undo && now <= undo.expiresAt
+              ? () => {
+                  void run(async () => {
+                    await undoWorkoutCompletion(undo);
+                    setUndo(null);
+                  });
+                }
+              : undefined
+          }
+        />
+      </div>
     );
 
   return (
     <MobilePage className="grid gap-4" aria-labelledby="session-title">
+      {closedDrafts}
       <ContextBackLink fallback="/workout" label="Workouts" />
       <header className="flex items-start justify-between gap-3">
         <div>
@@ -231,7 +293,7 @@ export function WorkoutSessionPage() {
           </h1>
         </div>
         <strong aria-label="Elapsed workout time">
-          {formatDuration(workoutElapsedSeconds(session, now))}
+          <WorkoutElapsed session={session} />
         </strong>
       </header>
       {pageError ? (

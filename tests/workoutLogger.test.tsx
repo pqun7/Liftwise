@@ -26,6 +26,26 @@ const set: WorkoutSet = {
 };
 
 describe('focused workout logger', () => {
+  it('edits the latest visible revision after another window updates a clean set', async () => {
+    const queue = new WorkoutSaveQueue();
+    queue.committedRevisions.set(set.id, set.updatedAt);
+    const fresh = { ...set, weight: 70, updatedAt: '2026-10-01T00:01:00.000Z' };
+    vi.mocked(updateWorkoutSet).mockResolvedValueOnce({ ...fresh, weight: 75 });
+    render(
+      <WorkoutSaveContext.Provider value={queue}>
+        <SetLogger sets={[fresh]} previous={[]} refresh={vi.fn()} onCompleted={vi.fn()} />
+      </WorkoutSaveContext.Provider>,
+    );
+    expect(screen.getByLabelText('Set 1 weight')).toHaveValue('70');
+    fireEvent.change(screen.getByLabelText('Set 1 weight'), { target: { value: '75' } });
+    await waitFor(() =>
+      expect(updateWorkoutSet).toHaveBeenCalledWith(
+        set.id,
+        { weight: 75, reps: 8, rir: 2 },
+        fresh.updatedAt,
+      ),
+    );
+  });
   it('saves rapid field changes before immediate completion despite a slow first write', async () => {
     let release!: () => void;
     vi.mocked(updateWorkoutSet).mockImplementationOnce(
@@ -46,7 +66,11 @@ describe('focused workout logger', () => {
       await Promise.resolve();
     });
     await waitFor(() =>
-      expect(completeWorkoutSet).toHaveBeenCalledWith('set-1', { weight: 82.5, reps: 10, rir: 0 }),
+      expect(completeWorkoutSet).toHaveBeenCalledWith(
+        'set-1',
+        { weight: 82.5, reps: 10, rir: 0 },
+        set.updatedAt,
+      ),
     );
   });
   it('retains failed draft text when switching editors and retry does not complete it', async () => {
@@ -74,7 +98,11 @@ describe('focused workout logger', () => {
     await act(async () => {
       await queue.retry();
     });
-    expect(updateWorkoutSet).toHaveBeenLastCalledWith('set-1', { weight: 77.5, reps: 8, rir: 2 });
+    expect(updateWorkoutSet).toHaveBeenLastCalledWith(
+      'set-1',
+      { weight: 77.5, reps: 8, rir: 2 },
+      set.updatedAt,
+    );
     expect(completeWorkoutSet).not.toHaveBeenCalled();
   });
   it('accepts zero weight/RIR and optional RIR, while explaining blank required values', async () => {
@@ -92,7 +120,11 @@ describe('focused workout logger', () => {
     fireEvent.change(screen.getByLabelText('Set 1 reps'), { target: { value: '100' } });
     fireEvent.click(screen.getByRole('button', { name: 'Complete set' }));
     await waitFor(() =>
-      expect(completeWorkoutSet).toHaveBeenCalledWith('set-1', { weight: 0, reps: 100, rir: null }),
+      expect(completeWorkoutSet).toHaveBeenCalledWith(
+        'set-1',
+        { weight: 0, reps: 100, rir: null },
+        set.updatedAt,
+      ),
     );
   });
   it('retries failed edits without implicitly completing a set', async () => {
@@ -102,7 +134,11 @@ describe('focused workout logger', () => {
     await screen.findByRole('alert');
     fireEvent.click(screen.getByRole('button', { name: 'Retry save' }));
     await waitFor(() =>
-      expect(updateWorkoutSet).toHaveBeenCalledWith('set-1', { weight: 62.5, reps: 8, rir: 2 }),
+      expect(updateWorkoutSet).toHaveBeenCalledWith(
+        'set-1',
+        { weight: 62.5, reps: 8, rir: 2 },
+        set.updatedAt,
+      ),
     );
     expect(completeWorkoutSet).not.toHaveBeenCalled();
   });
@@ -117,13 +153,21 @@ describe('focused workout logger', () => {
     );
     fireEvent.change(screen.getByLabelText('Set 1 weight'), { target: { value: '62.5' } });
     await waitFor(() =>
-      expect(updateWorkoutSet).toHaveBeenCalledWith('set-1', { weight: 62.5, reps: 8, rir: 2 }),
+      expect(updateWorkoutSet).toHaveBeenCalledWith(
+        'set-1',
+        { weight: 62.5, reps: 8, rir: 2 },
+        set.updatedAt,
+      ),
     );
     fireEvent.click(screen.getByRole('button', { name: 'Set 1 weight plus 2.5' }));
     expect(screen.getByLabelText('Set 1 weight')).toHaveValue('65');
     expect(screen.getByLabelText('Set 2 weight')).toHaveValue('60');
     await waitFor(() =>
-      expect(updateWorkoutSet).toHaveBeenCalledWith('set-1', { weight: 65, reps: 8, rir: 2 }),
+      expect(updateWorkoutSet).toHaveBeenCalledWith(
+        'set-1',
+        { weight: 65, reps: 8, rir: 2 },
+        set.updatedAt,
+      ),
     );
   });
   it('copies real history without completing and blocks a double completion', async () => {
@@ -139,7 +183,11 @@ describe('focused workout logger', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'Copy Previous Set' }));
     await waitFor(() =>
-      expect(updateWorkoutSet).toHaveBeenCalledWith('set-1', { weight: 100, reps: 8, rir: 2 }),
+      expect(updateWorkoutSet).toHaveBeenCalledWith(
+        'set-1',
+        { weight: 100, reps: 8, rir: 2 },
+        set.updatedAt,
+      ),
     );
     expect(completeWorkoutSet).not.toHaveBeenCalled();
     const button = screen.getByRole('button', { name: 'Complete set' });
@@ -147,7 +195,11 @@ describe('focused workout logger', () => {
     fireEvent.click(button);
     await waitFor(() => expect(completed).toHaveBeenCalledOnce());
     expect(completeWorkoutSet).toHaveBeenCalledOnce();
-    expect(completeWorkoutSet).toHaveBeenCalledWith('set-1', { weight: 100, reps: 8, rir: 2 });
+    expect(completeWorkoutSet).toHaveBeenCalledWith(
+      'set-1',
+      { weight: 100, reps: 8, rir: 2 },
+      set.updatedAt,
+    );
   });
   it('advances from completed sets and removes completion action at the end', () => {
     const props = { previous: [], refresh: vi.fn(), onCompleted: vi.fn() };

@@ -125,9 +125,12 @@ test.describe('local calendar streak lifecycle', () => {
     ]);
     for (const route of ['/', '/plan', '/workout', '/settings', '/exercises', '/progress']) {
       await page.goto(route);
-      await expect(page.getByRole('link', { name: '2 days streak', exact: true })).toHaveText(
-        '2 days',
-      );
+      if (route === '/settings')
+        await expect(page.getByRole('link', { name: '2 days streak', exact: true })).toHaveCount(0);
+      else
+        await expect(page.getByRole('link', { name: '2 days streak', exact: true })).toHaveText(
+          '2 days',
+        );
       await expect(page.locator('.app-wordmark')).toHaveCount(0);
     }
     await expect(page.locator('.streak-current strong')).toHaveText('2');

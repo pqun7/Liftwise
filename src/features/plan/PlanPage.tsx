@@ -19,8 +19,10 @@ import { weekdays } from './builderService';
 import { setActiveProgram, type ProgramListData } from './programService';
 import type { ProgramGraph } from '../../lib/storage/repositories/programRepository';
 import { ScheduleView } from './ScheduleView';
+import { WeekSelector } from '../../components/home/WeekSelector';
+import { planCalendar } from './scheduleData';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
-import planArtwork from '../../assets/images/plan/plan-empty-transparent.png';
+import planArtwork from '../../assets/images/plan/plan-empty-transparent.webp';
 
 function ProgramStructurePreview({ graph }: { graph: ProgramGraph }) {
   const cycle = graph.program.scheduleType === 'cycle';
@@ -49,14 +51,16 @@ function ProgramStructurePreview({ graph }: { graph: ProgramGraph }) {
 }
 
 export function PlanPage() {
-  const { programs, graphs, activeProgramId } = useLoaderData<ProgramListData>();
+  const data = useLoaderData<ProgramListData>();
+  const { programs, graphs, activeProgramId } = data;
+  const { calendar } = planCalendar(data);
   const active = graphs.find(
     ({ program }) => program.id === activeProgramId && !program.draft && !program.archived,
   );
   const others = graphs.filter(({ program }) => program.id !== active?.program.id);
   const revalidator = useRevalidator();
   const [params, setParams] = useSearchParams();
-  const tab = params.get('tab') === 'program' ? 'Program' : 'Schedule';
+  const tab = active && params.get('tab') === 'program' ? 'Details' : 'Overview';
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const pending = useRef(false);
@@ -78,24 +82,54 @@ export function PlanPage() {
   const summary = (graph: ProgramGraph) =>
     `${graph.days.filter(({ day }) => day.kind !== 'recovery').length} training days · ${graph.days.reduce((sum, entry) => sum + entry.exercises.length, 0)} exercises`;
   return (
-    <section className="grid gap-4 font-ui type-body" aria-labelledby="plan-title">
-      <SegmentedControl
-        legend="Plan view"
-        options={['Schedule', 'Program'] as const}
-        value={tab}
-        onChange={(value) => void setParams(value === 'Program' ? { tab: 'program' } : {})}
-      />
-      {tab === 'Schedule' ? (
-        <ScheduleView showWeek={false} />
+    <section className="plan-page grid gap-3 type-body" aria-labelledby="plan-title">
+      {data.unfinished ? (
+        <p className="text-sm text-secondary">
+          Your saved workout stays unchanged. Program changes apply to future sessions.
+        </p>
+      ) : null}
+      {active ? (
+        <SegmentedControl
+          variant="pill"
+          legend="Plan view"
+          options={['Overview', 'Details'] as const}
+          value={tab}
+          onChange={(value) => void setParams(value === 'Details' ? { tab: 'program' } : {})}
+        />
+      ) : null}
+      {tab === 'Overview' && active ? (
+        <>
+          <ScheduleView overview />
+          <Card variant="glass" className="relative overflow-hidden grid gap-2 plan-current-card">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="flex items-center gap-2 type-card-title">
+                <FileText size={20} aria-hidden="true" />
+                Current Program
+              </h2>
+              <Link
+                className="flex items-center gap-1 min-h-11 type-caption text-secondary no-underline"
+                to="/plan?tab=program"
+              >
+                View all <ArrowRight size={14} aria-hidden="true" />
+              </Link>
+            </div>
+            <h3 className="type-section-title wrap-anywhere">{active.program.name}</h3>
+            <p className="type-body-small text-secondary">{summary(active)}</p>
+            <span className="inline-flex items-center gap-2 justify-self-start rounded-full border border-mint/20 bg-mint/10 px-3 py-1 type-caption">
+              <span className="size-2 rounded-full bg-mint" aria-hidden="true" />
+              Active
+            </span>
+          </Card>
+        </>
       ) : (
         <>
-          <h2 className="px-1 type-section-title">Current Program</h2>
+          {active ? <h2 className="px-1 type-section-title">Current Program</h2> : null}
           {active ? (
             <Card
               variant="glass"
               padding="spacious"
               radius="hero"
-              className="plan-active-card grid gap-3"
+              className="plan-active-card relative overflow-hidden grid gap-3"
             >
               <div className="flex justify-between items-center">
                 <span className="inline-flex items-center gap-2 justify-self-start rounded-full bg-mint/20 px-4 py-2 type-button">
@@ -109,13 +143,28 @@ export function PlanPage() {
                   •••
                 </Link>
               </div>
-              <h2 className="type-page-title wrap-anywhere">{active.program.name}</h2>
-              <p className="text-secondary">{summary(active)}</p>
+              <div className="plan-program-summary">
+                <h2 className="type-page-title wrap-anywhere">{active.program.name}</h2>
+                {/* <img
+                  className="plan-details-art"
+                  src={programArtwork}
+                  width={448}
+                  height={448}
+                  alt=""
+                  decoding="async"
+                /> */}
+              </div>
+              <p className="type-body-small text-secondary">{summary(active)}</p>
               <div className="mt-2 flex items-center gap-2.5 border-t border-border pt-4 text-secondary">
                 <CalendarDays size={19} />
                 {active.program.scheduleType === 'cycle' ? 'Flexible Cycle' : 'Weekly Structure'}
               </div>
-              <ProgramStructurePreview graph={active} />
+              <WeekSelector
+                calendar={calendar}
+                selected={calendar.today}
+                variant="detailed"
+                onSelect={(date) => void setParams({ date })}
+              />
               <div className="grid gap-2">
                 <Link
                   className={buttonClasses('secondary', '', 'large')}
@@ -138,13 +187,13 @@ export function PlanPage() {
               variant="glass"
               padding="spacious"
               radius="hero"
-              className="grid gap-4 text-center"
+              className="plan-build-card grid gap-4 text-center"
             >
               <img
-                className="plan-empty-artwork mx-auto block h-auto w-[var(--artwork-width)] max-w-full object-contain"
+                className="plan-empty-artwork mx-auto block size-[220px] max-w-full object-contain"
                 src={planArtwork}
-                width={1448}
-                height={1086}
+                width={640}
+                height={640}
                 alt=""
                 decoding="async"
               />
@@ -163,17 +212,18 @@ export function PlanPage() {
               <div className="mt-1 grid grid-cols-3 gap-2 border-t border-border pt-5 text-secondary [&>span]:grid [&>span]:content-start [&>span]:justify-items-center [&>span]:gap-2 [&>span]:type-label [&_svg]:size-6">
                 <span>
                   <FileText />
-                  Templates
+                  <strong className="text-primary">Templates</strong>
+                  <small>Start with proven plans</small>
                 </span>
                 <span>
                   <SlidersHorizontal />
-                  Fully editable
+                  <strong className="text-primary">Fully editable</strong>
+                  <small>Make it yours any time</small>
                 </span>
                 <span>
                   <Smartphone />
-                  Stored on
-                  <br />
-                  this device
+                  <strong className="text-primary">Stored on this device</strong>
+                  <small>Your data stays local</small>
                 </span>
               </div>
             </Card>

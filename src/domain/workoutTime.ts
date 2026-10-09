@@ -9,13 +9,16 @@ export function workoutElapsedSeconds(session: WorkoutSession, now = Date.now())
   return Math.max(
     0,
     Math.floor((effectiveEnd - new Date(session.startedAt).getTime()) / 1_000) -
-      session.pausedDurationSeconds,
+      session.pausedDurationSeconds +
+      (session.durationCorrectionSeconds ?? 0),
   );
 }
 
 export function restRemainingSeconds(session: WorkoutSession, now = Date.now()): number {
   if (session.restEndsAt === null) return 0;
-  return Math.max(0, Math.ceil((new Date(session.restEndsAt).getTime() - now) / 1_000));
+  const effectiveNow =
+    session.status === 'paused' && session.pausedAt ? Date.parse(session.pausedAt) : now;
+  return Math.max(0, Math.ceil((new Date(session.restEndsAt).getTime() - effectiveNow) / 1_000));
 }
 
 export function formatDuration(totalSeconds: number): string {

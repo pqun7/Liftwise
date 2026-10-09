@@ -16,6 +16,8 @@ import { RelationshipError } from '../errors';
 import { createEntityId, createTimestamp, requireRecord } from './shared';
 import { previousSetFor } from '../../../domain/workoutPrefill';
 import { localDateKey } from '../../../domain/localCalendar';
+import { workoutInterruption, WORKOUT_AWAY_GRACE_MS } from '../../../domain/workoutLifecycle';
+import { workoutElapsedSeconds } from '../../../domain/workoutTime';
 
 export interface CreateWorkoutSessionInput {
   programId?: string | null;
@@ -79,6 +81,14 @@ export interface SetCompletionUndo {
   completionRestEndsAt: string | null;
 }
 
+export class SetRevisionConflict extends Error {
+  constructor(readonly currentRevision: string) {
+    super(
+      'This set changed in another window. Review your values, then retry to save your version.',
+    );
+  }
+}
+
 function unfinished(status: WorkoutSessionStatus): boolean {
   return status === 'active' || status === 'paused';
 }
@@ -90,12 +100,15 @@ export class WorkoutRepository {
     id: string,
     input: UpdateWorkoutSetInput,
     finishWhenDone = false,
+    expectedRevision?: string,
   ): Promise<SetCompletionUndo> {
     return this.db.transaction(
       'rw',
       [this.db.workoutSessions, this.db.workoutExercises, this.db.workoutSets],
       async () => {
         const set = requireRecord(await this.db.workoutSets.get(id), 'WorkoutSet', id);
+        if (expectedRevision !== undefined && set.updatedAt !== expectedRevision)
+          throw new SetRevisionConflict(set.updatedAt);
         if (set.completed) throw new Error('This set is already completed.');
         const exercise = requireRecord(
           await this.db.workoutExercises.get(set.workoutExerciseId),
@@ -589,12 +602,18 @@ export class WorkoutRepository {
     );
   }
 
-  async updateSet(id: string, input: UpdateWorkoutSetInput): Promise<WorkoutSet> {
+  async updateSet(
+    id: string,
+    input: UpdateWorkoutSetInput,
+    expectedRevision?: string,
+  ): Promise<WorkoutSet> {
     return this.db.transaction(
       'rw',
       [this.db.workoutSessions, this.db.workoutExercises, this.db.workoutSets],
       async () => {
         const current = requireRecord(await this.db.workoutSets.get(id), 'WorkoutSet', id);
+        if (expectedRevision !== undefined && current.updatedAt !== expectedRevision)
+          throw new SetRevisionConflict(current.updatedAt);
         const exercise = requireRecord(
           await this.db.workoutExercises.get(current.workoutExerciseId),
           'WorkoutExercise',
@@ -698,16 +717,34 @@ export class WorkoutRepository {
     }));
   }
 
+  /** Route departure must also allow a session finalized by this or another window. */
+  async pauseForDeparture(id: string): Promise<void> {
+    await this.db.transaction('rw', this.db.workoutSessions, async () => {
+      const session = requireRecord(await this.db.workoutSessions.get(id), 'WorkoutSession', id);
+      if (session.status === 'active') await this.pause(id);
+    });
+  }
+
   async pause(id: string, now = new Date()): Promise<WorkoutSession> {
     return this.updateSession(id, (session) => {
+      if (session.status === 'paused') return session;
       if (session.status !== 'active') throw new Error('Only an active workout can be paused.');
-      const timestamp = now.toISOString();
-      return { ...session, status: 'paused', pausedAt: timestamp, updatedAt: timestamp };
+      const timestamp = new Date(
+        Math.max(now.getTime(), Date.parse(session.startedAt)),
+      ).toISOString();
+      return {
+        ...session,
+        status: 'paused',
+        pausedAt: timestamp,
+        pauseReason: 'manual',
+        updatedAt: timestamp,
+      };
     });
   }
 
   async resume(id: string, now = new Date()): Promise<WorkoutSession> {
     return this.updateSession(id, (session) => {
+      if (session.status === 'active') return session;
       if (session.status !== 'paused' || session.pausedAt === null) {
         throw new Error('Only a paused workout can be resumed.');
       }
@@ -716,10 +753,16 @@ export class WorkoutRepository {
         0,
         Math.floor((now.getTime() - new Date(session.pausedAt).getTime()) / 1_000),
       );
+      const shift = (value: string | null) =>
+        value === null ? null : new Date(Date.parse(value) + addedSeconds * 1_000).toISOString();
       return {
         ...session,
         status: 'active',
         pausedAt: null,
+        pauseReason: undefined,
+        presence: {},
+        restStartedAt: shift(session.restStartedAt),
+        restEndsAt: shift(session.restEndsAt),
         pausedDurationSeconds: session.pausedDurationSeconds + addedSeconds,
         updatedAt: timestamp,
       };
@@ -728,11 +771,21 @@ export class WorkoutRepository {
 
   async finish(id: string, now = new Date()): Promise<WorkoutSession> {
     return this.updateSession(id, (session) => {
+      if (session.status === 'completed') return session;
       this.requireMutableSession(session);
-      const timestamp = now.toISOString();
+      const timestamp = new Date(
+        Math.max(
+          now.getTime(),
+          Date.parse(session.startedAt),
+          Date.parse(session.pausedAt ?? session.startedAt),
+        ),
+      ).toISOString();
       const pausedSeconds =
         session.status === 'paused' && session.pausedAt
-          ? Math.max(0, Math.floor((now.getTime() - new Date(session.pausedAt).getTime()) / 1_000))
+          ? Math.max(
+              0,
+              Math.floor((Date.parse(timestamp) - new Date(session.pausedAt).getTime()) / 1_000),
+            )
           : 0;
       return {
         ...session,
@@ -748,15 +801,33 @@ export class WorkoutRepository {
   }
 
   async discard(id: string): Promise<WorkoutSession> {
-    return this.updateSession(id, (session, timestamp) => ({
-      ...this.requireMutableSession(session),
-      status: 'discarded',
-      endedAt: timestamp,
-      pausedAt: null,
-      restStartedAt: null,
-      restEndsAt: null,
-      updatedAt: timestamp,
-    }));
+    return this.updateSession(id, (session, observedAt) => {
+      if (session.status === 'discarded') return session;
+      const timestamp = new Date(
+        Math.max(
+          Date.parse(observedAt),
+          Date.parse(session.startedAt),
+          Date.parse(session.pausedAt ?? session.startedAt),
+        ),
+      ).toISOString();
+      return {
+        ...this.requireMutableSession(session),
+        status: 'discarded',
+        endedAt: timestamp,
+        pausedDurationSeconds:
+          session.pausedDurationSeconds +
+          (session.status === 'paused' && session.pausedAt
+            ? Math.max(
+                0,
+                Math.floor((Date.parse(timestamp) - Date.parse(session.pausedAt)) / 1_000),
+              )
+            : 0),
+        pausedAt: null,
+        restStartedAt: null,
+        restEndsAt: null,
+        updatedAt: timestamp,
+      };
+    });
   }
 
   async setSessionStatus(id: string, status: WorkoutSessionStatus): Promise<WorkoutSession> {
@@ -780,6 +851,67 @@ export class WorkoutRepository {
     return latest ? this.get(latest.id) : undefined;
   }
 
+  /** Reconcile before a window renews its lease, including after OS termination. */
+  async recoverInterrupted(now = new Date()): Promise<void> {
+    await this.db.transaction('rw', this.db.workoutSessions, async () => {
+      const sessions = await this.db.workoutSessions.where('status').equals('active').toArray();
+      for (const session of sessions) {
+        const interruption = workoutInterruption(session, now.getTime());
+        if (!interruption) continue;
+        await this.db.workoutSessions.put(
+          workoutSessionSchema.parse({
+            ...session,
+            status: 'paused',
+            pausedAt: interruption.pausedAt,
+            pauseReason: interruption.reason,
+            durationEstimated: session.durationEstimated || interruption.reason === 'recovery',
+            presence: {},
+            updatedAt: now.toISOString(),
+          }),
+        );
+      }
+    });
+  }
+
+  async checkpointPresence(clientId: string, visible: boolean, now = new Date()): Promise<void> {
+    await this.db.transaction('rw', this.db.workoutSessions, async () => {
+      const sessions = await this.db.workoutSessions.where('status').equals('active').toArray();
+      for (const session of sessions) {
+        const presence = Object.fromEntries(
+          Object.entries(session.presence ?? {}).filter(
+            ([id, entry]) =>
+              id === clientId ||
+              now.getTime() - Date.parse(entry.hiddenAt ?? entry.seenAt) <= WORKOUT_AWAY_GRACE_MS,
+          ),
+        );
+        const previous = presence[clientId];
+        // A hidden window must not repeatedly move the departure checkpoint forward.
+        if (!visible && (!previous || previous.hiddenAt !== null)) continue;
+        presence[clientId] = {
+          seenAt: now.toISOString(),
+          hiddenAt: visible ? null : now.toISOString(),
+        };
+        await this.db.workoutSessions.put(workoutSessionSchema.parse({ ...session, presence }));
+      }
+    });
+  }
+
+  async correctDuration(id: string, seconds: number): Promise<WorkoutSession> {
+    if (!Number.isInteger(seconds) || seconds < 0 || seconds > 86_400)
+      throw new Error('Duration must be between 0 and 1440 minutes.');
+    return this.updateSession(id, (session, timestamp) => {
+      if (session.status !== 'paused')
+        throw new Error('Pause the workout before correcting its duration.');
+      return {
+        ...session,
+        durationCorrectionSeconds:
+          (session.durationCorrectionSeconds ?? 0) + seconds - workoutElapsedSeconds(session),
+        durationEstimated: false,
+        updatedAt: timestamp,
+      };
+    });
+  }
+
   async listCompleted(limit = 10): Promise<WorkoutGraph[]> {
     if (!Number.isInteger(limit) || limit < 1) {
       throw new Error('Completed workout limit must be a positive integer.');
@@ -795,30 +927,53 @@ export class WorkoutRepository {
     exerciseId: string,
     beforeStartedAt?: string,
   ): Promise<WorkoutExerciseWithSets | undefined> {
-    const sessionExercises = await this.db.workoutExercises
+    return (await this.getPreviousCompletedExercises([exerciseId], beforeStartedAt)).get(
+      exerciseId,
+    );
+  }
+
+  async getPreviousCompletedExercises(
+    exerciseIds: readonly string[],
+    beforeStartedAt?: string,
+  ): Promise<Map<string, WorkoutExerciseWithSets>> {
+    const result = new Map<string, WorkoutExerciseWithSets>();
+    if (!exerciseIds.length) return result;
+    const entries = await this.db.workoutExercises
       .where('exerciseId')
-      .equals(exerciseId)
+      .anyOf([...new Set(exerciseIds)])
       .toArray();
-    if (!sessionExercises.length) return undefined;
-    const sessions = await this.db.workoutSessions.where('status').equals('completed').toArray();
-    const eligible = sessions
-      .filter(({ startedAt }) => beforeStartedAt === undefined || startedAt < beforeStartedAt)
-      .sort((left, right) => right.startedAt.localeCompare(left.startedAt));
-    for (const session of eligible) {
-      const candidates = sessionExercises
-        .filter(({ workoutSessionId }) => workoutSessionId === session.id)
-        .sort((a, b) => a.order - b.order);
-      for (const matching of candidates) {
-        const sets = (
-          await this.db.workoutSets.where('workoutExerciseId').equals(matching.id).toArray()
+    const sessions = await this.db.workoutSessions.bulkGet([
+      ...new Set(entries.map((entry) => entry.workoutSessionId)),
+    ]);
+    const eligible = new Map(
+      sessions
+        .filter(
+          (session): session is WorkoutSession =>
+            session !== undefined &&
+            session.status === 'completed' &&
+            (beforeStartedAt === undefined || session.startedAt < beforeStartedAt),
         )
-          .map((set) => workoutSetSchema.parse(set))
-          .filter(({ completed }) => completed)
-          .sort((left, right) => left.setNumber - right.setNumber);
-        if (sets.length) return { exercise: workoutExerciseSchema.parse(matching), sets };
-      }
+        .map((session) => [session.id, session]),
+    );
+    const candidates = entries
+      .filter((entry) => eligible.has(entry.workoutSessionId))
+      .sort(
+        (left, right) =>
+          eligible
+            .get(right.workoutSessionId)!
+            .startedAt.localeCompare(eligible.get(left.workoutSessionId)!.startedAt) ||
+          left.order - right.order,
+      );
+    for (const entry of candidates) {
+      if (result.has(entry.exerciseId)) continue;
+      const sets = (await this.db.workoutSets.where('workoutExerciseId').equals(entry.id).toArray())
+        .map((set) => workoutSetSchema.parse(set))
+        .filter((set) => set.completed)
+        .sort((left, right) => left.setNumber - right.setNumber);
+      if (sets.length)
+        result.set(entry.exerciseId, { exercise: workoutExerciseSchema.parse(entry), sets });
     }
-    return undefined;
+    return result;
   }
 
   async get(id: string): Promise<WorkoutGraph | undefined> {

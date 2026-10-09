@@ -12,6 +12,7 @@ import { catalogMetadataSchema, workoutSessionSchema } from '../../domain/valida
 export async function getHomeData(db: LiftwiseDatabase = database, now = new Date()) {
   const programs = new ProgramRepository(db);
   const workouts = new WorkoutRepository(db);
+  await workouts.recoverInterrupted(now);
   const previousMonday = weekStart(now);
   previousMonday.setDate(previousMonday.getDate() - 7);
   return db.transaction(

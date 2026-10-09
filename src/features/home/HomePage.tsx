@@ -85,7 +85,12 @@ export function HomePage() {
       <p className="type-body-small text-secondary">{data.greeting}</p>
 
       {state !== 'in-progress' ? (
-        <WeekSelector days={data.week} selected={selected} onSelect={setSelection} />
+        <WeekSelector
+          days={data.week}
+          calendar={data.calendar}
+          selected={selected}
+          onSelect={setSelection}
+        />
       ) : null}
 
       {error ? (
@@ -227,7 +232,12 @@ export function HomePage() {
       <WeeklyProgress data={data} />
 
       {state === 'in-progress' ? (
-        <WeekSelector days={data.week} selected={selected} onSelect={setSelection} />
+        <WeekSelector
+          days={data.week}
+          calendar={data.calendar}
+          selected={selected}
+          onSelect={setSelection}
+        />
       ) : null}
 
       {state === 'scheduled' ? <InsightCard data={data} /> : null}

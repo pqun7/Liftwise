@@ -1,19 +1,13 @@
-import { CalendarDayButton } from '../../components/ui/CalendarDayButton';
+import { WeekSelector } from '../../components/home/WeekSelector';
+import recoveryArtwork from '../../assets/images/plan/recovery-bed.webp';
 import { Link, useLoaderData, useSearchParams } from 'react-router-dom';
 import { ArrowRight, CalendarDays, CheckCircle2, CircleAlert, Dumbbell, Moon } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { buttonClasses } from '../../components/ui/controlStyles';
 import { planCalendar, scheduleLabels } from './scheduleData';
-import {
-  addLocalCalendarDays,
-  dateFromKey,
-  isLocalDateKey,
-  localDateKey,
-  weekStart,
-} from '../../domain/localCalendar';
+import { dateFromKey, isLocalDateKey } from '../../domain/localCalendar';
 import type { ProgramListData } from './programService';
 import { estimatedProgramMinutes } from './programDisplay';
-import planArtwork from '../../assets/images/plan/plan-empty-transparent.png';
 
 export function ScheduleEmpty({
   title,
@@ -28,14 +22,9 @@ export function ScheduleEmpty({
 }) {
   return (
     <Card variant="glass" padding="spacious" radius="hero" className="grid gap-4 text-center">
-      <img
-        className="plan-empty-artwork mx-auto block h-auto w-[var(--artwork-width)] max-w-full object-contain"
-        src={planArtwork}
-        width={1448}
-        height={1086}
-        alt=""
-        decoding="async"
-      />
+      <span className="mx-auto grid size-16 place-items-center rounded-2xl bg-mint/10 text-mint">
+        <CalendarDays size={28} aria-hidden="true" />
+      </span>
       <h2 className="type-section-title text-[21px] leading-tight">{title}</h2>
       <p className="mx-auto max-w-[265px] text-[15px] leading-relaxed text-secondary">
         {description}
@@ -48,7 +37,15 @@ export function ScheduleEmpty({
   );
 }
 
-export function ScheduleView({ date, showWeek = true }: { date?: string; showWeek?: boolean }) {
+export function ScheduleView({
+  date,
+  showWeek = true,
+  overview = false,
+}: {
+  date?: string;
+  showWeek?: boolean;
+  overview?: boolean;
+}) {
   const data = useLoaderData<ProgramListData>();
   const { graph, calendar } = planCalendar(data);
   const [params, setParams] = useSearchParams();
@@ -57,44 +54,15 @@ export function ScheduleView({ date, showWeek = true }: { date?: string; showWee
   const day = calendar.getDayState(selected);
   const entry = day.entry;
   const minutes = entry ? estimatedProgramMinutes(entry.exercises) : null;
-  const start = localDateKey(weekStart(dateFromKey(selected)));
-  const week = Array.from({ length: 7 }, (_, index) => addLocalCalendarDays(start, index));
   const session = day.session;
   const title =
     day.status === 'active' || day.status === 'completed'
       ? (session?.name ?? 'Workout')
-      : (entry?.day.name ?? scheduleLabels[day.status]);
+      : day.status === 'rest'
+        ? 'Recovery Day'
+        : (entry?.day.name ?? scheduleLabels[day.status]);
   return (
-    <div className="grid gap-4">
-      {showWeek ? (
-        <div className="grid grid-cols-7 gap-0.5" aria-label="Scheduled week">
-          {week.map((key) => {
-            const state = calendar.getDayState(key);
-            const value = dateFromKey(key);
-            return (
-              <CalendarDayButton
-                key={key}
-                label={value.toLocaleDateString('en', { weekday: 'short' })}
-                date={value.getDate()}
-                today={key === calendar.today}
-                selected={selected === key}
-                status={state.status}
-                accessibleLabel={
-                  value.toLocaleDateString('en', {
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric',
-                  }) +
-                  ', ' +
-                  scheduleLabels[state.status]
-                }
-                onSelect={() => void setParams(key === calendar.today ? {} : { date: key })}
-                caption={state.entry?.day.name ?? (state.status === 'rest' ? 'Rest' : '—')}
-              />
-            );
-          })}
-        </div>
-      ) : null}
+    <div className={`grid ${overview ? 'gap-3' : 'gap-4'}`}>
       {day.status === 'no-program' ? (
         <ScheduleEmpty
           title="No program yet"
@@ -110,7 +78,22 @@ export function ScheduleView({ date, showWeek = true }: { date?: string; showWee
           action="Set Schedule"
         />
       ) : (
-        <Card variant="glass" padding="spacious" radius="hero" className="grid gap-4">
+        <Card
+          variant="glass"
+          padding="spacious"
+          radius="hero"
+          className={`grid gap-2 ${overview ? 'plan-today-card' : ''}`}
+        >
+          {overview && day.status === 'rest' ? (
+            <img
+              className="plan-recovery-art"
+              src={recoveryArtwork}
+              width={384}
+              height={384}
+              decoding="async"
+              alt=""
+            />
+          ) : null}
           <p className={`flex items-center gap-2 type-label uppercase schedule-copy-${day.status}`}>
             {day.status === 'rest' ? (
               <Moon size={20} />
@@ -161,13 +144,43 @@ export function ScheduleView({ date, showWeek = true }: { date?: string; showWee
           )}
         </Card>
       )}
+      {showWeek ? (
+        <Card variant="glass" className="grid gap-3 plan-week-card">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="flex items-center gap-2 type-card-title">
+              <CalendarDays size={20} aria-hidden="true" />
+              Weekly Schedule
+            </h2>
+            <Link
+              to="/plan/schedule"
+              className="flex min-h-11 items-center gap-1 type-caption text-secondary no-underline"
+            >
+              This week <ArrowRight size={14} aria-hidden="true" />
+            </Link>
+          </div>
+          <WeekSelector
+            calendar={calendar}
+            selected={selected}
+            variant="detailed"
+            onSelect={(key) => {
+              const next = new URLSearchParams(params);
+              if (key === calendar.today) next.delete('date');
+              else next.set('date', key);
+              void setParams(next);
+            }}
+          />
+        </Card>
+      ) : null}
       {calendar.next ? (
         <Card variant="glass" className="grid gap-2">
-          <h2 className="type-section-title">
+          <h2 className="flex items-center gap-2 type-card-title">
+            <span className="grid size-8 place-items-center rounded-full bg-mint/10 text-mint">
+              <Dumbbell size={20} aria-hidden="true" />
+            </span>
             {calendar.dated ? 'Next workout' : 'Next in program'}
           </h2>
           <Link
-            className="flex items-center justify-between gap-3 text-primary no-underline"
+            className="flex min-h-11 items-center justify-between gap-3 text-primary no-underline"
             to={`/workout?day=${calendar.next.entry.day.id}`}
           >
             <span>
@@ -186,7 +199,7 @@ export function ScheduleView({ date, showWeek = true }: { date?: string; showWee
           </Link>
         </Card>
       ) : null}
-      {graph && calendar.dated ? (
+      {!overview && graph && calendar.dated ? (
         <Link className={buttonClasses('secondary')} to="/plan/schedule">
           <CalendarDays size={19} />
           Schedule settings

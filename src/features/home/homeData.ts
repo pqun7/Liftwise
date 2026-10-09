@@ -1,4 +1,9 @@
-import { localDateKey, weekStart } from '../../domain/localCalendar';
+import {
+  addLocalCalendarDays,
+  dateFromKey,
+  localDateKey,
+  weekStart,
+} from '../../domain/localCalendar';
 import { sessionCalendarDate, trainingCalendar } from '../../domain/trainingCalendar';
 export { localDateKey, weekStart } from '../../domain/localCalendar';
 import { estimatedProgramMinutes } from '../plan/programDisplay';
@@ -22,6 +27,34 @@ export interface HomeDay {
   kind: 'training' | 'rest' | 'future';
   performance: number;
   status?: ReturnType<ReturnType<typeof trainingCalendar>['getDayState']>['status'];
+}
+
+/** One Monday-first projection for the Home and Plan weekly controls. */
+export function calendarWeek(
+  calendar: ReturnType<typeof trainingCalendar>,
+  selected = calendar.today,
+): HomeDay[] {
+  const start = localDateKey(weekStart(dateFromKey(selected)));
+  return Array.from({ length: 7 }, (_, index) => {
+    const key = addLocalCalendarDays(start, index);
+    const date = dateFromKey(key);
+    const state = calendar.getDayState(key);
+    return {
+      key,
+      label: date.toLocaleDateString('en', { weekday: 'short' }),
+      date: date.getDate(),
+      accessibleDate: date.toLocaleDateString('en', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+      }),
+      isToday: key === calendar.today,
+      completed: state.status === 'completed' ? 1 : 0,
+      kind: state.entry && state.entry.day.kind !== 'recovery' ? 'training' : 'rest',
+      performance: 0,
+      status: state.status,
+    };
+  });
 }
 
 export interface HomeData {
@@ -89,10 +122,8 @@ export function deriveHomeData(
       return total + completion.completedSets + completion.completedExercises * 0.75;
     }, 0);
   const maxEffort = Math.max(1, ...[...workoutsByDay.values()].map(dayEffort));
-  const week = Array.from({ length: 7 }, (_, index): HomeDay => {
-    const date = new Date(monday);
-    date.setDate(monday.getDate() + index);
-    const key = localDateKey(date);
+  const week = calendarWeek(calendar).map((day): HomeDay => {
+    const key = day.key;
     const workouts = workoutsByDay.get(key) ?? [];
     const isToday = key === today;
     const isFuture = key > today;
@@ -101,16 +132,7 @@ export function deriveHomeData(
       !!calendar.getScheduledWorkout(key) ||
       (isToday && days.length > 0 && !calendar.dated);
     return {
-      key,
-      status: calendar.getDayState(key).status,
-      label: date.toLocaleDateString('en', { weekday: 'short' }),
-      date: date.getDate(),
-      accessibleDate: date.toLocaleDateString('en', {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-      }),
-      isToday,
+      ...day,
       completed: workouts.filter(({ session }) => session.status === 'completed').length,
       kind: isFuture ? 'future' : isTrainingDay ? 'training' : 'rest',
       performance: workouts.length
