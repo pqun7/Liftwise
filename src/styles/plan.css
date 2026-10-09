@@ -1635,3 +1635,105 @@ button.plan-schedule-row {
 .recovery-page .type-page-title {
   font-size: var(--type-size-page);
 }
+/* Artwork is assigned to one purpose: recovery, program details, or creation. */
+.plan-today-card {
+  position: relative;
+  min-height: 148px;
+}
+.plan-today-card:has(.plan-recovery-art) {
+  grid-template-columns: minmax(0, 1fr) 88px;
+  column-gap: 8px;
+}
+.plan-today-card:has(.plan-recovery-art) > :not(img) {
+  grid-column: 1;
+}
+.plan-today-card .type-page-title {
+  font-size: var(--type-size-section);
+}
+.plan-today-card > .text-secondary {
+  font-size: var(--type-size-body-small);
+  line-height: 1.6;
+}
+.plan-recovery-art {
+  grid-column: 2;
+  grid-row: 1 / 4;
+  align-self: center;
+  width: 104px;
+  max-width: none;
+  height: 104px;
+  object-fit: contain;
+  pointer-events: none;
+}
+.plan-program-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 112px;
+  align-items: center;
+  gap: 8px;
+  min-height: 94px;
+}
+.plan-details-art {
+  display: block;
+  width: 112px;
+  height: 94px;
+  object-fit: contain;
+  pointer-events: none;
+}
+.plan-current-card .type-section-title {
+  font-size: var(--type-size-card);
+}
+.plan-week-card {
+  padding-block: 12px;
+}
+.plan-build-card .plan-empty-artwork {
+  object-fit: contain;
+  margin: 4px auto 0;
+}
+.plan-build-card small {
+  font-size: var(--type-size-caption);
+  line-height: 1.6;
+}
+.week-selector-detailed.home-week-scroll {
+  overflow-x: auto;
+  margin-inline: -10px;
+  padding: 3px;
+}
+.week-selector-detailed .calendar-day[data-status] {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  min-height: 64px;
+  gap: 8px;
+  color: var(--foreground);
+  border-radius: 12px;
+}
+.week-selector-detailed .calendar-day[data-status][aria-pressed='true'],
+.week-selector-detailed .calendar-day[data-status]:hover {
+  border-color: color-mix(in srgb, var(--accent) 24%, transparent);
+  box-shadow: none;
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+.week-selector-detailed .calendar-day[data-status][aria-current='date'] {
+  border-color: color-mix(in srgb, var(--accent) 24%, transparent);
+}
+.week-selector-detailed .calendar-day small {
+  color: var(--secondary);
+  width: 100%;
+}
+.week-selector-detailed .calendar-day {
+  padding-inline: 1px;
+}
+.week-training-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--muted) 65%, transparent);
+}
+.calendar-day[data-training='true'] .week-training-dot {
+  background: var(--accent);
+}
+.calendar-day[data-status='completed'] .week-training-dot {
+  background: var(--completed);
+}
+.calendar-day[data-status='active'] .week-training-dot {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}

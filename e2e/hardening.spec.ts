@@ -263,8 +263,8 @@ test('all core training, charts, backup and CSV flows work with network disabled
     ).toHaveAttribute('href', '/plan');
     await page.getByRole('link', { name: 'Plan', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Plan', exact: true })).toBeVisible();
-    await page.getByRole('radio', { name: 'Program', exact: true }).click();
-    await expect(page.getByRole('radio', { name: 'Program', exact: true })).toBeChecked();
+    await page.getByRole('radio', { name: 'Details', exact: true }).click();
+    await expect(page.getByRole('radio', { name: 'Details', exact: true })).toBeChecked();
     await page.getByRole('link', { name: 'View program details' }).click();
     await expect(page.getByRole('heading', { name: 'Offline QA', exact: true })).toBeVisible();
     expect(external).toEqual([]);

@@ -35,6 +35,8 @@ export function CalendarDayButton({
   caption,
   future = false,
   onSelect,
+  variant = 'compact',
+  training,
 }: {
   label: string;
   date: number;
@@ -42,15 +44,18 @@ export function CalendarDayButton({
   today: boolean;
   selected: boolean;
   status: CalendarDayStatus;
-  caption?: string;
+  caption?: string | undefined;
   future?: boolean;
   onSelect: () => void;
+  variant?: 'compact' | 'detailed';
+  training?: boolean;
 }) {
   return (
     <button
       type="button"
       className="calendar-day"
       data-status={status}
+      data-training={training ? 'true' : undefined}
       data-future={future || status === 'future' ? 'true' : undefined}
       aria-current={today ? 'date' : undefined}
       aria-pressed={selected}
@@ -58,8 +63,12 @@ export function CalendarDayButton({
       onClick={onSelect}
     >
       <span>{label}</span>
-      <strong>{date}</strong>
-      <CalendarDayMarker status={status} />
+      {variant === 'compact' ? <strong>{date}</strong> : null}
+      {variant === 'compact' ? (
+        <CalendarDayMarker status={status} />
+      ) : (
+        <span className="week-training-dot" aria-hidden="true" />
+      )}
       {caption ? <small title={caption}>{caption}</small> : null}
     </button>
   );

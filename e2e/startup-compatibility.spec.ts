@@ -74,8 +74,8 @@ test('existing scheduling records open on launch and remain available offline', 
   try {
     if (browserName !== 'webkit') await page.reload();
     await page.getByRole('link', { name: 'Plan', exact: true }).click();
-    await page.getByRole('radio', { name: 'Program', exact: true }).click();
-    await expect(page.getByRole('radio', { name: 'Program', exact: true })).toBeChecked();
+    await page.getByRole('radio', { name: 'Details', exact: true }).click();
+    await expect(page.getByRole('radio', { name: 'Details', exact: true })).toBeChecked();
     for (const program of records.programs) {
       await expect(page.getByText(program.name, { exact: true }).first()).toBeVisible();
     }

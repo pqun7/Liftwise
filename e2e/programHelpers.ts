@@ -36,8 +36,8 @@ export async function openSavedEditor(page: Page, choice = 'Custom', basicsSubmi
   }
   await page.getByRole('button', { name: 'Next: Exercises' }).click();
   await finishBuilder(page);
-  await page.getByRole('radio', { name: 'Program', exact: true }).click();
-  await expect(page.getByRole('radio', { name: 'Program', exact: true })).toBeChecked();
+  await page.getByRole('radio', { name: 'Details', exact: true }).click();
+  await expect(page.getByRole('radio', { name: 'Details', exact: true })).toBeChecked();
   await page.getByRole('link', { name: 'View program details' }).click();
   await expect(page).toHaveURL(/\/plan\/[^/?]+$/);
   await expect(page.getByRole('heading', { name: 'Program details', exact: true })).toBeVisible();

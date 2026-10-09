@@ -51,7 +51,7 @@ async function fixture(cycle = false) {
   return { db, programs, workouts, program, day, rest, exercise, prescription };
 }
 
-it('keeps Schedule default and the existing Current Program empty state behind Program', async () => {
+it('shows the guided empty state in Overview and Details without creating workouts', async () => {
   const db = createTestDatabase();
   render(
     <RouterProvider
@@ -61,10 +61,12 @@ it('keeps Schedule default and the existing Current Program empty state behind P
       )}
     />,
   );
-  expect(await screen.findByRole('heading', { name: 'No program yet' })).toBeInTheDocument();
-  expect(screen.getByRole('radio', { name: 'Schedule' })).toBeChecked();
+  expect(
+    await screen.findByRole('heading', { name: 'Build your training week' }),
+  ).toBeInTheDocument();
+  expect(screen.getByRole('radio', { name: 'Overview' })).toBeChecked();
   expect(screen.queryByLabelText('Scheduled week')).not.toBeInTheDocument();
-  fireEvent.click(screen.getByRole('radio', { name: 'Program' }));
+  fireEvent.click(screen.getByRole('radio', { name: 'Details' }));
   expect(
     await screen.findByRole('heading', { name: 'Build your training week' }),
   ).toBeInTheDocument();
@@ -212,7 +214,8 @@ it('routes Plan to Workout without creating a session and keeps Program free of 
   expect(screen.queryByText('Next workout')).toBeNull();
   expect(screen.queryByRole('link', { name: /View in Workout/ })).toBeNull();
   fireEvent.click(screen.getByRole('link', { name: 'View program details' }));
-  expect(await screen.findByRole('radio', { name: 'Overview' })).toBeChecked();
+  expect(await screen.findByRole('heading', { name: 'Program details' })).toBeInTheDocument();
+  expect(screen.getByRole('radio', { name: 'Overview' })).toBeChecked();
   expect(screen.getByRole('link', { name: /Upper A/ })).toHaveAttribute(
     'href',
     `/plan/${program.id}/days/${day.id}?mode=preview`,

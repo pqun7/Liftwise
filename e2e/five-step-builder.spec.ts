@@ -59,7 +59,7 @@ test('first Custom program: five stages, no seeded exercises, notes, targets, re
   page.on('pageerror', (error) => errors.push(error.message));
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/plan');
-  await page.getByRole('radio', { name: 'Program', exact: true }).click();
+  await page.getByRole('radio', { name: 'Details', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Build your training week' })).toBeVisible();
   const art = page.locator('.plan-empty-artwork');
   await expect(art).toBeVisible();
@@ -147,7 +147,7 @@ test('first Custom program: five stages, no seeded exercises, notes, targets, re
   await page.getByRole('radio', { name: /Create and set as active/ }).check();
   await page.getByRole('button', { name: 'Create & Activate Program' }).click();
   await expect(page).toHaveURL(/\/plan$/);
-  await page.getByRole('radio', { name: 'Program', exact: true }).click();
+  await page.getByRole('radio', { name: 'Details', exact: true }).click();
   await expect(page.locator('.plan-active-card')).toContainText('Updated Custom Strength');
   await page.screenshot({ path: testInfo.outputPath('plan-saved.png'), fullPage: true });
   await page.reload();
@@ -162,7 +162,7 @@ test('first Custom program: five stages, no seeded exercises, notes, targets, re
   await page.getByRole('button', { name: 'Save Program' }).click();
   await expect(page).toHaveURL(/\/plan$/);
   await page.reload();
-  await page.getByRole('radio', { name: 'Program', exact: true }).click();
+  await page.getByRole('radio', { name: 'Details', exact: true }).click();
   await expect(page.locator('.plan-active-card')).toContainText('2 exercises');
   expect(errors).toEqual([]);
 });
@@ -242,7 +242,7 @@ test('flexible cycle: add, rename, duplicate, move, delete, recovery artwork and
   await page.getByRole('button', { name: 'Create & Activate Program' }).click();
   await expect(page).toHaveURL(/\/plan$/);
   await page.reload();
-  await page.getByRole('radio', { name: 'Program', exact: true }).click();
+  await page.getByRole('radio', { name: 'Details', exact: true }).click();
   await expect(page.locator('.plan-active-card')).toContainText('Flexible Strength');
   await basics(page, 'Another Plan');
   await template(page);
@@ -250,13 +250,13 @@ test('flexible cycle: add, rename, duplicate, move, delete, recovery artwork and
   await review(page);
   await page.getByRole('radio', { name: /Save as another program/ }).check();
   await page.getByRole('button', { name: 'Create Program', exact: true }).click();
-  await page.getByRole('radio', { name: 'Program', exact: true }).click();
+  await page.getByRole('radio', { name: 'Details', exact: true }).click();
   await expect(page.locator('.plan-active-card')).toContainText('Flexible Strength');
   await page.getByRole('button', { name: 'Set as active', exact: true }).click();
-  await page.getByRole('radio', { name: 'Program', exact: true }).click();
+  await page.getByRole('radio', { name: 'Details', exact: true }).click();
   await expect(page.locator('.plan-active-card')).toContainText('Another Plan');
   await page.reload();
-  await page.getByRole('radio', { name: 'Program', exact: true }).click();
+  await page.getByRole('radio', { name: 'Details', exact: true }).click();
   await expect(page.locator('.plan-active-card')).toContainText('Another Plan');
   await page.screenshot({ path: testInfo.outputPath('plan-multiple.png'), fullPage: true });
 });
