@@ -5,7 +5,7 @@ import { ArrowRight, Leaf, Play, Sun } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import bench from '../../assets/images/workout-bench.webp';
 import rest from '../../assets/images/rest-day.webp';
-import { sessionCalendarDate } from '../../domain/trainingCalendar';
+import { completedSessionDate } from '../../domain/completedSessionDate';
 import { programDayMetadata, type HomeData } from '../../features/home/homeData';
 
 export function WorkoutHero({
@@ -25,7 +25,7 @@ export function WorkoutHero({
 }) {
   const completed = data.weekHistory.find(
     ({ session }) =>
-      sessionCalendarDate(session) === selectedDate &&
+      completedSessionDate(session, new Date(data.now)) === selectedDate &&
       (!scheduled || !data.suggestion || session.programDayId === data.suggestion.day.id),
   );
   const day = scheduled && !completed ? data.suggestion : null;

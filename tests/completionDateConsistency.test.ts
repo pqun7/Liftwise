@@ -4,6 +4,7 @@ import { WorkoutRepository } from '../src/lib/storage/repositories/workoutReposi
 import { ExerciseRepository } from '../src/lib/storage/repositories/exerciseRepository';
 import { getHomeData } from '../src/features/home/homeService';
 import { getWorkoutLanding } from '../src/features/workout/workoutService';
+import { ProgressRepository } from '../src/features/progress/progressService';
 import { sessionCalendarDate } from '../src/domain/trainingCalendar';
 import { createTestDatabase, cleanupTestDatabases } from './helpers/database';
 
@@ -17,6 +18,10 @@ it('keeps a workout completed after midnight on its scheduled date across databa
     primaryMuscle: 'chest',
   });
   const program = await programs.create({ name: 'Upper' });
+  await db.programs.update(program.id, {
+    createdAt: '2026-09-01T12:00:00.000Z',
+    updatedAt: '2026-09-01T12:00:00.000Z',
+  });
   await programs.setActive(program.id);
   const day = await programs.addDay({ programId: program.id, name: 'Upper B', weekday: 2 });
   await programs.addExercise({ programDayId: day.id, exerciseId: exercise.id, targetSets: 1 });
@@ -41,6 +46,20 @@ it('keeps a workout completed after midnight on its scheduled date across databa
   expect(home.week.find((day) => day.key === '2026-10-08')?.completed).toBe(0);
   expect(home.calendar.getCompletedSession(home.today)).toBeNull();
   expect((await getWorkoutLanding(db, now)).state).toBe('rest-day');
+  expect((await new ProgressRepository(db).streak(now)).week[2]).toMatchObject({
+    date: '2026-10-07',
+    status: 'completed',
+  });
+  expect((await new ProgressRepository(db).streak(now)).week[3]).toMatchObject({
+    date: '2026-10-08',
+    status: 'rest',
+  });
+  expect(
+    await new ProgressRepository(db).history(
+      new Date(2026, 9, 7, 0).toISOString(),
+      new Date(2026, 9, 8, 12).toISOString(),
+    ),
+  ).toHaveLength(1);
   expect(await db.workoutSessions.count()).toBe(1);
   expect(await workouts.finish(session.session.id, now)).toEqual(completed.session);
   expect(await db.workoutSessions.count()).toBe(1);

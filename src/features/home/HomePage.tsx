@@ -3,7 +3,7 @@ import { dateFromKey } from '../../domain/localCalendar';
 
 import { useState } from 'react';
 import { useScreenState } from '../../app/useScreenState';
-import { sessionCalendarDate } from '../../domain/trainingCalendar';
+import { completedSessionDate } from '../../domain/completedSessionDate';
 
 import { Link, useLoaderData, useNavigate } from 'react-router-dom';
 
@@ -51,7 +51,7 @@ export function HomePage() {
   const state = homeState(data, selected);
 
   const selectedWorkouts = data.weekHistory.filter(
-    ({ session }) => sessionCalendarDate(session) === selected,
+    ({ session }) => completedSessionDate(session, new Date(data.now)) === selected,
   );
 
   const completedToday = data.calendar.getCompletedSession(data.today);

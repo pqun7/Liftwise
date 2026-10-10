@@ -12,6 +12,7 @@ import { progressLoader, workoutHistoryLoader } from '../src/features/progress/l
 import { ProgressPage } from '../src/features/progress/ProgressPage';
 import { cleanupTestDatabases, createTestDatabase } from './helpers/database';
 import { useCalendarRevalidation } from '../src/app/shell/useCalendarRevalidation';
+import { trainingCalendar } from '../src/domain/trainingCalendar';
 
 vi.mock('virtual:pwa-register/react', () => ({
   useRegisterSW: () => ({
@@ -42,7 +43,7 @@ describe('persisted streak data and route rendering', () => {
     expect(result).toMatchObject({
       currentStreak: 1,
       bestStreak: 1,
-      trackingStartDate: '2026-10-08',
+      trackingStartDate: '2026-10-07',
     });
     const name = db.name;
     db.close();
@@ -97,6 +98,8 @@ describe('persisted streak data and route rendering', () => {
     router.dispose();
   });
   it('derives rest from the active program, stays consistent on Home and survives schedule changes and reopen', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 9, 1, 12));
     const db = createTestDatabase('rest-schedule');
     const programs = new ProgramRepository(db);
     const exercise = await new ExerciseRepository(db).create({
@@ -139,6 +142,51 @@ describe('persisted streak data and route rendering', () => {
     expect(await new ProgressRepository(reopened).trainingWeekdays()).toBeNull();
     expect((await new ProgressRepository(reopened).streak(now)).week[3]?.status).toBe('today');
     reopened.close();
+  });
+  it('keeps global quick and previous-program activity while the active program calendar requires matching provenance', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 9, 1, 12));
+    const db = createTestDatabase('global-streak-program-attendance');
+    const programs = new ProgramRepository(db);
+    const workouts = new WorkoutRepository(db);
+    const exercise = await new ExerciseRepository(db).create({
+      name: 'Schedule test',
+      primaryMuscle: 'chest',
+    });
+    const active = await programs.create({ name: 'Current schedule' });
+    const wednesday = await programs.addDay({
+      programId: active.id,
+      name: 'Wednesday',
+      weekday: 2,
+    });
+    await programs.addExercise({
+      programDayId: wednesday.id,
+      exerciseId: exercise.id,
+      targetSets: 1,
+    });
+    await programs.setActive(active.id);
+    const previous = await programs.create({ name: 'Previous schedule' });
+    for (const [day, programId] of [
+      [6, previous.id],
+      [7, null],
+    ] as const) {
+      const session = await workouts.createSession({
+        programId,
+        startedAt: new Date(2026, 9, day, 10).toISOString(),
+      });
+      await workouts.finish(session.id, new Date(2026, 9, day, 11));
+    }
+    const now = new Date(2026, 9, 8, 18);
+    const streak = await new ProgressRepository(db).streak(now);
+    expect(streak).toMatchObject({ currentStreak: 2, bestStreak: 2 });
+    expect(streak.week[2]).toMatchObject({ date: '2026-10-07', status: 'completed' });
+
+    const activeGraph = (await programs.get(active.id))!;
+    const calendar = trainingCalendar(activeGraph, [], now);
+    expect(calendar.getDayState('2026-10-07').status).toBe('missed');
+    await programs.setActive(previous.id);
+    expect((await new ProgressRepository(db).streak(now)).currentStreak).toBe(2);
+    db.close();
   });
   it('shares cycle recovery rules without excusing pre-program gaps or inventing attendance', async () => {
     vi.useFakeTimers({ toFake: ['Date'] });
@@ -193,7 +241,7 @@ describe('persisted streak data and route rendering', () => {
       expect(result.streak).toMatchObject({
         currentStreak: 2,
         bestStreak: 2,
-        missedDays: 2,
+        missedDays: 0,
         week: expected.week,
       });
     }

@@ -1,325 +1,118 @@
+<div align="center">
+
 # Liftwise
 
-> **Private. Offline-first. Built for iPhone.**
+**Private workout planning. Local data. Built for iPhone.**
 
-Liftwise is a personal gym manager and workout-planning app designed primarily for **iPhone**.
+A personal fitness planner for building workout programs, organizing exercises, logging sessions, and tracking progress — without an account or cloud sync.
 
-It helps you organize exercises and training programs while keeping your personal fitness data **on your own device**.
+[**Open Liftwise**](https://liftwise-psi.vercel.app/) · [Roadmap](ROADMAP.md) · [Release notes](docs/RELEASE_NOTES_v1.2.1.md)
 
-- No account required
-- No cloud sync
-- No analytics or tracking
-- Works offline after the required files are loaded
-- Installable on the iPhone Home Screen
+<img src="public/liftwise-fitness-app.webp" alt="Liftwise app preview" width="700" />
 
-> **Version:** v1.2.1 — Unified streak tracking, shared header and iPhone layout polish. Physical-iPhone acceptance and gym-soak testing remain unverified.
-
-See [v1.2.1 release notes](docs/RELEASE_NOTES_v1.2.1.md) for verification scope and device limitations.
+</div>
 
 ---
 
-## What you can do
+## Features
 
-### Home
+- **Workout planning** — create multiple programs, organize training days, choose a split, and set sets, rep ranges, RIR, rest times, and notes.
+- **Exercise library** — search and filter exercises by body part or equipment, view instructions, and add custom exercises.
+- **Workout tracking** — log sets and sessions, review workout history, personal records, and progress charts.
+- **Home dashboard** — view your active program, suggested workout, weekly activity, and recent sessions.
+- **Offline-first access** — use supported features offline after the app and required data have been cached.
+- **Data portability** — create and validate backups, restore from a preview, export custom exercises to CSV, and inspect storage health.
 
-- See a suggested day from your active program, continue an unfinished workout, or browse from the rest-day view.
-- Select dates to inspect this week's real completed sessions; view weekly progress, recent workouts and your programs.
-- Use the compact, photo-backed mobile layout offline. More in the bottom navigation opens Settings.
+## Install on iPhone
 
-Scheduled programs follow their assigned weekdays. Programs without weekdays retain next-in-program rotation. Completed sessions keep their assigned calendar date, including workouts that cross midnight.
+1. Open [Liftwise](https://liftwise-psi.vercel.app/) in **Safari** on your iPhone.
+2. Tap **Share** → **Add to Home Screen**.
+3. Keep the name as **Liftwise**, then tap **Add**.
+4. Launch Liftwise from the Home Screen and stay online during the first launch so required files can load.
 
-### Exercise Library
+Supported features can then work offline. Offline availability depends on which app files and exercise media have been cached.
 
-- Browse and search exercises
-- Filter exercises by body part and equipment
-- View exercise instructions and available illustrations
-- Create your own custom exercises
-- Use supported exercise data offline
+## Quick start
 
-### Program Builder
+1. Browse the **Exercise Library** and create any missing custom exercises.
+2. Open **Plan** and create a program.
+3. Add training days and exercises.
+4. Set your prescriptions, then reorder days and exercises as needed.
+5. Start a workout and log your sets.
 
-- Follow Basic Info → Training Days → Exercises → Review/Save.
-- Choose goal, level, intended weekdays and a split template; manual selections and existing prescriptions are preserved.
-- Resume locally saved drafts from Plan. Drafts cannot be activated or started as workouts until saved.
-- Create multiple workout programs
-- Choose an active program
-- Add and organize workout days
-- Add built-in or custom exercises
-- Set:
-  - target sets
-  - rep ranges
-  - RIR
-  - rest time
-  - notes
-- Reorder exercises and workout days
-- Duplicate programs and days
-- Edit or delete saved items
+Saved programs and workout data are stored locally on your device.
 
-Your programs are saved locally on your device. Each completed builder step persists promptly; field edits show a warning before being abandoned. Empty days may be saved and filled later. Default day rest is used for new prescriptions, not retroactively applied to existing ones.
+## Privacy and storage
 
-### Data Safety
+Liftwise is designed to keep personal fitness data on your device.
 
-- Create a portable, versioned backup of user-owned data
-- Validate a backup and review its contents before replacing current data
-- Detect accidental backup corruption with a SHA-256 checksum
-- Export custom exercises as CSV
-- Inspect database health and available browser storage information
-- Delete user data separately from downloaded exercise images
-
----
-
-## Install Liftwise on iPhone
-
-Liftwise is designed to be installed from **Safari** and opened from your iPhone Home Screen like a normal app.
-
-### 1. Open Liftwise in Safari
-
-Open the deployed **HTTPS** version of Liftwise using **Safari on your iPhone**.
-
-**Liftwise:**
-https://liftwise-psi.vercel.app/
-
-> Safari is the recommended installation method for the iPhone PWA version.
-
-### 2. Add Liftwise to the Home Screen
-
-In Safari:
-
-1. Tap the **Share** button.
-2. Scroll down and tap **Add to Home Screen**.
-3. Make sure the name is **Liftwise**.
-4. Tap **Add**.
-
-The Liftwise icon will now appear on your Home Screen.
-
-### 3. Open the installed app
-
-Tap the **Liftwise** icon from your Home Screen.
-
-It will open in its own app-style window instead of a normal Safari tab.
-
-### 4. Complete the first launch while online
-
-Keep your iPhone connected to the internet during the first launch so Liftwise can prepare the files required for offline use.
-
-After that, supported features can continue working without an internet connection.
-
----
-
-## How to use Liftwise
-
-A simple workflow:
-
-1. Open **Exercise Library** and find the exercises you want.
-2. Create custom exercises if something is missing.
-3. Open **Plan** and create a training program.
-4. Add your workout days.
-5. Add exercises to each day.
-6. Set your sets, reps, RIR, rest time, and notes.
-7. Reorder everything to match your preferred routine.
-
-Your saved program remains stored locally when you close and reopen the app.
-
----
-
-## Privacy
-
-Liftwise is designed to keep your personal fitness data on your device.
-
-Currently, Liftwise has:
-
-| Feature                      | Current behavior      |
-| ---------------------------- | --------------------- |
-| Account                      | Not required          |
-| Backend database             | None                  |
-| Cloud sync                   | None                  |
-| Analytics / tracking         | None                  |
-| Personal workout-data upload | None                  |
-| Main local storage           | IndexedDB             |
-| Exercise media               | Browser Cache Storage |
+| Item | Current behavior |
+| --- | --- |
+| Account | Not required |
+| Backend database / cloud sync | None |
+| Analytics or tracking | None |
+| Personal workout-data uploads | None |
+| Main user-data storage | IndexedDB |
+| Exercise media cache | Browser Cache Storage |
 
 Liftwise does not currently send your programs, custom exercises, workout records, body metrics, or app settings to a Liftwise server.
 
-### Important
+### Backups matter
 
-Anyone who can unlock your iPhone may be able to open Liftwise.
+Browser storage is managed by the device and is **not guaranteed to be permanent**, even when persistence is granted. To create a backup, open **Settings → Data Safety → Create Backup** and store the downloaded JSON file somewhere safe.
 
-For better device security, use:
+Restore validates the backup and shows a preview before replacing data. The checksum helps detect accidental corruption; it is **not encryption or authentication**. Anyone who can read the backup file can read its contents.
 
-- a strong iPhone passcode;
-- Face ID when available;
-- current iOS security updates.
+Local data may be lost if you clear Safari/Liftwise website data, erase your device, remove browser-managed storage, switch to a different deployment address, or experience unexpected storage loss. There is no account or automatic cloud backup.
 
----
-
-## Data safety
-
-> [!WARNING]
-> Browser storage is device-managed. Even when persistence is granted, iOS does not guarantee permanent storage. Keep backup files somewhere outside Liftwise/Safari data.
-
-Open **Settings → Data Safety → Create Backup** to download `liftwise-backup-YYYY-MM-DD.json`. The file contains user-created exercises, programs, portable settings, body metrics, and any existing workout records. It does not copy the RepDB catalog or exercise images.
-
-Restore validates the file, checksum, compatibility, IDs, ordering, and relationships before showing a preview. Existing user data changes only after explicit confirmation, inside one transaction; a failed import rolls back.
-
-The checksum detects accidental corruption. It is not encryption, authentication, or a digital signature. Anyone who can read the file can read its contents, so store it securely.
-
-You can still lose local data if you:
-
-- clear Liftwise/Safari website data;
-- reset or erase the iPhone;
-- remove browser-managed storage;
-- switch to a different Liftwise deployment address;
-- experience unexpected browser-storage loss.
-
-There is no account or automatic cloud backup. Recovery requires a backup file you created and kept.
-
----
-
-## Offline use
-
-Liftwise follows a **local-first / offline-first** design.
-
-Important user data is stored in **IndexedDB**, while exercise images use browser **Cache Storage**.
-
-After the required app files are cached, supported features are designed to work without depending on:
-
-- RepDB
-- GitHub
-- remote fonts
-- analytics services
-- third-party runtime APIs
-
----
-
-## Current status
-
-| Feature                         | Status                |
-| ------------------------------- | --------------------- |
-| iPhone Home Screen app          | ✅ Available          |
-| Offline app shell               | ✅ Available          |
-| Exercise Library                | ✅ Available          |
-| Custom exercises                | ✅ Available          |
-| Program Builder                 | ✅ Available          |
-| Local data persistence          | ✅ Available          |
-| Offline exercise metadata       | ✅ Available          |
-| Optional offline exercise media | ✅ Available          |
-| Data backup / validated restore | ✅ Available          |
-| Storage health and estimates    | ✅ Available          |
-| Custom exercise CSV export      | ✅ Available          |
-| Live Workout Logger             | ✅ Available          |
-| Set logging                     | ✅ Available          |
-| Workout history                 | ✅ Available          |
-| Personal records                | ✅ Available          |
-| Progress charts                 | ✅ Available          |
-| Accounts / cloud sync           | Not currently planned |
-
-See [`ROADMAP.md`](ROADMAP.md) for the development roadmap.
-
----
-
-## For developers
+## Development
 
 ### Requirements
 
 - Node.js **22+**
-- pnpm **10**
+- pnpm **10** (`pnpm@10.15.1` is pinned)
 
-The project currently pins `pnpm@10.15.1`.
-
-### Install dependencies
+### Commands
 
 ```bash
 pnpm install
-```
-
-### Start development
-
-```bash
 pnpm dev
 ```
 
-Open the local URL shown by Vite.
-
-> Service workers are disabled in development mode. Use a production build when testing installation or offline behavior.
-
-### Test a production build
+Use the local URL printed by Vite. Service workers are disabled in development, so use a production build to test installation and offline behavior.
 
 ```bash
 pnpm build
 pnpm preview
-```
-
-### Build with optional RepDB media
-
-```bash
 pnpm build:deployment
-```
-
-### Run project checks
-
-```bash
 pnpm check
-```
-
-### End-to-end tests
-
-```bash
 pnpm test:e2e
 ```
 
----
+`build:deployment` builds with optional RepDB media.
 
 ## Tech stack
 
-- React 19
-- TypeScript
-- Vite
-- Tailwind CSS
-- React Router
-- IndexedDB + Dexie
-- Zod
-- React Hook Form
-- vite-plugin-pwa + Workbox
-- Vitest
-- React Testing Library
-- Playwright
-- ESLint
-- Prettier
-- pnpm
-
----
+React 19 · TypeScript · Vite · Tailwind CSS · React Router · IndexedDB · Dexie · Zod · React Hook Form · vite-plugin-pwa · Workbox · Vitest · React Testing Library · Playwright · ESLint · Prettier · pnpm
 
 ## Documentation
 
-More technical information is available in:
+- [Architecture](docs/ARCHITECTURE.md)
+- [Database](docs/DATABASE.md)
+- [Backup and restore](docs/BACKUP_AND_RESTORE.md)
+- [RepDB integration](docs/REPDB_INTEGRATION.md)
+- [Third-party data](docs/THIRD_PARTY_DATA.md)
+- [Testing](docs/TESTING.md)
+- [iPhone testing](docs/IPHONE_TESTING.md)
+- [Roadmap](ROADMAP.md)
+- [Changelog](CHANGELOG.md)
 
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- [`docs/DATABASE.md`](docs/DATABASE.md)
-- [`docs/BACKUP_AND_RESTORE.md`](docs/BACKUP_AND_RESTORE.md)
-- [`docs/REPDB_INTEGRATION.md`](docs/REPDB_INTEGRATION.md)
-- [`docs/THIRD_PARTY_DATA.md`](docs/THIRD_PARTY_DATA.md)
-- [`docs/TESTING.md`](docs/TESTING.md)
-- [`docs/IPHONE_TESTING.md`](docs/IPHONE_TESTING.md)
-- [`ROADMAP.md`](ROADMAP.md)
-- [`CHANGELOG.md`](CHANGELOG.md)
+## Status and limitations
 
----
+Current release: **v1.2.1** — unified streak tracking, shared header, and iPhone layout refinements. Physical-iPhone acceptance and extended gym-use testing remain unverified. See the [v1.2.1 release notes](docs/RELEASE_NOTES_v1.2.1.md).
+
+Accounts and cloud sync are not currently planned.
 
 ## License
 
-Liftwise source code is licensed under the [`MIT License`](LICENSE).
-
-RepDB exercise data and artwork are third-party materials and are **not** covered by the Liftwise MIT license.
-
-See:
-
-- [`docs/REPDB_INTEGRATION.md`](docs/REPDB_INTEGRATION.md)
-- [`docs/THIRD_PARTY_DATA.md`](docs/THIRD_PARTY_DATA.md)
-- [RepDB](https://repdb.co)
-
----
-
-<p align="center">
-  <strong>Liftwise</strong><br>
-  Private workout planning. Local data. Built for iPhone.
-</p>
+Liftwise source code is licensed under the [MIT License](LICENSE). RepDB exercise data and artwork are third-party materials and are **not** covered by the Liftwise MIT license. See [RepDB integration](docs/REPDB_INTEGRATION.md), [third-party data](docs/THIRD_PARTY_DATA.md), and [RepDB](https://repdb.co).

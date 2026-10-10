@@ -1,7 +1,8 @@
 import { completionDate } from '../../domain/streak';
-import { dateFromKey, localDateKey, weekdayOf } from '../../domain/localCalendar';
+import { dateFromKey, weekdayOf } from '../../domain/localCalendar';
 import { setMetrics, type AnalyticsWorkout } from '../../domain/analytics';
 import { workoutElapsedSeconds } from '../../domain/workoutTime';
+import { completedSessionDate } from '../../domain/completedSessionDate';
 
 export function periodSummary(workouts: readonly AnalyticsWorkout[]) {
   const completed = workouts.filter(({ session }) => session.status === 'completed');
@@ -22,11 +23,12 @@ export function comparison(current: number, previous: number): string | null {
 }
 // Factual activity frequency: distinct local calendar days with a completed session.
 // This is not schedule adherence, since no canonical adherence rule exists.
-export function trainingDays(workouts: readonly AnalyticsWorkout[]) {
+export function trainingDays(workouts: readonly AnalyticsWorkout[], now = new Date()) {
   return new Set(
     workouts
       .filter(({ session }) => session.status === 'completed')
-      .map(({ session }) => localDateKey(new Date(session.endedAt ?? session.startedAt))),
+      .map(({ session }) => completedSessionDate(session, now))
+      .filter((date): date is string => date !== null),
   ).size;
 }
 // Count local calendar dates touched by the rolling period, including partial end days.

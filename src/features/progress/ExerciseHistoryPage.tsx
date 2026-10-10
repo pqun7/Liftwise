@@ -16,6 +16,8 @@ import {
   type Metric,
 } from '../../domain/analytics';
 import type { exerciseHistoryLoader } from './loaders';
+import { completedSessionDate } from '../../domain/completedSessionDate';
+import { localDateKey } from '../../domain/localCalendar';
 import {
   focus,
   MetricCard,
@@ -33,18 +35,27 @@ export function ExerciseHistoryPage() {
   const [metric, setMetric] = useScreenState<Metric>('metric', 'weight');
   const allPoints = exercisePoints(workouts, exerciseId),
     start = rangeStart(range, new Date(now));
+  const startDate = localDateKey(new Date(start));
+  const today = localDateKey(new Date(now));
   const filtered = workouts.filter(
-    ({ session }) =>
-      (session.endedAt ?? session.startedAt) >= start &&
-      (session.endedAt ?? session.startedAt) <= now,
+    ({ session }) => {
+      const date = completedSessionDate(session, new Date(now));
+      return date !== null && date >= startDate && date <= today;
+    },
   );
-  const points = allPoints.filter((point) => point.date >= start && point.date <= now);
+  const points = allPoints.filter((point) => {
+    const date = localDateKey(new Date(point.date));
+    return date >= startDate && date <= today;
+  });
   const summary = exerciseSummary(filtered, exerciseId);
   const sets = points.flatMap((point) => point.sets).filter(qualifiedSet);
   const top = [...sets].sort((a, b) => b.weight! - a.weight! || b.reps! - a.reps!)[0];
   const topDate = points.find((point) => point.sets.some((set) => set.id === top?.id))?.date;
   const prs = detectPrs(workouts)
-    .filter((pr) => pr.date >= start && pr.date <= now)
+    .filter((pr) => {
+      const date = localDateKey(new Date(pr.date));
+      return date >= startDate && date <= today;
+    })
     .reverse();
   const name =
     allPoints.at(-1)?.name ??

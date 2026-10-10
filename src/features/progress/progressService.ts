@@ -10,6 +10,7 @@ import {
   workoutSetSchema,
 } from '../../domain/validation';
 import type { AnalyticsWorkout } from '../../domain/analytics';
+import { completedSessionDate } from '../../domain/completedSessionDate';
 
 export class ProgressRepository {
   constructor(private readonly db: LiftwiseDatabase = database) {}
@@ -41,17 +42,22 @@ export class ProgressRepository {
         const programs = new ProgramRepository(this.db);
         const id = await programs.getActiveId();
         const graph = id ? await programs.get(id) : undefined;
-        const calendar = trainingCalendar(graph, sessions, now);
-        const cycleStart =
-          graph?.program.scheduleType === 'cycle' ? graph.program.cycleStartDate : null;
+        const activeProgramSessions = graph
+          ? sessions.filter((session) => session.programId === graph.program.id)
+          : [];
+        const calendar = trainingCalendar(graph, activeProgramSessions, now);
         return calculateStreakStats(
           sessions,
           periodStart,
           now,
           weekdays,
-          cycleStart && calendar.dated
-            ? (date) => date >= cycleStart && calendar.isRestDay(date)
-            : undefined,
+          (date) => {
+            const status = calendar.getDayState(date).status;
+            if (status === 'rest') return 'rest';
+            if (status === 'scheduled' || status === 'missed' || status === 'completed')
+              return 'training';
+            return 'unscheduled';
+          },
         );
       },
     );
@@ -84,13 +90,14 @@ export class ProgressRepository {
           .reverse()
           .toArray();
         const repo = new WorkoutRepository(this.db);
+        const fromDate = from.startsWith('0000-') ? '0000-01-01' : localDateKey(new Date(from));
+        const untilDate = localDateKey(new Date(until));
         const graphs = await Promise.all(
           sessions
-            .filter(
-              (session) =>
-                (session.endedAt ?? session.startedAt) >= from &&
-                (session.endedAt ?? session.startedAt) <= until,
-            )
+            .filter((session) => {
+              const date = completedSessionDate(session, new Date(until));
+              return date !== null && date >= fromDate && date <= untilDate;
+            })
             .map((session) => repo.get(session.id)),
         );
         return graphs.filter((graph): graph is AnalyticsWorkout => graph !== undefined);

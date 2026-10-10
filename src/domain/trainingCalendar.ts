@@ -1,11 +1,50 @@
 import type { WorkoutSession } from './entities';
+import { completedSessionDate } from './completedSessionDate';
 import type { ProgramGraph } from '../lib/storage/repositories/programRepository';
-import { addLocalCalendarDays, dateFromKey, localDateKey, weekdayOf } from './localCalendar';
+import {
+  addLocalCalendarDays,
+  dateFromKey,
+  isLocalDateKey,
+  localDateKey,
+  weekdayOf,
+} from './localCalendar';
 
 export type CalendarDate = string;
 export type TrainingDayStatus =
-  'active' | 'completed' | 'no-program' | 'unscheduled' | 'empty' | 'missed' | 'scheduled' | 'rest';
+  | 'active'
+  | 'completed'
+  | 'no-program'
+  | 'unscheduled'
+  | 'empty'
+  | 'missed'
+  | 'scheduled'
+  | 'future'
+  | 'rest';
 export type ScheduledWorkout = { entry: ProgramGraph['days'][number]; date: CalendarDate | null };
+
+/** The weekly schedule shown by Plan, shared by Home, Calendar, and Streak projections. */
+export function resolveWeeklyProgramDay(
+  graph: ProgramGraph | undefined,
+  weekday: number,
+): ProgramGraph['days'][number] | null {
+  if (!graph) return null;
+  return graph.days.find(({ day }) => day.weekday === weekday) ?? null;
+}
+
+export function effectiveProgramStartDate(graph: ProgramGraph | undefined): CalendarDate | null {
+  if (!graph || graph.program.archived || graph.program.draft) return null;
+  const cycleStart =
+    graph.program.scheduleType === 'cycle' &&
+    graph.program.cycleStartDate &&
+    isLocalDateKey(graph.program.cycleStartDate)
+      ? graph.program.cycleStartDate
+      : null;
+  if (cycleStart) return cycleStart;
+  // Use the program's creation date for weekly and legacy dated schedules so
+  // the current schedule cannot mark dates before that program existed missed.
+  const created = new Date(graph.program.createdAt);
+  return Number.isFinite(created.getTime()) ? localDateKey(created) : null;
+}
 
 /** Calendar schedule and unfinished sessions are independent. Undated plans rotate by completion. */
 export function trainingCalendar(
@@ -15,6 +54,7 @@ export function trainingCalendar(
   lastProgramDayId?: string | null,
 ) {
   const today = localDateKey(now);
+  const programStart = effectiveProgramStartDate(graph);
   const days =
     graph && !graph.program.archived && !graph.program.draft
       ? graph.days.filter(({ day, exercises }) => day.kind !== 'recovery' && exercises.length > 0)
@@ -30,7 +70,7 @@ export function trainingCalendar(
   const getScheduledEntry = (date: CalendarDate) => {
     if (!dated || !graph) return null;
     if (graph.program.scheduleType !== 'cycle')
-      return graph.days.find(({ day }) => day.weekday === weekdayOf(dateFromKey(date))) ?? null;
+      return resolveWeeklyProgramDay(graph, weekdayOf(dateFromKey(date)));
     const anchor = graph.program.cycleStartDate!;
     if (date < anchor) return null;
     // UTC midnight here measures calendar dates, independent of local DST durations.
@@ -44,7 +84,7 @@ export function trainingCalendar(
       (session) =>
         session.status === 'completed' &&
         session.programId === graph?.program.id &&
-        Date.parse(session.endedAt ?? session.startedAt) <= now.getTime(),
+        completedSessionDate(session, now) !== null,
     )
     .sort((a, b) => (b.endedAt ?? b.startedAt).localeCompare(a.endedAt ?? a.startedAt))[0];
   const ordered = [...days].sort((a, b) => a.day.order - b.day.order);
@@ -71,40 +111,62 @@ export function trainingCalendar(
       ).flat()
     : rotation.map((entry) => ({ entry, date: null }));
   const getCompletedSession = (date: CalendarDate) => {
+    if (programStart && date < programStart) return null;
     const entry = getScheduledEntry(date);
+    if (!graph || !dated) {
+      return (
+        sessions.find(
+          (item) =>
+            item.status === 'completed' &&
+            completedSessionDate(item, now) === date &&
+            (!graph || item.programId === graph.program.id),
+        ) ?? null
+      );
+    }
+    if (!entry || entry.day.kind === 'recovery' || !entry.exercises.length) return null;
     return (
       sessions.find(
         (item) =>
           item.status === 'completed' &&
-          sessionCalendarDate(item) === date &&
-          (!graph || item.programId === graph.program.id) &&
-          (date !== today || !entry || item.programDayId === entry.day.id) &&
-          Date.parse(item.endedAt ?? item.startedAt) <= now.getTime(),
+          completedSessionDate(item, now) === date &&
+          item.programId === graph?.program.id &&
+          item.programDayId === entry.day.id,
       ) ?? null
     );
   };
   const completedToday = !!getCompletedSession(today);
   const activeSession =
-    sessions.find(({ status }) => status === 'active' || status === 'paused') ?? null;
+    sessions.find(
+      (session) =>
+        (session.status === 'active' || session.status === 'paused') &&
+        (!graph || session.programId === graph.program.id),
+    ) ?? null;
   // Read-only projections: no persisted copy of today's status or calendar entries.
   const getDayState = (date: CalendarDate) => {
     const entry = getScheduledEntry(date);
     const session = getCompletedSession(date);
     const status: TrainingDayStatus =
-      activeSession && (date === today || sessionCalendarDate(activeSession) === date)
+      activeSession &&
+      (date === today || sessionCalendarDate(activeSession) === date)
         ? 'active'
         : session
           ? 'completed'
           : !graph || graph.program.draft || graph.program.archived
             ? 'no-program'
+              : programStart && date < programStart
+                ? 'unscheduled'
             : !dated
               ? 'unscheduled'
-              : entry && entry.day.kind !== 'recovery'
+              : graph?.program.scheduleType === 'cycle' && date < (graph.program.cycleStartDate ?? '')
+                ? 'unscheduled'
+                : entry && entry.day.kind !== 'recovery'
                 ? !entry.exercises.length
                   ? 'empty'
                   : date < today
                     ? 'missed'
-                    : 'scheduled'
+                      : date > today
+                        ? 'future'
+                        : 'scheduled'
                 : 'rest';
     return { status, entry, session: status === 'active' ? activeSession : session };
   };
@@ -120,7 +182,12 @@ export function trainingCalendar(
     getCompletedSession,
     getDayState,
     isRestDay: (date: CalendarDate) =>
-      dated && (!getScheduledEntry(date) || getScheduledEntry(date)?.day.kind === 'recovery'),
+      dated &&
+      (!programStart || date >= programStart) &&
+      (graph?.program.scheduleType === 'cycle'
+        ? date >= (graph.program.cycleStartDate ?? '') &&
+          getScheduledEntry(date)?.day.kind === 'recovery'
+        : !getScheduledEntry(date)),
     activeSession,
   };
 }

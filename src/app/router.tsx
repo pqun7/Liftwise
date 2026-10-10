@@ -81,6 +81,7 @@ const ProgramTemplatePage = lazy(() =>
 );
 import {
   exercisePickerLoader,
+  calendarLoader,
   prescriptionLoader,
   programDayFormLoader,
   programDayLoader,
@@ -194,7 +195,7 @@ export const routeObjects: RouteObject[] = [
       {
         path: 'plan/calendar',
         element: <CalendarPage />,
-        loader: programListLoader,
+        loader: calendarLoader,
         errorElement: <ProgramRouteError />,
       },
       {

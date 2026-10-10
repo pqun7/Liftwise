@@ -226,8 +226,11 @@ test('details Back restores workout overview, scroll and committed drafts; compl
   });
   await page.goto('/plan/calendar');
   await expect(
-    page.locator('.calendar-day-link[aria-current="date"] .calendar-day-marker'),
-  ).toHaveAttribute('data-status', 'completed');
+    page.locator('.calendar-month-day[aria-current="date"] .streak-day-circle svg'),
+  ).toBeVisible();
+  await expect(page.locator('.calendar-month-day[aria-current="date"]')).toHaveClass(
+    /streak-day-completed/,
+  );
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('monthly-completed-360.png'), fullPage: true });
   const sessions = await savedSessions(page);

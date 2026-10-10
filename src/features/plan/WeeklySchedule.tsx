@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import type { ProgramGraph } from '../../lib/storage/repositories/programRepository';
 import { weekdays } from './builderService';
+import { resolveWeeklyProgramDay } from '../../domain/trainingCalendar';
 
 export function WeeklySchedule({
   graph,
@@ -20,7 +21,7 @@ export function WeeklySchedule({
       </div>
       <div>
         {weekdays.map((name, index) => {
-          const entry = graph.days.find(({ day }) => day.weekday === index);
+          const entry = resolveWeeklyProgramDay(graph, index);
           const content = (
             <>
               <span className="plan-weekday">{name.slice(0, 3)}</span>

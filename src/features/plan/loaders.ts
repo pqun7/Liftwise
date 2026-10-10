@@ -7,6 +7,16 @@ import {
   listPickerExercises,
   listPrograms,
 } from './programService';
+import { progressRepository } from '../progress/progressService';
+
+export async function calendarLoader() {
+  const now = new Date();
+  const [programs, streak] = await Promise.all([
+    listPrograms(undefined, now),
+    progressRepository.streak(now).catch(() => null),
+  ]);
+  return { ...programs, streak };
+}
 
 function required(value: string | undefined, label: string): string {
   if (!value) throw new Response(`${label} is required.`, { status: 400 });

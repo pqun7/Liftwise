@@ -503,6 +503,7 @@ summary {
   color: var(--muted);
 }
 .calendar-day-marker[data-status='scheduled'],
+.calendar-day-marker[data-status='today'],
 .calendar-day-marker[data-status='active'] {
   color: var(--accent);
 }
@@ -511,6 +512,11 @@ summary {
 }
 .calendar-day-marker[data-status='completed'] {
   color: var(--completed);
+}
+.calendar-day-marker[data-status='empty'],
+.calendar-day-marker[data-status='unscheduled'],
+.calendar-day-marker[data-status='no-program'] {
+  opacity: 0.55;
 }
 .calendar-day-marker[data-status='rest'] {
   color: var(--series-purple);
@@ -541,24 +547,136 @@ a.back-link {
   min-height: 44px;
 }
 
-.calendar-day-link {
+.calendar-month-days {
+  position: relative;
   display: grid;
-  justify-items: center;
-  align-content: center;
-  min-width: 44px;
-  min-height: 56px;
-  gap: 5px;
-  padding: 8px 3px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-control);
-  background: var(--surface);
-  text-decoration: none;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
 }
-.calendar-day-link:hover {
+.calendar-month-day.streak-day-connected::after {
+  top: calc(50% + 8px);
+}
+.calendar-month-day:hover {
   background: var(--surface-highlight);
 }
-.calendar-day-link[aria-current='date'] {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+.calendar-month-day:focus-visible {
+  z-index: 2;
+  outline: 2px solid var(--mint);
+  outline-offset: 1px;
+}
+.calendar-month-day-number {
+  color: var(--text-primary);
+  font-size: var(--type-size-caption);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.calendar-month-day .streak-day-circle {
+  width: 29px;
+  height: 29px;
+  flex: 0 0 auto;
+}
+.calendar-month-day.streak-day-scheduled .streak-day-circle svg,
+.calendar-month-day.streak-day-future .streak-day-circle svg,
+.calendar-month-day.streak-day-active .streak-day-circle svg,
+.calendar-legend-status.streak-day-scheduled .streak-day-circle svg,
+.calendar-legend-status.streak-day-active .streak-day-circle svg {
+  width: 16px;
+  height: 16px;
+  color: var(--mint);
+  fill: none;
+}
+.calendar-month-day.streak-day-future .streak-day-circle,
+.calendar-month-day.streak-day-active .streak-day-circle,
+.calendar-legend-status.streak-day-active .streak-day-circle {
+  border-color: color-mix(in srgb, var(--mint) 55%, transparent);
+  background: color-mix(in srgb, var(--mint) 12%, transparent);
+}
+.calendar-month-day.streak-day-empty .streak-day-circle svg,
+.calendar-legend-status.streak-day-empty .streak-day-circle svg {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  fill: none;
+}
+.calendar-month-day.streak-day-empty .streak-day-circle,
+.calendar-legend-status.streak-day-empty .streak-day-circle {
+  border-color: color-mix(in srgb, var(--text-secondary) 35%, transparent);
+  background: color-mix(in srgb, var(--text-secondary) 6%, transparent);
+}
+.calendar-month-day-current .streak-day-circle {
+  outline: 2px solid var(--mint);
+  outline-offset: 1px;
+}
+.calendar-month-day.streak-day-completed .calendar-month-day-number,
+.calendar-month-day.calendar-month-streak-connected .calendar-month-day-number {
+  color: var(--mint);
+}
+.calendar-month-current-star {
+  position: absolute;
+  top: 3px;
+  right: max(0px, calc(50% - 22px));
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--mint);
+}
+.calendar-month-day-outside .calendar-month-day-number {
+  color: var(--text-muted);
+}
+.calendar-legend-circle {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+}
+.calendar-legend-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: var(--type-size-caption);
+}
+.calendar-legend-status .calendar-legend-circle {
+  width: 22px;
+  height: 22px;
+}
+.calendar-legend-status.streak-day-scheduled .calendar-legend-circle,
+.calendar-legend-status.streak-day-active .calendar-legend-circle,
+.calendar-legend-status.streak-day-empty .calendar-legend-circle {
+  width: 22px;
+  height: 22px;
+}
+.calendar-legend-circle svg {
+  width: 13px;
+  height: 13px;
+}
+@media (min-width: 420px) {
+  .calendar-month-day {
+    min-height: 58px;
+  }
+  .calendar-month-day .streak-day-circle {
+    width: 32px;
+    height: 32px;
+  }
+}
+@media (max-width: 359px) {
+  .calendar-month-days {
+    gap: 0;
+  }
+  .calendar-month-day {
+    min-height: 48px;
+  }
+  .calendar-month-day .streak-day-circle {
+    width: 26px;
+    height: 26px;
+  }
+  .calendar-month-day .streak-day-circle svg {
+    width: 16px;
+    height: 16px;
+  }
 }

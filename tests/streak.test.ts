@@ -10,15 +10,18 @@ import {
   localPeriodStart,
   weekStart,
 } from '../src/domain/localCalendar';
+import { completedSessionDate } from '../src/domain/completedSessionDate';
 
 const now = new Date(2026, 9, 8, 18);
 const session = (
   day: string,
   status: 'completed' | 'active' | 'paused' | 'discarded' = 'completed',
+  scheduledDate?: string,
 ) => ({
   status,
   startedAt: new Date(`${day}T10:00:00`).toISOString(),
   endedAt: new Date(`${day}T11:00:00`).toISOString(),
+  ...(scheduledDate ? { scheduledDate } : {}),
 });
 
 describe('scheduled rest days', () => {
@@ -44,6 +47,7 @@ describe('scheduled rest days', () => {
       'rest',
     ]);
     expect(result.week[3]?.isToday).toBe(true);
+    expect(result.week[0]?.connectedForward).toBe(2);
   });
   it('keeps a Friday streak alive over the weekend and through open Monday', () => {
     for (const day of [10, 11, 12]) {
@@ -87,9 +91,12 @@ describe('scheduled rest days', () => {
   });
   it('does not infer rest for unknown, empty, invalid, or daily schedules', () => {
     const days = ['2026-10-05', '2026-10-07'];
-    for (const week of [[], [-1, 7, NaN, 1.5], [0, 1, 2, 3, 4, 5, 6]]) {
-      expect(scheduled(days, now, '2026-09-01', week)).toEqual(stats(days));
+    for (const week of [[], [-1, 7, NaN, 1.5]]) {
+      const result = scheduled(days, now, '2026-09-01', week);
+      expect(result.missedDays).toBe(0);
+      expect(result.week[1]?.status).toBe('unscheduled');
     }
+    expect(scheduled(days, now, '2026-09-01', [0, 1, 2, 3, 4, 5, 6]).missedDays).toBeGreaterThan(0);
   });
   it('handles a once-weekly plan and a missed week without manufacturing streak increments', () => {
     expect(scheduled(['2026-09-28', '2026-10-05'], now, '2026-09-01', [0])).toMatchObject({
@@ -143,11 +150,17 @@ describe('scheduled rest days', () => {
     ).toBeNull();
   });
 });
-const stats = (days: string[], start = '2026-09-01', at = now) =>
+const stats = (
+  days: string[],
+  start = '2026-09-01',
+  at = now,
+  weekdays: readonly number[] | null = null,
+) =>
   calculateStreakStats(
     days.map((day) => session(day)),
     start,
     at,
+    weekdays,
   );
 
 describe('calendar workout streaks', () => {
@@ -178,7 +191,12 @@ describe('calendar workout streaks', () => {
       missedDays: 0,
       trackingStartDate: '2026-10-08',
     });
-    expect(result.week[3]).toEqual({ date: '2026-10-08', status: 'completed', isToday: true });
+    expect(result.week[3]).toMatchObject({
+      date: '2026-10-08',
+      status: 'completed',
+      isToday: true,
+      connectedForward: 0,
+    });
     expect(result.week.slice(0, 3).every((day) => day.status === 'not-tracked')).toBe(true);
   });
   it('anchors at yesterday while today is still open, then increments on completion', () => {
@@ -186,13 +204,14 @@ describe('calendar workout streaks', () => {
     expect(stats(['2026-10-06', '2026-10-07', '2026-10-08']).currentStreak).toBe(3);
   });
   it('breaks only after an ended missed day and restarts at one', () => {
-    expect(stats(['2026-10-05'])).toMatchObject({ currentStreak: 0, bestStreak: 1, missedDays: 2 });
-    expect(stats(['2026-10-05', '2026-10-08'])).toMatchObject({
+    const everyDay = [0, 1, 2, 3, 4, 5, 6];
+    expect(stats(['2026-10-05'], '2026-09-01', now, everyDay)).toMatchObject({ currentStreak: 0, bestStreak: 1, missedDays: 2 });
+    expect(stats(['2026-10-05', '2026-10-08'], '2026-09-01', now, everyDay)).toMatchObject({
       currentStreak: 1,
       bestStreak: 1,
       missedDays: 2,
     });
-    expect(stats(['2026-10-07'], '2026-09-01', new Date(2026, 9, 9, 0, 1))).toMatchObject({
+    expect(stats(['2026-10-07'], '2026-09-01', new Date(2026, 9, 9, 0, 1), everyDay)).toMatchObject({
       currentStreak: 0,
       missedDays: 1,
     });
@@ -214,11 +233,13 @@ describe('calendar workout streaks', () => {
   });
   it('changes only missed days with the selected period and reconstructs from serialized history', () => {
     const history = ['2026-09-20', '2026-09-21', '2026-10-07'].map((day) => session(day));
-    const recent = calculateStreakStats(history, localPeriodStart('7D', now), now);
+    const everyDay = [0, 1, 2, 3, 4, 5, 6];
+    const recent = calculateStreakStats(history, localPeriodStart('7D', now), now, everyDay);
     const long = calculateStreakStats(
       JSON.parse(JSON.stringify(history)) as typeof history,
       localPeriodStart('1M', now),
       now,
+      everyDay,
     );
     expect(recent).toMatchObject({ currentStreak: 1, bestStreak: 2, missedDays: 5 });
     expect(long).toMatchObject({ currentStreak: 1, bestStreak: 2, missedDays: 15 });
@@ -244,6 +265,29 @@ describe('calendar workout streaks', () => {
     const endedAt = new Date(2026, 9, 8, 0, 15).toISOString();
     expect(completionDate({ status: 'completed', startedAt, endedAt }, now)).toBe('2026-10-08');
     expect(localDateKey(new Date(startedAt))).toBe('2026-10-07');
+  });
+  it('uses the scheduled workout date when completion happens after midnight', () => {
+    const startedAt = new Date(2026, 9, 7, 23, 45).toISOString();
+    const endedAt = new Date(2026, 9, 8, 0, 15).toISOString();
+    expect(
+      completionDate({ status: 'completed', startedAt, endedAt, scheduledDate: '2026-10-07' }, now),
+    ).toBe('2026-10-07');
+  });
+  it('uses one validated completion-date projection for legacy cross-midnight records', () => {
+    const record = {
+      status: 'completed' as const,
+      startedAt: new Date(2026, 9, 7, 23, 45).toISOString(),
+      endedAt: new Date(2026, 9, 8, 0, 15).toISOString(),
+    };
+    expect(completionDate(record, now)).toBe('2026-10-08');
+    expect(completedSessionDate(record, now)).toBe('2026-10-08');
+  });
+  it('rejects an invalid assigned date and falls back to the valid completion date', () => {
+    const startedAt = new Date(2026, 9, 7, 23, 45).toISOString();
+    const endedAt = new Date(2026, 9, 8, 0, 15).toISOString();
+    expect(
+      completionDate({ status: 'completed', startedAt, endedAt, scheduledDate: '2026-02-30' }, now),
+    ).toBe('2026-10-08');
   });
   it('crosses month, leap-day, and year boundaries by calendar adjacency', () => {
     expect(addLocalCalendarDays('2024-02-28', 1)).toBe('2024-02-29');
