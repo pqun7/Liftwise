@@ -16,7 +16,6 @@ import { periodSummary } from './overviewAnalytics';
 import {
   focus,
   MetricCard,
-  ProgressHeader,
   progressLayout,
   RangeControl,
   surface,
@@ -51,11 +50,6 @@ export function ProgressPage() {
   ] as const;
   return (
     <MobilePage className={`${progressLayout} progress-overview`}>
-      <ProgressHeader
-        overview
-        title="Progress"
-        description="Your training trends and key insights."
-      />
       <RangeControl range={range} overview />
       <div className="grid grid-cols-2 gap-2">
         {items.map((item) => (

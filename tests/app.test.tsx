@@ -54,8 +54,8 @@ describe('Liftwise app shell', () => {
   it('renders the home screen and primary navigation', async () => {
     renderRoute();
 
-    expect(await screen.findByRole('heading', { name: 'Liftwise' })).toBeInTheDocument();
-    expect(screen.getByRole('navigation', { name: /primary/i })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Home' })).not.toBeInTheDocument();
+    expect(await screen.findByRole('navigation', { name: /primary/i })).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: /primary/i }).querySelectorAll('a')).toHaveLength(
       5,
     );
@@ -67,10 +67,8 @@ describe('Liftwise app shell', () => {
 
     await user.click(await screen.findByRole('link', { name: 'More' }));
 
-    expect(
-      await screen.findByRole('heading', { name: /make liftwise yours/i }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: `Liftwise v${APP_VERSION}` })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'More' })).not.toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: `Liftwise v${APP_VERSION}` })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Open Data Safety' })).toHaveAttribute(
       'href',
       '/settings/data-safety',
@@ -87,8 +85,8 @@ describe('Liftwise app shell', () => {
       .mockRejectedValueOnce(new Error('History unavailable'));
     try {
       renderRoute('/settings');
-      expect(await screen.findByRole('heading', { name: /make liftwise yours/i })).toBeVisible();
-      expect(screen.getByRole('link', { name: 'Open Data Safety' })).toBeVisible();
+      expect(screen.queryByRole('heading', { name: 'More' })).not.toBeInTheDocument();
+      expect(await screen.findByRole('link', { name: 'Open Data Safety' })).toBeVisible();
     } finally {
       streak.mockRestore();
     }

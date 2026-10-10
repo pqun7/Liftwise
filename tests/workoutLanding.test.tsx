@@ -69,7 +69,7 @@ async function renderLanding(data: WorkoutLandingData, search = '') {
       )}
     />,
   );
-  await screen.findByRole('heading', { name: 'Start training' });
+  await screen.findByRole('navigation', { name: /primary/i });
 }
 
 it('derives no-program, scheduled and rest-day states without creating a session', async () => {

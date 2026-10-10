@@ -3,7 +3,7 @@ import { ProgramRepository } from '../src/lib/storage/repositories/programReposi
 import { ExerciseRepository } from '../src/lib/storage/repositories/exerciseRepository';
 import { getHomeData } from '../src/features/home/homeService';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider, type LoaderFunctionArgs } from 'react-router-dom';
 import { WorkoutRepository } from '../src/lib/storage/repositories/workoutRepository';
 import { LiftwiseDatabase } from '../src/lib/storage/database';
@@ -50,7 +50,7 @@ describe('persisted streak data and route rendering', () => {
     expect(await new ProgressRepository(reopened).streak(now)).toEqual(result);
     reopened.close();
   });
-  it('loads overview history once, updates the badge after completion and keeps global stats across periods', async () => {
+  it('loads overview history once, updates the streak card after completion and keeps global stats across periods', async () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date(2026, 9, 8, 18));
     const db = createTestDatabase('streak-route');
@@ -73,19 +73,21 @@ describe('persisted streak data and route rendering', () => {
       { initialEntries: ['/progress'] },
     );
     render(<RouterProvider router={router} />);
-    expect(await screen.findByRole('link', { name: 'Workout streak' })).toHaveTextContent('0 days');
+    expect((await screen.findByText('Current streak')).parentElement).toHaveTextContent('0');
     expect(history).toHaveBeenCalledTimes(1);
     const session = await workouts.createSession();
     await workouts.finish(session.id);
     await router.revalidate();
-    expect(await screen.findByRole('link', { name: '1 day streak' })).toBeVisible();
+    await waitFor(() =>
+      expect(screen.getByText('Current streak').parentElement).toHaveTextContent('1'),
+    );
     expect(
       screen
         .getByRole('list', { name: 'Current week workout streak' })
         .querySelector('[aria-current="date"]'),
     ).toHaveAccessibleName(/completed, today/);
     await router.navigate('/progress?range=7D');
-    expect(await screen.findByRole('link', { name: '1 day streak' })).toBeVisible();
+    expect(screen.getByText('Current streak').parentElement).toHaveTextContent('1');
     const long = await progressLoader({
       request: new Request('http://localhost/progress?range=1Y'),
       params: {},
@@ -202,7 +204,7 @@ describe('persisted streak data and route rendering', () => {
     expect(await new ProgressRepository(reopened).streak(now)).toEqual(expected);
     reopened.close();
   });
-  it('keeps a failed shell streak read unavailable instead of showing zero', async () => {
+  it('keeps the Plan header usable when optional streak data is unavailable', async () => {
     const router = createMemoryRouter(
       [
         {
@@ -216,9 +218,7 @@ describe('persisted streak data and route rendering', () => {
       { initialEntries: ['/plan'] },
     );
     render(<RouterProvider router={router} />);
-    expect(
-      await screen.findByRole('link', { name: 'Workout streak unavailable' }),
-    ).toHaveTextContent('Unavailable');
+    expect(await screen.findByText('Local program')).toBeVisible();
     expect(screen.queryByText('0 days')).not.toBeInTheDocument();
     router.dispose();
   });

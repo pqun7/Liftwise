@@ -82,7 +82,7 @@ export function PlanPage() {
   const summary = (graph: ProgramGraph) =>
     `${graph.days.filter(({ day }) => day.kind !== 'recovery').length} training days · ${graph.days.reduce((sum, entry) => sum + entry.exercises.length, 0)} exercises`;
   return (
-    <section className="plan-page grid gap-3 type-body" aria-labelledby="plan-title">
+    <section className="plan-page grid gap-4 type-body">
       {data.unfinished ? (
         <p className="text-sm text-secondary">
           Your saved workout stays unchanged. Program changes apply to future sessions.

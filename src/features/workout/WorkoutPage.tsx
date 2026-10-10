@@ -103,13 +103,7 @@ export function WorkoutPage() {
   return (
     <MobilePage
       className={`workout-flow workout-landing grid gap-4 ${pinned ? 'pb-20' : ''}`}
-      aria-labelledby="workout-title"
     >
-      <p className="type-body text-secondary">
-        {data.unfinished
-          ? 'Resume your saved session.'
-          : 'Your training schedule and saved sessions.'}
-      </p>
       {error ? (
         <p
           className="rounded-xl border border-border bg-surface p-3 text-sm text-secondary"
