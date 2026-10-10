@@ -83,7 +83,7 @@ const steps = [
         Visit{' '}
         <a
           href={appUrl}
-          className="rounded-full border border-[#176454] px-2 py-0.5 text-[#44f1d2]"
+          className="break-words rounded-lg border border-[#176454] px-1.5 py-0.5 text-[#44f1d2] [overflow-wrap:anywhere]"
         >
           {window.location.host}
         </a>{' '}
@@ -96,13 +96,7 @@ const steps = [
   {
     title: 'Tap Share',
     icon: Share,
-    description: (
-      <>
-        Tap the Share icon
-        <br />
-        in Safari.
-      </>
-    ),
+    description: <>Tap the Share icon in Safari.</>,
     crop: [474, 1038, 339, 141] as const,
     alt: 'Safari menu with Share highlighted.',
   },
@@ -116,13 +110,7 @@ const steps = [
   {
     title: 'Tap Add & launch',
     icon: 'brand',
-    description: (
-      <>
-        Keep Open as Web App
-        <br />
-        enabled, then tap Add.
-      </>
-    ),
+    description: <>Keep Open as Web App enabled, then tap Add.</>,
     crop: [474, 1380, 339, 170] as const,
     alt: 'Add to Home Screen confirmation for Liftwise with Open as Web App enabled and the Add button.',
   },
@@ -160,13 +148,13 @@ export function InstallationPage() {
       <a href="#installation-content" className="installation-skip">
         Skip to installation guide
       </a>
-      <div className="mx-auto max-w-[850px]">
-        <header className="flex items-center justify-between gap-4 px-6 py-7 sm:px-[42px]">
-          <a href="/" aria-label="Liftwise home" className="flex items-center gap-4">
-            <span className="flex size-12 items-center justify-center rounded-[19px] border border-[#195347] bg-[#001c16] text-[#62f5cb] sm:size-16">
+      <div className="installation-container mx-auto w-full max-w-[1200px] px-5 min-[390px]:px-6 sm:px-8 lg:px-10">
+        <header className="flex items-center justify-between gap-3 py-5 sm:py-7 lg:py-8">
+          <a href="/" aria-label="Liftwise home" className="flex min-h-11 items-center gap-3">
+            <span className="flex size-11 items-center justify-center rounded-[15px] border border-[#195347] bg-[#001c16] text-[#62f5cb] sm:size-14 sm:rounded-[18px]">
               <BrandIcon className="size-full" />
             </span>
-            <span className="text-[32px] font-extrabold tracking-[-1.5px] sm:text-[44px]">
+            <span className="text-[28px] font-extrabold tracking-[-1.2px] sm:text-[36px]">
               Liftwise
             </span>
           </a>
@@ -174,10 +162,13 @@ export function InstallationPage() {
             href={githubUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex min-h-11 items-center gap-2 text-sm transition-colors hover:text-[#5ff5d0] sm:text-lg"
+            aria-label="View Liftwise on GitHub (opens in a new tab)"
+            className="flex min-h-11 shrink-0 items-center gap-2 rounded-lg px-1 text-sm transition-colors hover:text-[#5ff5d0] sm:text-base"
           >
             <GitHubIcon />
-            <span className="hidden min-[400px]:inline">View on GitHub</span>
+            <span className="hidden min-[390px]:inline">
+              GitHub<span className="hidden sm:inline"> repository</span>
+            </span>
             <ArrowUpRight size={19} />
           </a>
         </header>
@@ -185,32 +176,38 @@ export function InstallationPage() {
         <main id="installation-content">
           <section
             aria-labelledby="installation-title"
-            className="installation-hero grid gap-7 overflow-hidden border-b border-[#113b32] px-6 pt-7 min-[800px]:grid-cols-[1.17fr_1fr] sm:gap-[18px] sm:pr-[22px] sm:pl-[42px] sm:pt-0"
+            className="installation-hero grid items-center gap-8 border-b border-[#113b32] pt-5 md:grid-cols-[minmax(0,1fr)_minmax(0,0.7fr)] md:gap-8 md:pt-7 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-16 lg:pt-6"
           >
-            <div className="relative z-10 pb-7 sm:pt-9">
-              <p className="text-sm font-semibold tracking-[0.28em] text-[#37f4c6]">
+            <div className="relative min-w-0 md:pb-10 lg:pb-14">
+              <p className="text-xs font-semibold tracking-[0.24em] text-[#37f4c6] sm:text-sm">
                 MADE FOR iPHONE
               </p>
               <h1
                 id="installation-title"
-                className="mt-5 text-[clamp(38px,7.3vw,62px)] leading-[1.09] font-extrabold tracking-[-0.045em]"
+                className="mt-4 text-[clamp(38px,10.2vw,54px)] leading-[1.08] font-extrabold tracking-[-0.045em] md:text-[clamp(42px,5.3vw,64px)] lg:mt-5 lg:text-[clamp(56px,5.4vw,72px)]"
               >
                 Your training.
                 <br />
-                <span className="whitespace-nowrap text-[#67f5ce]">One tap away.</span>
+                <span className="text-[#67f5ce]">One tap away.</span>
               </h1>
-              <p className="mt-5 text-[21px] leading-[1.4] tracking-[-0.02em] text-[#b0c9c9] sm:text-[28px]">
+              <p className="mt-4 max-w-[30rem] text-[17px] leading-[1.6] tracking-[-0.015em] text-[#b0c9c9] sm:text-xl lg:mt-5 lg:text-[23px]">
                 Install Liftwise on your Home Screen and train on your terms.
               </p>
-              <ul className="mt-9 flex flex-col justify-between gap-3 min-[380px]:flex-row text-[14px] text-[#b0c9c9] sm:text-[15px]">
+              <ul
+                aria-label="Training features"
+                className="mt-6 grid max-w-[480px] grid-cols-3 gap-2 text-[12px] leading-relaxed text-[#b0c9c9] sm:gap-4 sm:text-sm lg:mt-8"
+              >
                 {[
                   { Icon: Dumbbell, first: 'Plan', second: 'workouts' },
                   { Icon: ChartNoAxesColumnIncreasing, first: 'Track', second: 'progress' },
                   { Icon: CalendarDays, first: 'Build', second: 'consistency' },
                 ].map(({ Icon, first, second }) => (
-                  <li key={first} className="flex items-center gap-2 sm:gap-2.5">
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-[#0a4437] bg-[#00281f] text-[#42f0c5] sm:size-12">
-                      <Icon size={24} strokeWidth={2} />
+                  <li
+                    key={first}
+                    className="flex min-w-0 flex-col items-center gap-2 text-center min-[390px]:flex-row min-[390px]:text-left md:flex-col md:items-start md:text-left lg:flex-row lg:items-center"
+                  >
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-[#0a4437] bg-[#00281f] text-[#42f0c5] sm:size-11">
+                      <Icon size={21} strokeWidth={2} aria-hidden="true" />
                     </span>
                     <span>
                       {first}
@@ -222,73 +219,77 @@ export function InstallationPage() {
               </ul>
               <a
                 href={appUrl}
-                className="mt-10 flex min-h-[72px] items-center justify-center gap-2 rounded-[18px] border border-[#48ecc9] bg-gradient-to-br from-[#30e5b9] to-[#20d9b2] text-[28px] font-extrabold tracking-[-0.035em] text-[#00160f] shadow-[0_8px_32px_#0fe5af20] transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#71ffdd] sm:mt-12 sm:min-h-[79px] sm:text-[30px]"
+                className="mt-7 flex min-h-[58px] w-full max-w-[440px] items-center justify-center gap-2 rounded-2xl border border-[#48ecc9] bg-gradient-to-br from-[#30e5b9] to-[#20d9b2] px-5 text-[23px] font-extrabold tracking-[-0.035em] text-[#00160f] shadow-[0_8px_32px_#0fe5af20] transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#71ffdd] sm:min-h-16 sm:text-[26px] lg:mt-9"
               >
-                Open Liftwise <ArrowUpRight size={31} />
+                Open Liftwise <ArrowUpRight size={27} aria-hidden="true" />
               </a>
-              <p className="mt-4 text-center text-lg text-[#b0c9c9]">No App Store needed.</p>
+              <p className="mt-3 max-w-[440px] text-center text-sm text-[#b0c9c9]">
+                No App Store needed.
+              </p>
+              <p className="mt-5 hidden max-w-[440px] text-sm leading-relaxed text-[#a9c8c7] lg:block">
+                On your computer? Open Liftwise in your browser, or follow the steps below to
+                install it on your iPhone.
+              </p>
             </div>
             <ReferenceImage
               crop={[473, 106, 354, 600]}
               eager
               alt="Liftwise on an iPhone: weekly training calendar, recovery day, Plan Workout button, and bottom navigation."
-              className="mx-auto w-full max-w-[354px] self-end"
+              className="installation-phone mx-auto w-[min(78%,280px)] self-end md:w-full md:max-w-[354px]"
             />
           </section>
 
-          <section aria-labelledby="steps-title" className="px-[22px] pt-8 sm:pt-7">
+          <section aria-labelledby="steps-title" className="pt-9 sm:pt-12 lg:pt-16">
             <h2
               id="steps-title"
-              className="text-center text-[32px] leading-tight font-extrabold tracking-[-0.04em] sm:text-[50px]"
+              className="text-center text-[clamp(28px,7.6vw,36px)] leading-[1.2] font-extrabold tracking-[-0.04em] sm:text-[42px] lg:text-[48px]"
             >
               Ready in <span className="text-[#2cf1ce]">4 simple steps</span>
             </h2>
-            <p className="mt-2 text-center text-lg leading-relaxed text-[#b0c9c9] sm:text-[23px]">
+            <p className="mx-auto mt-3 max-w-[640px] text-center text-[15px] leading-relaxed text-[#b0c9c9] sm:text-lg">
               Add Liftwise to your iPhone Home Screen in less than a minute.
             </p>
-            <ol className="installation-steps relative mt-7 space-y-2">
+            <ol className="installation-steps mt-6 grid gap-4 md:grid-cols-2 md:gap-5 lg:mt-9 lg:gap-6">
               {steps.map((step, index) => (
                 <li
                   key={step.title}
-                  className="relative grid grid-cols-[46px_1fr] items-center gap-x-4 gap-y-5 rounded-[23px] border border-[#10483c] bg-gradient-to-br from-[#082b23b0] to-[#041e18b0] p-4 min-[800px]:grid-cols-[50px_78px_1fr_340px] sm:gap-x-4 sm:py-3 sm:pr-3 sm:pl-[18px]"
+                  className="installation-step grid min-w-0 grid-cols-[36px_42px_minmax(0,1fr)] content-start items-center gap-x-3 gap-y-4 rounded-[22px] border border-[#10483c] bg-gradient-to-br from-[#082b23b0] to-[#041e18b0] p-4 sm:grid-cols-[40px_48px_minmax(0,1fr)] sm:p-5 lg:gap-x-4 lg:p-6"
                 >
-                  <span className="relative z-10 flex size-[46px] self-start items-center justify-center rounded-full border border-[#24efd0] bg-[#003428] text-[21px] font-bold text-[#65f5d2] sm:mt-1">
+                  <span className="flex size-9 items-center justify-center rounded-full border border-[#24efd0] bg-[#003428] text-base font-bold text-[#65f5d2] sm:size-10 sm:text-lg">
                     0{index + 1}
                   </span>
-                  <span className="hidden size-[73px] items-center justify-center overflow-hidden rounded-[21px] border border-[#42605c] bg-gradient-to-br from-[#304340] to-[#1b302c] text-[#c2effd] min-[800px]:flex">
+                  <span className="flex size-[42px] items-center justify-center overflow-hidden rounded-xl border border-[#42605c] bg-gradient-to-br from-[#304340] to-[#1b302c] text-[#c2effd] sm:size-12">
                     {step.icon === 'safari' ? (
                       <SafariIcon />
                     ) : step.icon === 'brand' ? (
-                      <BrandIcon className="size-[72px] text-[#64f3cb]" />
+                      <BrandIcon className="size-full text-[#64f3cb]" />
                     ) : typeof step.icon !== 'string' ? (
-                      <step.icon size={46} strokeWidth={1.7} />
+                      <step.icon size={28} strokeWidth={1.7} aria-hidden="true" />
                     ) : null}
                   </span>
-                  <div className="min-w-0">
-                    <h3 className="text-[22px] leading-snug font-bold tracking-[-0.035em]">
-                      {step.title}
-                    </h3>
-                    <p className="mt-2 text-[18px] leading-[1.45] text-[#a9c8c7]">
-                      {step.description}
-                    </p>
-                  </div>
+                  <h3 className="min-w-0 text-[18px] leading-snug font-bold tracking-[-0.025em] sm:text-xl lg:text-[22px]">
+                    {step.title}
+                  </h3>
+                  <p className="col-span-3 min-h-[48px] text-[15px] leading-[1.6] text-[#a9c8c7] sm:text-base lg:min-h-[52px]">
+                    {step.description}
+                  </p>
                   <ReferenceImage
                     crop={step.crop}
                     alt={step.alt}
-                    className="col-span-2 ml-auto w-full max-w-[340px] rounded-[19px] border border-[#164f43] min-[800px]:col-span-1"
+                    className="col-span-3 mx-auto w-full max-w-[339px] self-end rounded-2xl border border-[#164f43]"
                   />
                 </li>
               ))}
             </ol>
           </section>
 
-          <aside className="mx-6 mt-4 flex items-center justify-center gap-4 rounded-full border border-[#185247] bg-[#00241b70] px-5 py-3 text-center text-sm text-[#b0c9c9] sm:mx-auto sm:max-w-[546px] sm:text-base">
-            <Wifi className="shrink-0 text-[#54f1d0]" size={30} />
+          <aside className="mx-auto mt-5 flex max-w-[660px] items-center justify-center gap-3 rounded-2xl border border-[#185247] bg-[#00241b70] px-4 py-4 text-left text-[13px] leading-relaxed text-[#b0c9c9] sm:mt-7 sm:rounded-full sm:px-6 sm:text-sm">
+            <Wifi className="shrink-0 text-[#54f1d0]" size={26} aria-hidden="true" />
             <p>Stay online for the first launch to prepare offline access.</p>
           </aside>
           <section
             aria-label="Liftwise benefits"
-            className="mx-[35px] mt-7 grid gap-6 min-[800px]:grid-cols-3 sm:gap-0"
+            className="mt-7 grid divide-y divide-[#17483c] rounded-[22px] border border-[#10483c] bg-[#03231a60] px-4 sm:mt-9 md:grid-cols-3 md:divide-x md:divide-y-0 md:px-0"
           >
             {[
               { Icon: UserRound, title: 'No account', text: 'Start training instantly.' },
@@ -298,31 +299,31 @@ export function InstallationPage() {
                 text: 'Your data stays on your device.',
               },
               { Icon: WifiOff, title: 'Works offline', text: 'Install once, train anywhere.' },
-            ].map(({ Icon, title, text }, index) => (
+            ].map(({ Icon, title, text }) => (
               <div
                 key={title}
-                className={`flex items-center gap-4 ${index ? 'min-[800px]:border-l min-[800px]:border-[#17483c] min-[800px]:pl-6' : ''}`}
+                className="flex min-w-0 items-center gap-3 py-4 md:flex-col md:items-start md:px-5 md:py-6 lg:flex-row lg:items-center lg:gap-4"
               >
-                <span className="flex size-[58px] shrink-0 items-center justify-center rounded-full border border-[#0b5342] bg-[#00251c] text-[#50f3c9]">
-                  <Icon size={30} strokeWidth={1.8} />
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-full border border-[#0b5342] bg-[#00251c] text-[#50f3c9] sm:size-12">
+                  <Icon size={25} strokeWidth={1.8} aria-hidden="true" />
                 </span>
                 <div>
-                  <h3 className="text-[17px] font-bold">{title}</h3>
-                  <p className="mt-1 text-xs text-[#a9c8c7]">{text}</p>
+                  <h3 className="text-base font-bold">{title}</h3>
+                  <p className="mt-1 text-[13px] leading-relaxed text-[#a9c8c7]">{text}</p>
                 </div>
               </div>
             ))}
           </section>
         </main>
 
-        <footer className="mx-[22px] mt-7 border-t border-[#174237] pt-4 pb-7 text-center text-sm text-[#a9c8c7] sm:text-base">
+        <footer className="mt-8 border-t border-[#174237] pt-5 pb-6 text-center text-[13px] text-[#a9c8c7] sm:mt-12 sm:py-6 sm:text-sm lg:flex lg:items-center lg:justify-between lg:gap-6 lg:text-left">
           <p className="flex items-center justify-center gap-2">
             <BrandIcon className="size-8 text-[#50f3c9]" />
             <span className="font-bold text-white">Liftwise</span>
             <span className="mx-1">•</span>Built for iPhone
           </p>
-          <p className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
-            <a href={appUrl} className="hover:text-[#61f5d1]">
+          <p className="mt-2 flex min-w-0 flex-wrap items-center justify-center gap-x-3 lg:mt-0 lg:justify-end">
+            <a href={appUrl} className="flex min-h-11 items-center break-all hover:text-[#61f5d1]">
               {window.location.origin}
             </a>
             <span aria-hidden="true">•</span>
@@ -330,7 +331,7 @@ export function InstallationPage() {
               href={githubUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-[#61f5d1]"
+              className="flex min-h-11 items-center break-all hover:text-[#61f5d1]"
             >
               github.com/pqun7/Liftwise
             </a>

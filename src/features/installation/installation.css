@@ -61,17 +61,14 @@
     radial-gradient(ellipse at 45% 62%, #06302659, transparent 52%), #001710;
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
   -webkit-font-smoothing: antialiased;
 }
 
-.installation-steps::before {
-  content: '';
-  position: absolute;
-  z-index: 1;
-  left: 40px;
-  top: 45px;
-  bottom: 130px;
-  border-left: 2px dashed #26c7a4;
+.installation-phone {
+  /* Blend the source image's background edges without cropping its screen. */
+  mask-image: linear-gradient(to right, transparent, #000 4%, #000 96%, transparent);
 }
 
 .installation-skip {
@@ -87,18 +84,8 @@
   background: #002b20;
 }
 
-@media (min-width: 800px) {
-  .installation-hero {
-    min-height: 588px;
-  }
-  .installation-steps::before {
-    left: 42px;
-    bottom: 138px;
-  }
-}
-
-@media (max-width: 799px) {
-  .installation-steps::before {
-    display: none;
+@media (min-width: 768px) {
+  .installation-step {
+    grid-template-rows: auto minmax(52px, auto) 1fr;
   }
 }

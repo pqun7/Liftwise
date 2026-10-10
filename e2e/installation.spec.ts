@@ -58,6 +58,57 @@ test('installed iPhone always bypasses the guide, even on its explicit URL', asy
   expect(requestedAssets.some((url) => url.includes('/installation/reference.png'))).toBe(false);
 });
 
+test('desktop and iPhone layouts keep content readable and correctly ordered', async ({ page }) => {
+  await page.goto('/install');
+  await expect(page.locator('.installation-container')).toBeVisible();
+  await page.evaluate(() => document.fonts.ready);
+  for (const width of [320, 375, 390, 430, 768, 1024, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 900 });
+    const layout = await page.evaluate(() => {
+      const bounds = (selector: string) => {
+        const element = document.querySelector(selector);
+        if (!element) throw new Error(`Missing layout element: ${selector}`);
+        const { x, y, width, height, right, bottom } = element.getBoundingClientRect();
+        return { x, y, width, height, right, bottom };
+      };
+      return {
+        viewport: window.innerWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        container: bounds('.installation-container'),
+        title: bounds('#installation-title'),
+        phone: bounds('.installation-phone'),
+        button: bounds('a[href="/?app=1"].font-extrabold'),
+        steps: Array.from(document.querySelectorAll('.installation-step')).map((step) => {
+          const { x, y, right } = step.getBoundingClientRect();
+          return { x, y, right };
+        }),
+      };
+    });
+    expect(layout.scrollWidth, `overflow at ${width}px`).toBeLessThanOrEqual(width);
+    expect(layout.container.width).toBeLessThanOrEqual(1200);
+    expect(layout.title.x).toBeGreaterThanOrEqual(0);
+    expect(layout.title.right).toBeLessThanOrEqual(width);
+    expect(layout.button.height).toBeGreaterThanOrEqual(58);
+    expect(layout.phone.width).toBeLessThanOrEqual(354);
+    if (width >= 768) {
+      expect(layout.phone.x).toBeGreaterThanOrEqual(layout.title.right);
+      expect(Math.abs(layout.steps[0]!.y - layout.steps[1]!.y)).toBeLessThan(1);
+      expect(layout.steps[1]!.x).toBeGreaterThan(layout.steps[0]!.right);
+    } else {
+      expect(layout.phone.y).toBeGreaterThan(layout.button.bottom);
+      expect(layout.steps[1]!.y).toBeGreaterThan(layout.steps[0]!.y);
+    }
+    if (width === 390 || width === 1440) {
+      for (const image of await page.locator('img').all()) await image.scrollIntoViewIfNeeded();
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.screenshot({
+        path: `output/installation-responsive-${width}-${test.info().project.name.replaceAll(' ', '-')}.png`,
+        fullPage: true,
+      });
+    }
+  }
+});
+
 test('standalone display mode bypasses the guide on the original root shortcut', async ({
   page,
 }) => {
