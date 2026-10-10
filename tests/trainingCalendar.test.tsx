@@ -159,7 +159,7 @@ it('reopens offline on Sunday with 2/12 Saturday sets and preserves independent 
   expect(screen.getByText(/Active session · Started Saturday/)).toBeInTheDocument();
   await router.navigate('/plan');
   expect(await screen.findByText('Next workout')).toBeInTheDocument();
-  expect(screen.getByRole('link', { name: /^Push A/ })).toBeInTheDocument();
+  expect(await screen.findByRole('link', { name: /^Push A/ })).toBeInTheDocument();
   expect(screen.getByRole('link', { name: /Continue in Workout/ })).toHaveAttribute(
     'href',
     `/workout/${session.id}`,

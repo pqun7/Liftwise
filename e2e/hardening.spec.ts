@@ -98,7 +98,7 @@ test('all core training, charts, backup and CSV flows work with network disabled
   });
   let started = Date.now();
   await page.goto('/?app=1');
-  await expect(page.getByRole('heading', { name: /Welcome to Liftwise/i })).toBeVisible({
+  await expect(page.getByRole('heading', { name: /Liftwise/i })).toBeVisible({
     timeout: 20_000,
   });
   timings.launch = Date.now() - started;
@@ -109,16 +109,16 @@ test('all core training, charts, backup and CSV flows work with network disabled
   await expect(page.getByText('601 exercises')).toBeVisible({ timeout: 20_000 });
   await page.getByRole('link', { name: 'Home', exact: true }).click();
   // Home now has a local-data loader: wait for navigation before reloading the document.
-  await expect(page.getByRole('heading', { name: /Welcome to Liftwise/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Liftwise/i })).toBeVisible();
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
   await page.reload();
-  await expect(page.getByRole('heading', { name: /Welcome to Liftwise/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Liftwise/i })).toBeVisible();
   await dismissStatus(page);
   await setOffline(context, browserName, true);
   try {
     if (browserName !== 'webkit') {
       await page.reload();
-      await expect(page.getByRole('heading', { name: /Welcome to Liftwise/i })).toBeVisible();
+      await expect(page.getByRole('heading', { name: /Liftwise/i })).toBeVisible();
     }
     started = Date.now();
     await page

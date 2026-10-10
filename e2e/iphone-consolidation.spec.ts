@@ -23,6 +23,13 @@ async function geometry(page: Page) {
     .evaluateAll((elements) =>
       elements
         .filter((el) => {
+          const weekScroller = el.closest('.home-week-scroll');
+          if (
+            weekScroller &&
+            weekScroller.scrollWidth > weekScroller.clientWidth &&
+            getComputedStyle(weekScroller).overflowX === 'auto'
+          )
+            return false;
           const box = el.getBoundingClientRect();
           return box.width && (box.left < -1 || box.right > innerWidth + 1);
         })
@@ -59,7 +66,7 @@ test('one app header and navigation across the complete iPhone viewport matrix',
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   for (const route of ['/', '/plan', '/workout', '/progress', '/settings', '/exercises']) {
-    await page.goto(route);
+    await page.goto(route === '/' ? '/?app=1' : route);
     await expect(page.getByRole('banner', { name: 'Liftwise application header' })).toHaveCount(1);
     await expect(page.locator('h1')).toHaveCount(1);
     if (route === '/settings')
@@ -80,7 +87,7 @@ test('one app header and navigation across the complete iPhone viewport matrix',
   expect(errors).toEqual([]);
   // Nonzero injected insets exercise standalone safe-area ownership in WebKit.
   await page.addStyleTag({ content: ':root { --safe-top: 47px; --safe-bottom: 34px; }' });
-  await expect(page.locator('.app-header')).toHaveCSS('padding-top', '59px');
+  await expect(page.locator('.app-header')).toHaveCSS('padding-top', '67px');
   await expect(page.locator('main')).toHaveCSS('padding-top', '12px');
   await expect(page.locator('meta[name=viewport]')).not.toHaveAttribute(
     'content',
@@ -211,7 +218,7 @@ test('shared shell remains available offline with the existing standalone manife
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
   await setOffline(context, browserName, true);
   for (const [route, path, title] of [
-    ['Home', '/', 'Welcome to Liftwise'],
+    ['Home', '/', 'Liftwise'],
     ['Plan', '/plan', 'Plan'],
     ['Workout', '/workout', 'Start training'],
     ['Progress', '/progress', 'Progress'],

@@ -5,10 +5,7 @@ import { OfflineExerciseData } from './OfflineExerciseData';
 
 export function SettingsPage() {
   return (
-    <section className="page-stack" aria-labelledby="settings-title">
-      <p className="type-body text-secondary">
-        Manage storage, backups, offline media, and app credits.
-      </p>
+    <section className="page-stack">
       <section className="settings-card ui-card" aria-labelledby="data-safety-card-title">
         <p className="section-kicker">Data safety</p>
         <h2 id="data-safety-card-title">Backup and recovery</h2>

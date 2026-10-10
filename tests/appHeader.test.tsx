@@ -4,6 +4,18 @@ import { describe, expect, it } from 'vitest';
 import { AppHeader } from '../src/components/layout/AppHeader';
 
 describe('shared application header', () => {
+  it('uses the supplied brand artwork and one page heading on Home', () => {
+    const { container } = render(
+      <MemoryRouter>
+        <AppHeader brandAsTitle title="Liftwise" titleId="home-title" currentStreak={1} />
+      </MemoryRouter>,
+    );
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(screen.getByRole('heading', { name: 'Liftwise' })).toHaveAttribute('id', 'home-title');
+    expect(container.querySelector('.app-brand-mark img')).toHaveAttribute('alt', '');
+    expect(container.querySelector('.app-brand-mark img')).toHaveAttribute('width', '192');
+    expect(screen.getByRole('link', { name: '1 day streak' })).toHaveTextContent('1 day');
+  });
   it('retains a complete long title and accessible streak label', () => {
     const title = 'A long translated training title with plenty of context';
     render(

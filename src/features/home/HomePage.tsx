@@ -7,7 +7,7 @@ import { sessionCalendarDate } from '../../domain/trainingCalendar';
 
 import { Link, useLoaderData, useNavigate } from 'react-router-dom';
 
-import { ChevronRight } from 'lucide-react';
+import { CalendarDays, ChevronRight, Dumbbell, Layers, Plus } from 'lucide-react';
 
 import { WeekSelector } from '../../components/home/WeekSelector';
 
@@ -17,13 +17,9 @@ import { ActiveWorkoutCard } from '../../components/home/ActiveWorkoutCard';
 
 import { WorkoutListItem } from '../../components/home/WorkoutListItem';
 
-import { QuickActions } from '../../components/home/QuickActionCard';
-
 import { WeeklyProgress } from '../../components/home/WeeklyProgress';
 
 import { InsightCard } from '../../components/home/InsightCard';
-
-import { ProgramCard } from '../../components/home/ProgramCard';
 
 import { Recommendations } from '../../components/home/RecommendationCard';
 
@@ -59,7 +55,7 @@ export function HomePage() {
   );
 
   const completedToday = data.calendar.getCompletedSession(data.today);
-  const upcoming = data.calendar.upcoming.slice(0, 2);
+  const upcoming = data.calendar.upcoming.slice(0, 1);
 
   const start = async () => {
     if (busy || selected !== data.today || completedToday || !data.suggestion) return;
@@ -82,17 +78,6 @@ export function HomePage() {
 
   return (
     <MobilePage className="home-page grid gap-4" data-home-state={state}>
-      <p className="type-body-small text-secondary">{data.greeting}</p>
-
-      {state !== 'in-progress' ? (
-        <WeekSelector
-          days={data.week}
-          calendar={data.calendar}
-          selected={selected}
-          onSelect={setSelection}
-        />
-      ) : null}
-
       {error ? (
         <p className="home-error" role="alert">
           {error} <Link to="/workout">Open workouts</Link>
@@ -115,6 +100,82 @@ export function HomePage() {
           start={() => void start()}
         />
       )}
+
+      <section className="home-schedule ui-card" aria-labelledby="home-schedule-title">
+        <div className="home-schedule-heading">
+          <CalendarDays size={22} aria-hidden="true" />
+          <h2 id="home-schedule-title">Weekly Schedule</h2>
+          <Link to="/plan/calendar">
+            This week <ChevronRight size={16} aria-hidden="true" />
+          </Link>
+        </div>
+        <WeekSelector
+          days={data.week}
+          calendar={data.calendar}
+          selected={selected}
+          onSelect={setSelection}
+          variant="detailed"
+        />
+      </section>
+
+      {upcoming.map(({ entry, date }) => (
+        <Link
+          key={`${entry.day.id}-${date ?? 'undated'}`}
+          className="home-next-workout ui-card ui-card-interactive"
+          to={`/plan/${entry.day.programId}/days/${entry.day.id}`}
+        >
+          <span className="home-tile-icon">
+            <Dumbbell size={26} aria-hidden="true" />
+          </span>
+          <span className="home-next-copy">
+            <span className="home-kicker">Next workout</span>
+            <strong>{entry.day.name}</strong>
+          </span>
+          <span className="home-next-arrow">
+            <ChevronRight size={26} aria-hidden="true" />
+          </span>
+          <span className="home-next-meta">
+            <CalendarDays size={17} aria-hidden="true" />
+            {date
+              ? dateFromKey(date).toLocaleDateString(undefined, {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                })
+              : 'Next in program'}
+            <span>·</span>
+            {programDayMetadata(entry)}
+          </span>
+        </Link>
+      ))}
+
+      <div className="home-secondary-grid home-primary-actions">
+        <Link
+          className="home-small-card ui-card ui-card-interactive"
+          to={data.activeProgramId ? `/plan/${data.activeProgramId}` : '/plan/new'}
+        >
+          <span className="home-tile-icon">
+            <Layers size={22} aria-hidden="true" />
+          </span>
+          <h2>
+            {data.activeProgramId ? 'Current Program' : 'Create Program'}
+            <ChevronRight size={18} aria-hidden="true" />
+          </h2>
+          <span>
+            {data.activeProgramId ? 'View and manage your program' : 'Build a plan for your goals'}
+          </span>
+        </Link>
+        <Link className="home-small-card ui-card ui-card-interactive" to="/workout">
+          <span className="home-tile-icon">
+            <Plus size={22} aria-hidden="true" />
+          </span>
+          <h2>
+            Create Workout
+            <ChevronRight size={18} aria-hidden="true" />
+          </h2>
+          <span>Build a custom workout</span>
+        </Link>
+      </div>
 
       {selected === data.today ? (
         <section className="home-section">
@@ -153,55 +214,6 @@ export function HomePage() {
         </section>
       ) : null}
 
-      {state === 'scheduled' ? <QuickActions /> : null}
-
-      {upcoming.length ? (
-        <section className="home-section">
-          <SectionHeader title="Up next" to="/plan" />
-
-          {upcoming.map(({ entry, date }) => (
-            <WorkoutListItem
-              key={`${entry.day.id}-${date ?? 'undated'}`}
-              title={entry.day.name}
-              metadata={programDayMetadata(entry)}
-              to={`/plan/${entry.day.programId}/days/${entry.day.id}`}
-              status={
-                date
-                  ? dateFromKey(date).toLocaleDateString(undefined, { weekday: 'long' })
-                  : 'Program order'
-              }
-            />
-          ))}
-        </section>
-      ) : null}
-
-      {state === 'rest-day' ? (
-        <section className="home-section">
-          <SectionHeader title="Your Programs" to="/plan" />
-
-          {data.programs.length ? (
-            data.programs
-              .slice(0, 2)
-              .map((graph) => (
-                <ProgramCard
-                  key={graph.program.id}
-                  graph={graph}
-                  active={graph.program.id === data.activeProgramId}
-                />
-              ))
-          ) : (
-            <div className="home-surface ui-card home-empty">
-              <p>A clear plan starts here.</p>
-
-              <Link to="/plan/new">
-                Create your first program
-                <ChevronRight size={16} aria-hidden="true" />
-              </Link>
-            </div>
-          )}
-        </section>
-      ) : null}
-
       {selected !== data.today ? (
         <section className="home-section">
           <SectionHeader
@@ -231,16 +243,6 @@ export function HomePage() {
       {/* Weekly progress is available across all home states */}
       <WeeklyProgress data={data} />
 
-      {state === 'in-progress' ? (
-        <WeekSelector
-          days={data.week}
-          calendar={data.calendar}
-          selected={selected}
-          onSelect={setSelection}
-        />
-      ) : null}
-
-      {state === 'scheduled' ? <InsightCard data={data} /> : null}
       {state === 'rest-day' ? (
         <>
           <section className="home-section">

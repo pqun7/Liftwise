@@ -18,7 +18,7 @@ test('loads the application shell and navigates across features', async ({ page,
     await expect(skipLink).toHaveCSS('clip-path', 'none');
   }
 
-  await expect(page.getByRole('heading', { name: 'Welcome to Liftwise' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Liftwise' })).toBeVisible();
   await page
     .getByRole('navigation', { name: 'Primary navigation' })
     .getByRole('link', { name: 'Workout', exact: true })

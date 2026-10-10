@@ -1,9 +1,4 @@
-import { AppHeader } from '../../components/layout/AppHeader';
-import { CalendarDays } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { iconButtonClasses } from '../../components/ui/controlStyles';
 import { ScreenStateProvider } from '../ScreenStateProvider';
-import { useRouteStreak } from '../../features/progress/useRouteStreak';
 import { useCalendarRevalidation } from './useCalendarRevalidation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { useVisualViewport } from './useVisualViewport';
@@ -67,7 +62,6 @@ export function AppShell() {
     !/^\/workout\/[^/]+/.test(pathname) &&
       (!/^\/plan\/.+/.test(pathname) || pathname.startsWith('/plan/calendar')),
   );
-  const streak = useRouteStreak();
   const navigation = useNavigation();
   const home = pathname === '/';
   const plan = pathname === '/plan' || pathname.startsWith('/plan/');
@@ -80,15 +74,6 @@ export function AppShell() {
       (status === 'active' || status === 'paused' || status === 'completed')
     );
   });
-  const pages: Record<string, [string, string]> = {
-    '/': ['Welcome to Liftwise', 'home-title'],
-    '/plan': ['Plan', 'plan-title'],
-    '/workout': ['Start training', 'workout-title'],
-    '/progress': ['Progress', 'progress-title'],
-    '/settings': ['Make Liftwise yours', 'settings-title'],
-    '/exercises': ['Find your next movement', 'exercise-library-title'],
-  };
-  const page = pages[pathname];
   return (
     <ScreenStateProvider>
       <div
@@ -100,25 +85,6 @@ export function AppShell() {
         </a>
 
         {!focused ? <SessionReturnBar /> : null}
-        {!focused ? (
-          <AppHeader
-            title={page?.[0]}
-            titleId={page?.[1]}
-            currentStreak={pathname === '/settings' ? undefined : streak?.currentStreak}
-            showStreak={pathname !== '/settings'}
-            action={
-              pathname === '/plan' ? (
-                <Link
-                  to="/plan/calendar"
-                  aria-label="Open calendar"
-                  className={iconButtonClasses()}
-                >
-                  <CalendarDays size={22} aria-hidden="true" />
-                </Link>
-              ) : undefined
-            }
-          />
-        ) : null}
 
         <main
           id="main-content"
