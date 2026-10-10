@@ -149,6 +149,10 @@
   body {
     font-family: var(--font-ui);
     background: var(--app-bg);
+    overflow-x: hidden;
+    overscroll-behavior-y: none;
+    /* يوقف pull-to-refresh */
+    -webkit-text-size-adjust: 100%;
   }
 
   body {

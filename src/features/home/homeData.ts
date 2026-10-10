@@ -5,6 +5,7 @@ import {
   weekStart,
 } from '../../domain/localCalendar';
 import { sessionCalendarDate, trainingCalendar } from '../../domain/trainingCalendar';
+import { completedSessionDate } from '../../domain/completedSessionDate';
 export { localDateKey, weekStart } from '../../domain/localCalendar';
 import { estimatedProgramMinutes } from '../plan/programDisplay';
 import { weeklySummary } from '../../domain/analytics';
@@ -59,6 +60,7 @@ export function calendarWeek(
 
 export interface HomeData {
   today: string;
+  now: string;
   greeting: string;
   week: HomeDay[];
   programs: ProgramGraph[];
@@ -86,12 +88,14 @@ export function deriveHomeData(
 ): HomeData {
   const today = localDateKey(now);
   const monday = weekStart(now);
-  const previousSunday = new Date(monday.getTime() - 1);
+  const mondayKey = localDateKey(monday);
+  const previousSunday = new Date(monday);
+  previousSunday.setDate(previousSunday.getDate() - 1);
   const weekHistory = records.history.filter(
     ({ session }) =>
       session.status === 'completed' &&
-      Date.parse(session.endedAt ?? session.startedAt) >= monday.getTime() &&
-      Date.parse(session.endedAt ?? session.startedAt) <= now.getTime(),
+      (completedSessionDate(session, now) ?? '') >= mondayKey &&
+      (completedSessionDate(session, now) ?? '') <= today,
   );
   const activeProgram = records.programs.find(
     ({ program }) => program.id === records.activeProgramId && !program.archived && !program.draft,
@@ -106,10 +110,13 @@ export function deriveHomeData(
     records.lastProgramDayId,
   );
   const nextDays = calendar.upcoming.map(({ entry }) => entry);
-  const trainedToday = weekHistory.some(({ session }) => sessionCalendarDate(session) === today);
+  const trainedToday = weekHistory.some(
+    ({ session }) => completedSessionDate(session, now) === today,
+  );
   const workoutsByDay = new Map<string, WorkoutGraph[]>();
   for (const workout of weekHistory) {
-    const key = sessionCalendarDate(workout.session);
+    const key = completedSessionDate(workout.session, now);
+    if (!key) continue;
     workoutsByDay.set(key, [...(workoutsByDay.get(key) ?? []), workout]);
   }
   if (records.active) {
@@ -143,6 +150,7 @@ export function deriveHomeData(
   return {
     ...records,
     today,
+    now: now.toISOString(),
     greeting:
       now.getHours() < 12
         ? 'Good morning,'

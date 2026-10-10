@@ -1,4 +1,5 @@
 import type { Program, ProgramDay, WorkoutSession } from './entities';
+import { completedSessionDate } from './completedSessionDate';
 import {
   addLocalCalendarDays,
   dateFromKey,
@@ -7,8 +8,16 @@ import {
   weekdayOf,
 } from './localCalendar';
 
-type Completion = Pick<WorkoutSession, 'status' | 'startedAt' | 'endedAt'>;
-export type StreakDayStatus = 'completed' | 'missed' | 'rest' | 'today' | 'future' | 'not-tracked';
+type Completion = Pick<WorkoutSession, 'status' | 'startedAt' | 'endedAt' | 'scheduledDate'>;
+export type StreakDayStatus =
+  | 'completed'
+  | 'missed'
+  | 'rest'
+  | 'today'
+  | 'future'
+  | 'not-tracked'
+  | 'unscheduled';
+export type ScheduleDayStatus = 'training' | 'rest' | 'unscheduled';
 
 // Match Home's dated-program convention. Undated/empty programs cannot establish
 // rest dates; do not infer rest merely from an absence of completed workouts.
@@ -40,6 +49,7 @@ export interface StreakDay {
   date: string;
   status: StreakDayStatus;
   isToday: boolean;
+  connectedForward: number;
 }
 export interface StreakStats {
   currentStreak: number;
@@ -50,20 +60,8 @@ export interface StreakStats {
   week: StreakDay[];
 }
 
-// Legacy completed records may lack endedAt; use the same fallback as Home.
-// A present but invalid endedAt is never silently replaced with startedAt.
 export function completionDate(session: Completion, now: Date): string | null {
-  if (session.status !== 'completed') return null;
-  const stamp = new Date(session.endedAt ?? session.startedAt);
-  const started = Date.parse(session.startedAt);
-  if (
-    !Number.isFinite(stamp.getTime()) ||
-    !Number.isFinite(started) ||
-    stamp.getTime() < started ||
-    stamp.getTime() > now.getTime()
-  )
-    return null;
-  return localDateKey(stamp);
+  return completedSessionDate(session, now);
 }
 
 export function calculateStreakStats(
@@ -71,15 +69,19 @@ export function calculateStreakStats(
   periodStart: string,
   now = new Date(),
   trainingWeekdays: readonly number[] | null = null,
-  scheduledRest?: (date: string) => boolean,
+  resolveScheduleDay?: (date: string) => ScheduleDayStatus,
 ): StreakStats {
   const scheduled = new Set(
     trainingWeekdays?.filter((day) => Number.isInteger(day) && day >= 0 && day <= 6),
   );
-  const isRest = (date: string) =>
-    scheduledRest
-      ? scheduledRest(date)
-      : scheduled.size > 0 && !scheduled.has(weekdayOf(dateFromKey(date)));
+  const scheduleDay = (date: string): ScheduleDayStatus =>
+    resolveScheduleDay
+      ? resolveScheduleDay(date)
+      : scheduled.size > 0
+        ? scheduled.has(weekdayOf(dateFromKey(date)))
+          ? 'training'
+          : 'rest'
+        : 'unscheduled';
   const dates = [
     ...new Set(
       sessions.flatMap((session) => {
@@ -98,7 +100,7 @@ export function calculateStreakStats(
     date = addLocalCalendarDays(date, -1)
   ) {
     if (completed.has(date)) currentStreak++;
-    else if (!isRest(date)) break;
+    else if (scheduleDay(date) !== 'rest') break;
   }
   let bestStreak = 0,
     run = 0,
@@ -111,7 +113,7 @@ export function calculateStreakStats(
         gap < date;
         gap = addLocalCalendarDays(gap, 1)
       ) {
-        if (!isRest(gap)) {
+        if (scheduleDay(gap) !== 'rest') {
           connected = false;
           break;
         }
@@ -128,7 +130,7 @@ export function calculateStreakStats(
       date < today;
       date = addLocalCalendarDays(date, 1)
     ) {
-      if (!completed.has(date) && !isRest(date)) missedDays++;
+      if (!completed.has(date) && date < today && scheduleDay(date) === 'training') missedDays++;
     }
   }
   const monday = localDateKey(weekStart(now));
@@ -139,14 +141,27 @@ export function calculateStreakStats(
       ? 'completed'
       : date < today && (!trackingStartDate || date < trackingStartDate)
         ? 'not-tracked'
-        : isRest(date)
+        : scheduleDay(date) === 'rest'
           ? 'rest'
           : date > today
             ? 'future'
             : isToday
               ? 'today'
-              : 'missed';
-    return { date, status, isToday };
+              : scheduleDay(date) === 'unscheduled'
+                ? 'unscheduled'
+                : 'missed';
+    let connectedForward = 0;
+    if (status === 'completed') {
+      for (let next = index + 1; next < 7; next++) {
+        const nextDate = addLocalCalendarDays(monday, next);
+        if (completed.has(nextDate)) {
+          connectedForward = next - index;
+          break;
+        }
+        if (scheduleDay(nextDate) !== 'rest') break;
+      }
+    }
+    return { date, status, isToday, connectedForward };
   });
   return {
     currentStreak,

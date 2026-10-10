@@ -166,6 +166,7 @@
 }
 .streak-day {
   position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -177,15 +178,34 @@
   line-height: var(--type-leading-label);
   color: var(--text-secondary);
 }
-.streak-day-connected .streak-day-circle::after {
+.streak-day-connected::after {
   content: '';
   position: absolute;
+  z-index: 0;
   left: calc(50% + 16px);
-  width: max(0px, calc(100% - 29px));
+  top: 50%;
+  width: calc(100% - 26px);
   height: 2px;
   background: color-mix(in srgb, var(--accent) 38%, transparent);
 }
+.streak-day-connected-2::after {
+  width: calc(200% - 23px);
+}
+.streak-day-connected-3::after {
+  width: calc(300% - 20px);
+}
+.streak-day-connected-4::after {
+  width: calc(400% - 17px);
+}
+.streak-day-connected-5::after {
+  width: calc(500% - 14px);
+}
+.streak-day-connected-6::after {
+  width: calc(600% - 11px);
+}
 .streak-day-circle {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;

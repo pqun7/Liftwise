@@ -182,7 +182,7 @@ export function SetLogger({
                                   Math.round(
                                     ((Number.isFinite(value) ? (value ?? 0) : 0) +
                                       direction * step) *
-                                      100,
+                                    100,
                                   ) / 100,
                                 ),
                               ),
@@ -204,7 +204,7 @@ export function SetLogger({
             <Button
               variant="primary"
               size="large"
-              className="workout-primary ui-button ui-button-primary ui-button-large workout-active-action"
+              className="workout-primary ui-button complete ui-button-large workout-active-action"
               disabled={busy || disabled}
               aria-pressed={false}
               onPointerDown={(event) => event.preventDefault()}

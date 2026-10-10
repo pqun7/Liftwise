@@ -7,12 +7,14 @@ import { ExerciseRepository } from '../src/lib/storage/repositories/exerciseRepo
 import { WorkoutRepository } from '../src/lib/storage/repositories/workoutRepository';
 import { listPrograms, saveProgramSchedule } from '../src/features/plan/programService';
 import { getWorkoutLanding } from '../src/features/workout/workoutService';
-import { planCalendar } from '../src/features/plan/scheduleData';
+import { monthlyCompletion, planCalendar } from '../src/features/plan/scheduleData';
+import { trainingCalendar } from '../src/domain/trainingCalendar';
 import { PlanPage } from '../src/features/plan/PlanPage';
 import { CalendarPage } from '../src/features/plan/CalendarPage';
 import { ProgramDetailPage } from '../src/features/plan/ProgramDetailPage';
 import { WorkoutPage } from '../src/features/workout/WorkoutPage';
 import { programSchema } from '../src/domain/validation';
+import { ProgressRepository } from '../src/features/progress/progressService';
 
 const now = new Date(2026, 9, 7, 12);
 afterEach(cleanupTestDatabases);
@@ -24,6 +26,10 @@ async function fixture(cycle = false) {
   const program = await programs.create({
     name: 'Strength',
     scheduleType: cycle ? 'cycle' : 'weekly',
+  });
+  await db.programs.update(program.id, {
+    createdAt: '2026-10-01T12:00:00.000Z',
+    updatedAt: '2026-10-01T12:00:00.000Z',
   });
   const day = await programs.addDay({
     programId: program.id,
@@ -84,7 +90,7 @@ it('derives scheduled, rest, missed and empty days using one date projection', a
   const { calendar } = planCalendar(await listPrograms(db, now));
   expect(calendar.getDayState('2026-10-07').status).toBe('scheduled');
   expect(calendar.getDayState('2026-10-08').status).toBe('rest');
-  expect(calendar.getDayState('2026-09-30').status).toBe('missed');
+  expect(calendar.getDayState('2026-09-30').status).toBe('unscheduled');
   const empty = await programs.addDay({ programId: program.id, name: 'Empty', weekday: 4 });
   expect(
     planCalendar(await listPrograms(db, now)).calendar.getDayState('2026-10-09'),
@@ -220,4 +226,145 @@ it('routes Plan to Workout without creating a session and keeps Program free of 
     'href',
     `/plan/${program.id}/days/${day.id}?mode=preview`,
   );
+});
+
+it('renders the monthly summary and keeps the Monday-first 42-cell calendar', async () => {
+  const { db } = await fixture();
+  const data = await listPrograms(db, now);
+  const streak = await new ProgressRepository(db).streak(now);
+  const router = createMemoryRouter(
+    [
+      {
+        path: '/plan/calendar',
+        element: <CalendarPage />,
+        loader: () => ({ ...data, streak }),
+      },
+    ],
+    { initialEntries: ['/plan/calendar'] },
+  );
+  render(<RouterProvider router={router} />);
+  expect(
+    await screen.findByRole('region', { name: 'Monthly workout streak summary' }),
+  ).toBeInTheDocument();
+  expect(screen.queryByText('This week')).not.toBeInTheDocument();
+  expect(document.querySelectorAll('.calendar-month-day')).toHaveLength(42);
+  expect(screen.getByRole('heading', { name: 'October 2026' })).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Previous month' })).toBeInTheDocument();
+  const today = screen.getByRole('link', {
+    name: 'Wednesday, October 7, Workout day, today',
+  });
+  expect(today).toHaveAttribute('href', '/plan/calendar/day/2026-10-07?month=2026-10');
+  expect(today).toHaveAttribute('aria-current', 'date');
+  expect(today).toHaveClass('streak-day-scheduled');
+  expect(today.querySelector('svg.lucide-dumbbell')).toBeInTheDocument();
+  const futureWorkout = screen.getByRole('link', {
+    name: 'Wednesday, October 14, Future workout',
+  });
+  expect(futureWorkout).toHaveClass('streak-day-future');
+  expect(futureWorkout.querySelector('svg.lucide-dumbbell')).toBeInTheDocument();
+  expect(today.querySelector('.calendar-month-current-star')).toBeInTheDocument();
+  expect(
+    document.querySelector('.calendar-legend-status.streak-day-scheduled svg.lucide-dumbbell'),
+  ).toBeInTheDocument();
+  expect(
+    document.querySelector('.calendar-legend-status.streak-day-active svg.lucide-play'),
+  ).toBeInTheDocument();
+  expect(
+    document.querySelector('.calendar-legend-status.streak-day-empty svg.lucide-list-x'),
+  ).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('link', { name: 'Previous month' }));
+  expect(await screen.findByRole('heading', { name: 'September 2026' })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('link', { name: 'Next month' }));
+  expect(await screen.findByRole('heading', { name: 'October 2026' })).toBeInTheDocument();
+  router.dispose();
+});
+
+it('calculates monthly adherence from eligible training dates and leaves today open', async () => {
+  const { db, program, day } = await fixture();
+  const graph = (await new ProgramRepository(db).get(program.id))!;
+  const trackedGraph = {
+    ...graph,
+    program: { ...graph.program, createdAt: '2026-09-01T12:00:00.000Z' },
+  };
+  const now = new Date(2026, 9, 7, 18);
+  const emptyCalendar = trainingCalendar(trackedGraph, [], now);
+  expect(monthlyCompletion('2026-10', emptyCalendar, trackedGraph)).toMatchObject({
+    percentage: 0,
+    completed: 0,
+    eligible: 0,
+  });
+
+  const completed = {
+    id: 'monthly-completed',
+    status: 'completed' as const,
+    startedAt: new Date(2026, 9, 7, 10).toISOString(),
+    endedAt: new Date(2026, 9, 7, 11).toISOString(),
+    scheduledDate: '2026-10-07',
+    programId: program.id,
+    programDayId: day.id,
+  } as import('../src/domain/entities').WorkoutSession;
+  const calendar = trainingCalendar(trackedGraph, [completed], now);
+  expect(monthlyCompletion('2026-10', calendar, trackedGraph)).toEqual({
+    percentage: 100,
+    completed: 1,
+    eligible: 1,
+  });
+  expect(monthlyCompletion('2026-11', calendar, trackedGraph).percentage).toBe(0);
+});
+
+it('does not track dates before a weekly program becomes effective', async () => {
+  const { db, program } = await fixture();
+  const graph = (await new ProgramRepository(db).get(program.id))!;
+  const trackedGraph = {
+    ...graph,
+    program: { ...graph.program, createdAt: '2026-10-04T12:00:00.000Z' },
+  };
+  const calendar = trainingCalendar(trackedGraph, [], new Date(2026, 9, 7, 18));
+
+  expect(calendar.getDayState('2026-10-01').status).toBe('unscheduled');
+  expect(calendar.getDayState('2026-10-02').status).toBe('unscheduled');
+  expect(calendar.getDayState('2026-10-03').status).toBe('unscheduled');
+  expect(calendar.getDayState('2026-10-07').status).toBe('scheduled');
+  expect(monthlyCompletion('2026-10', calendar, trackedGraph)).toMatchObject({
+    completed: 0,
+    eligible: 0,
+  });
+});
+
+it('connects consecutive completed workouts through rest days within each calendar week', async () => {
+  const { db, programs, workouts, program, day, exercise } = await fixture();
+  const friday = await programs.addDay({
+    programId: program.id,
+    name: 'Upper B',
+    weekday: 4,
+  });
+  await programs.addExercise({ programDayId: friday.id, exerciseId: exercise.id, targetSets: 1 });
+
+  const wednesdaySession = await workouts.startPlannedWorkout(
+    day.id,
+    new Date(2026, 9, 7, 8).toISOString(),
+  );
+  await workouts.finish(wednesdaySession.session.id, new Date(2026, 9, 7, 9));
+  const fridaySession = await workouts.startPlannedWorkout(
+    friday.id,
+    new Date(2026, 9, 9, 8).toISOString(),
+  );
+  await workouts.finish(fridaySession.session.id, new Date(2026, 9, 9, 9));
+
+  const data = await listPrograms(db, new Date(2026, 9, 10, 12));
+  render(
+    <RouterProvider
+      router={createMemoryRouter(
+        [{ path: '/plan/calendar', element: <CalendarPage />, loader: () => data }],
+        { initialEntries: ['/plan/calendar'] },
+      )}
+    />,
+  );
+
+  const wednesday = await screen.findByRole('link', {
+    name: 'Wednesday, October 7, Completed',
+  });
+  const fridayLink = screen.getByRole('link', { name: 'Friday, October 9, Completed' });
+  expect(wednesday).toHaveClass('streak-day-connected', 'streak-day-connected-2');
+  expect(fridayLink).not.toHaveClass('streak-day-connected');
 });

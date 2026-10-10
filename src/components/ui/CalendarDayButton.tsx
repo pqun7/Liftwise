@@ -1,8 +1,9 @@
-import { Check, Circle, Moon, X } from 'lucide-react';
+import { Check, Circle, Moon, Star, X } from 'lucide-react';
 
 export type CalendarDayStatus =
   | 'active'
   | 'completed'
+  | 'today'
   | 'scheduled'
   | 'rest'
   | 'future'
@@ -15,6 +16,8 @@ export function CalendarDayMarker({ status }: { status: CalendarDayStatus }) {
     <span className="calendar-day-marker" data-status={status} aria-hidden="true">
       {status === 'completed' ? (
         <Check size={14} />
+      ) : status === 'today' ? (
+        <Star size={14} />
       ) : status === 'rest' ? (
         <Moon size={14} />
       ) : status === 'missed' ? (

@@ -78,6 +78,10 @@ async function fixture() {
   const programs = new ProgramRepository(db),
     workouts = new WorkoutRepository(db);
   const program = await programs.create({ name: 'PPL' });
+  await db.programs.update(program.id, {
+    createdAt: '2026-09-01T12:00:00.000Z',
+    updatedAt: '2026-09-01T12:00:00.000Z',
+  });
   await programs.setActive(program.id);
   const exercise = await new ExerciseRepository(db).create({
     name: 'Squat',
