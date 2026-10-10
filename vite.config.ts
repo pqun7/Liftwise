@@ -18,7 +18,7 @@ export default defineConfig({
         short_name: 'Liftwise',
         description: 'A private, offline-first workout companion.',
         id: '/',
-        start_url: '/',
+        start_url: '/?app=1',
         scope: '/',
         display: 'standalone',
         orientation: 'portrait-primary',

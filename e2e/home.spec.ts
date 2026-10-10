@@ -43,7 +43,7 @@ test('Home adapts to local program, active workout and rest states with cached p
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
+  await page.goto('/?app=1');
   await expect(page.locator('[data-home-state=rest-day]')).toBeVisible();
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
   await dismissStatus(page);
@@ -69,7 +69,7 @@ test('Home adapts to local program, active workout and rest states with cached p
   await expect(
     page.getByRole('heading', { name: 'Barbell Bench Press', exact: true }),
   ).toBeVisible();
-  await page.goto('/');
+  await page.goto('/?app=1');
   await expect(page.locator('[data-home-state=scheduled]')).toBeVisible();
   await expect(page.locator('.home-hero')).toContainText('1 exercise · 3 planned sets');
   await dismissStatus(page);

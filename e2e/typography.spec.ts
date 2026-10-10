@@ -178,7 +178,7 @@ test('one local font family, shared header without wordmark, long names, stable 
     { exerciseId, secondName, programName },
   );
 
-  await page.goto('/');
+  await page.goto('/?app=1');
   await expect(page.getByRole('link', { name: '100 days streak', exact: true })).toBeVisible();
   await review(page, info, 'home', true);
   // Compare rendered glyph widths, not just computed font-weight or ready status.

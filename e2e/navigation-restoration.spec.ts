@@ -199,7 +199,7 @@ test('details Back restores workout overview, scroll and committed drafts; compl
     page.getByRole('link', { name: 'View Completed Workout', exact: true }),
   ).toBeVisible();
   await expect(page.getByRole('button', { name: 'Start Workout', exact: true })).toHaveCount(0);
-  await page.goto('/');
+  await page.goto('/?app=1');
   await expect(page.getByText('Completed today', { exact: true }).first()).toBeVisible();
   await page.setViewportSize({ width: 360, height: 780 });
   const today = page.locator('.calendar-day[aria-current="date"]');
@@ -244,7 +244,7 @@ test('library search and Home selected date survive child routes and tab switchi
   await page.getByRole('link', { name: /^View Movement 1/ }).click();
   await page.getByRole('button', { name: 'Exercise library', exact: true }).click();
   await expect(page.getByRole('searchbox', { name: 'Search exercises' })).toHaveValue('Movement 1');
-  await page.goto('/');
+  await page.goto('/?app=1');
   const other = page.locator('.home-week .calendar-day:not([aria-current="date"])').first();
   const label = await other.getAttribute('aria-label');
   await other.click();

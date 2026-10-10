@@ -97,7 +97,7 @@ test('all core training, charts, backup and CSV flows work with network disabled
     }
   });
   let started = Date.now();
-  await page.goto('/');
+  await page.goto('/?app=1');
   await expect(page.getByRole('heading', { name: /Welcome to Liftwise/i })).toBeVisible({
     timeout: 20_000,
   });

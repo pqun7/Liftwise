@@ -1,0 +1,104 @@
+@import 'tailwindcss';
+
+@font-face {
+  font-family: 'Installation Manrope';
+  src: url('../../assets/fonts/Manrope-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Installation Manrope';
+  src: url('../../assets/fonts/Manrope-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Installation Manrope';
+  src: url('../../assets/fonts/Manrope-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Installation Manrope';
+  src: url('../../assets/fonts/Manrope-800.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  html {
+    background: #001710;
+    color-scheme: dark;
+  }
+  body {
+    margin: 0;
+    min-width: 320px;
+  }
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+  :focus-visible {
+    outline: 2px solid #65f5d2;
+    outline-offset: 4px;
+  }
+}
+
+.installation-page {
+  font-family:
+    'Installation Manrope',
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  background:
+    radial-gradient(ellipse at 53% 8%, #073b2d7a, transparent 33%),
+    radial-gradient(ellipse at 45% 62%, #06302659, transparent 52%), #001710;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  -webkit-font-smoothing: antialiased;
+}
+
+.installation-steps::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  left: 40px;
+  top: 45px;
+  bottom: 130px;
+  border-left: 2px dashed #26c7a4;
+}
+
+.installation-skip {
+  position: fixed;
+  left: 16px;
+  top: -100px;
+  z-index: 50;
+}
+.installation-skip:focus {
+  top: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #002b20;
+}
+
+@media (min-width: 800px) {
+  .installation-hero {
+    min-height: 588px;
+  }
+  .installation-steps::before {
+    left: 42px;
+    bottom: 138px;
+  }
+}
+
+@media (max-width: 799px) {
+  .installation-steps::before {
+    display: none;
+  }
+}

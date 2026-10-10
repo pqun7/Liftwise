@@ -20,7 +20,7 @@ test('existing scheduling records open on launch and remain available offline', 
       external.push(request.url());
     }
   });
-  await page.goto('/');
+  await page.goto('/?app=1');
   await expect(page.locator('[data-home-state]')).toBeVisible();
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
   const records = await page.evaluate(async () => {

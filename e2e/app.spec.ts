@@ -8,7 +8,7 @@ async function dismissPwaStatus(page: import('@playwright/test').Page) {
 }
 
 test('loads the application shell and navigates across features', async ({ page, browserName }) => {
-  await page.goto('/');
+  await page.goto('/?app=1');
 
   const skipLink = page.getByRole('link', { name: 'Skip to content' });
   await expect(skipLink).toHaveCSS('clip-path', 'inset(50%)');
@@ -35,7 +35,7 @@ test('installs its app shell and serves routes offline', async ({
   context,
   browserName,
 }) => {
-  await page.goto('/');
+  await page.goto('/?app=1');
 
   const manifestHref = await page.locator('link[rel="manifest"]').getAttribute('href');
   expect(manifestHref).toBeTruthy();
