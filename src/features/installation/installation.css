@@ -67,8 +67,12 @@
 }
 
 .installation-phone {
-  /* Blend the source image's background edges without cropping its screen. */
-  mask-image: linear-gradient(to right, transparent, #000 4%, #000 96%, transparent);
+  border: 6px solid #0d1613;
+  border-radius: 36px;
+  box-shadow:
+    0 0 0 1px #35554a,
+    0 20px 60px #0005;
+  margin-block: 8px 24px;
 }
 
 .installation-skip {

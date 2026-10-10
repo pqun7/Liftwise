@@ -5,6 +5,7 @@ import {
   ChartNoAxesColumnIncreasing,
   Dumbbell,
   LockKeyhole,
+  Lock,
   Share,
   SquarePlus,
   UserRound,
@@ -16,13 +17,17 @@ import './installation.css';
 const githubUrl = 'https://github.com/pqun7/Liftwise';
 const appUrl = '/?app=1';
 
-/** Lossless viewports into the supplied reference: no recompression or invented UI. */
+/** Display original-resolution screenshots through a CSS viewport, without resampling. */
 function ReferenceImage({
+  src,
+  sourceSize,
   crop,
   alt,
   eager = false,
   className = '',
 }: {
+  src: string;
+  sourceSize: readonly [number, number];
   crop: readonly [number, number, number, number];
   alt: string;
   eager?: boolean;
@@ -35,20 +40,37 @@ function ReferenceImage({
   return (
     <div className={`relative overflow-hidden ${className}`} style={style}>
       <img
-        src="/installation/reference.png"
+        src={src}
         alt={alt}
-        width={850}
-        height={1850}
+        width={sourceSize[0]}
+        height={sourceSize[1]}
         loading={eager ? 'eager' : 'lazy'}
         fetchPriority={eager ? 'high' : 'auto'}
         decoding="async"
         className="absolute max-w-none"
         style={{
-          width: `${(850 / width) * 100}%`,
+          width: `${(sourceSize[0] / width) * 100}%`,
           left: `${(-x / width) * 100}%`,
           top: `${(-y / height) * 100}%`,
         }}
       />
+    </div>
+  );
+}
+
+function SafariAddressPreview() {
+  return (
+    <div
+      role="img"
+      aria-label="Illustration of the Safari address bar with the Liftwise URL and Share icon"
+      className="col-span-3 mx-auto flex aspect-[339/131] w-full max-w-[339px] flex-col justify-center gap-3 self-end rounded-2xl border border-[#164f43] bg-[#061a16] px-3 py-4"
+    >
+      <p className="text-xs font-semibold text-[#a9c8c7]">Safari</p>
+      <div className="flex min-h-12 items-center gap-2 rounded-xl border border-white/5 bg-[#263532] px-3 text-[13px] text-white">
+        <Lock size={13} className="shrink-0" aria-hidden="true" />
+        <span className="min-w-0 flex-1 break-all">{window.location.host}</span>
+        <Share size={23} className="shrink-0 text-[#d1e6e2]" aria-hidden="true" />
+      </div>
     </div>
   );
 }
@@ -90,28 +112,32 @@ const steps = [
         on your iPhone.
       </>
     ),
-    crop: [474, 878, 339, 131] as const,
+    src: null,
+    crop: [0, 0, 339, 131] as const,
     alt: 'Safari address bar showing the Liftwise website and the Share button.',
   },
   {
     title: 'Tap Share',
     icon: Share,
     description: <>Tap the Share icon in Safari.</>,
-    crop: [474, 1038, 339, 141] as const,
+    src: '/installation/safari-share.webp',
+    crop: [246, 900, 750, 490] as const,
     alt: 'Safari menu with Share highlighted.',
   },
   {
     title: 'Add to Home Screen',
     icon: SquarePlus,
     description: <>Choose Add to Home Screen.</>,
-    crop: [474, 1208, 339, 141] as const,
+    src: '/installation/safari-home-screen.webp',
+    crop: [48, 1700, 1083, 525] as const,
     alt: 'Safari menu with Add to Home Screen highlighted.',
   },
   {
     title: 'Tap Add & launch',
     icon: 'brand',
     description: <>Keep Open as Web App enabled, then tap Add.</>,
-    crop: [474, 1380, 339, 170] as const,
+    src: '/installation/safari-confirm.webp',
+    crop: [0, 180, 1179, 825] as const,
     alt: 'Add to Home Screen confirmation for Liftwise with Open as Web App enabled and the Add button.',
   },
 ];
@@ -232,9 +258,11 @@ export function InstallationPage() {
               </p>
             </div>
             <ReferenceImage
-              crop={[473, 106, 354, 600]}
+              src="/installation/recovery-dashboard.webp"
+              sourceSize={[851, 1847]}
+              crop={[0, 0, 851, 1847]}
               eager
-              alt="Liftwise on an iPhone: weekly training calendar, recovery day, Plan Workout button, and bottom navigation."
+              alt="Liftwise recovery dashboard: Recovery Day, Weekly Schedule, next workout, and bottom navigation."
               className="installation-phone mx-auto w-[min(78%,280px)] self-end md:w-full md:max-w-[354px]"
             />
           </section>
@@ -273,11 +301,17 @@ export function InstallationPage() {
                   <p className="col-span-3 min-h-[48px] text-[15px] leading-[1.6] text-[#a9c8c7] sm:text-base lg:min-h-[52px]">
                     {step.description}
                   </p>
-                  <ReferenceImage
-                    crop={step.crop}
-                    alt={step.alt}
-                    className="col-span-3 mx-auto w-full max-w-[339px] self-end rounded-2xl border border-[#164f43]"
-                  />
+                  {step.src ? (
+                    <ReferenceImage
+                      src={step.src}
+                      sourceSize={[1179, 2556]}
+                      crop={step.crop}
+                      alt={step.alt}
+                      className="col-span-3 mx-auto w-full max-w-[339px] self-end rounded-2xl border border-[#164f43]"
+                    />
+                  ) : (
+                    <SafariAddressPreview />
+                  )}
                 </li>
               ))}
             </ol>

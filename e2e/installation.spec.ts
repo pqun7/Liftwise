@@ -22,6 +22,18 @@ test('guide matches the reference structure and opens the real application', asy
         ),
     )
     .toBe(true);
+  expect(
+    await page
+      .locator('img')
+      .evaluateAll((images) =>
+        images.every(
+          (image) =>
+            image instanceof HTMLImageElement &&
+            image.naturalWidth >= image.getBoundingClientRect().width * 2,
+        ),
+      ),
+    'Screenshots must have enough source pixels for at least 2x display density',
+  ).toBe(true);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );
@@ -55,7 +67,7 @@ test('installed iPhone always bypasses the guide, even on its explicit URL', asy
   await expect(page.locator('[data-home-state]')).toBeVisible();
   await expect(page).toHaveURL(/\/\?app=1/);
   await expect(page.getByRole('heading', { name: 'Ready in 4 simple steps' })).toHaveCount(0);
-  expect(requestedAssets.some((url) => url.includes('/installation/reference.png'))).toBe(false);
+  expect(requestedAssets.some((url) => url.includes('/installation/'))).toBe(false);
 });
 
 test('desktop and iPhone layouts keep content readable and correctly ordered', async ({ page }) => {
