@@ -48,7 +48,10 @@ test('Home adapts to local program, active workout and rest states with cached p
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
   await dismissStatus(page);
   await auditHome(page);
-  await page.locator('.home-hero').getByRole('link', { name: 'Create Program' }).click();
+  await page
+    .locator('.home-primary-actions')
+    .getByRole('link', { name: /Create Program/ })
+    .click();
   await page.getByLabel('Program name').fill('Push Pull Legs');
   await saveEmptyProgram(page);
   await page.getByRole('link', { name: 'Add training day' }).click();

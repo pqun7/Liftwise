@@ -4,9 +4,66 @@
   --navigation-clearance: calc(var(--navigation-height) + var(--space-4));
 }
 .app-header {
-  padding-top: calc(var(--space-3) + var(--safe-top));
+  padding-top: calc(var(--space-5) + var(--safe-top));
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-5);
+}
+.app-header-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.app-brand-mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 48px;
+  height: 48px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  border-radius: 16px;
+  background: var(--surface-gradient);
+  color: var(--accent);
+  box-shadow: var(--shadow-card);
+}
+.app-brand-mark svg {
+  transform: rotate(45deg);
+}
+.app-brand-copy {
+  flex: 1;
+  min-width: 0;
+}
+.app-brand-copy h1,
+.app-brand-name {
+  display: block;
+  margin: 0;
+  font-size: 25px;
+  font-weight: var(--fw-bold);
+  line-height: 1.2;
+  letter-spacing: var(--type-tracking-tight);
+}
+.app-brand-copy p {
+  margin: 4px 0 0;
+  color: var(--secondary);
+  font-size: 10px;
+  line-height: 1.4;
+}
+.app-header .streak-badge-compact {
+  flex-direction: column;
+  width: 44px;
+  min-height: 44px;
+  padding: 4px;
+  gap: 1px;
+  border-color: color-mix(in srgb, var(--accent) 20%, transparent);
+  background: var(--surface);
+}
+.app-header .streak-badge-compact .streak-badge-copy {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.2;
+}
+.app-header .app-header-calendar {
+  border-radius: 50%;
+  border-color: color-mix(in srgb, var(--accent) 20%, transparent);
 }
 .app-header-title {
   display: flex;

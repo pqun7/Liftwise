@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Dumbbell } from 'lucide-react';
 import { StreakBadge } from '../ui/StreakBadge';
 
 export function AppHeader({
@@ -16,17 +17,30 @@ export function AppHeader({
 }) {
   return (
     <header className="app-header" aria-label="Liftwise application header">
-      {/* <div className="app-header-status">
-      </div> */}
-      <div className="app-header-title">
-        {title ? <h1 id={titleId}>{title}</h1> : null}
+      <div className="app-header-brand-row">
+        <span className="app-brand-mark" aria-hidden="true">
+          <Dumbbell size={28} />
+        </span>
+        <div className="app-brand-copy">
+          {titleId === 'home-title' ? (
+            <h1 id={titleId}>Liftwise</h1>
+          ) : (
+            <span className="app-brand-name">Liftwise</span>
+          )}
+          <p>Your gym. Your plan. On your device.</p>
+        </div>
         {showStreak || action ? (
           <div className="app-header-actions">
-            {showStreak ? <StreakBadge currentStreak={currentStreak} /> : null}
+            {showStreak ? <StreakBadge currentStreak={currentStreak} compact /> : null}
             {action}
           </div>
         ) : null}
       </div>
+      {title && titleId !== 'home-title' ? (
+        <div className="app-header-title">
+          <h1 id={titleId}>{title}</h1>
+        </div>
+      ) : null}
     </header>
   );
 }

@@ -1,7 +1,7 @@
 import { Button } from '../ui/Button';
 import { buttonClasses } from '../ui/controlStyles';
 import { Card } from '../ui/Card';
-import { ArrowRight, Dumbbell, Play } from 'lucide-react';
+import { ArrowRight, Leaf, Play, Sun } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import bench from '../../assets/images/workout-bench.webp';
 import rest from '../../assets/images/rest-day.webp';
@@ -34,11 +34,11 @@ export function WorkoutHero({
       as="article"
       padding="none"
       radius="hero"
-      className={`home-hero relative isolate min-h-[275px] overflow-hidden ${day ? '' : 'home-hero-rest'}`}
+      className={`home-hero relative isolate overflow-hidden ${day ? '' : 'home-hero-rest'}`}
       aria-labelledby="home-hero-title"
     >
       <img
-        src={day ? bench : rest}
+        src={completed ? rest : bench}
         alt=""
         className="home-hero-image"
         width="1672"
@@ -47,7 +47,8 @@ export function WorkoutHero({
       />
       <div className="home-hero-content">
         <div className="home-hero-heading">
-          <p className="home-kicker">
+          <p className={`home-kicker${!day && !completed ? ' home-recovery-kicker' : ''}`}>
+            {!day && !completed ? <Sun size={22} aria-hidden="true" /> : null}
             {day
               ? data.calendar.dated
                 ? isToday
@@ -58,7 +59,9 @@ export function WorkoutHero({
                 ? isToday
                   ? 'Completed today'
                   : 'Completed workout'
-                : 'Time to recharge'}
+                : isToday
+                  ? 'Today · Rest Day'
+                  : 'Selected day · Rest Day'}
           </p>
           {day && data.activeProgramId ? (
             <Link className="home-text-link" to={`/plan/${data.activeProgramId}`}>
@@ -72,7 +75,7 @@ export function WorkoutHero({
             : completed
               ? 'Training complete'
               : isToday
-                ? 'No workout today'
+                ? 'Recovery Day'
                 : 'No workout scheduled'}
         </h2>
         <p className="home-hero-meta">
@@ -80,7 +83,7 @@ export function WorkoutHero({
             ? programDayMetadata(day)
             : completed
               ? `${completed.session.name ?? 'Workout'} · Saved locally`
-              : 'Take a rest day or start an optional workout.'}
+              : 'No workout scheduled. Focus on recovery and come back stronger.'}
         </p>
         {day ? (
           <div className="home-tags">
@@ -97,7 +100,7 @@ export function WorkoutHero({
         <div className="home-hero-actions">
           {day && !isToday ? (
             <Link
-              className={buttonClasses('primary', 'flex-1', 'large')}
+              className={buttonClasses('primary', '', 'large')}
               to={`/plan/${day.day.programId}/days/${day.day.id}`}
             >
               View Scheduled Workout
@@ -116,19 +119,16 @@ export function WorkoutHero({
             </Button>
           ) : completed ? (
             <Link
-              className={buttonClasses('primary', 'flex-1', 'large')}
+              className={buttonClasses('primary', '', 'large')}
               to={`/workout/${completed.session.id}?details=1`}
             >
               View Completed Workout
             </Link>
           ) : (
-            <Link
-              className={buttonClasses('primary', 'flex-1', 'large')}
-              to="/exercises"
-              aria-label="Browse Exercises — Exercise Library"
-            >
-              <Dumbbell size={18} aria-hidden="true" />
-              Browse Exercises
+            <Link className={buttonClasses('primary', '', 'large')} to="/exercises?q=stretch">
+              <Leaf size={18} aria-hidden="true" />
+              Recovery Tips
+              <ArrowRight size={18} aria-hidden="true" />
             </Link>
           )}
           {day ? (
@@ -139,11 +139,7 @@ export function WorkoutHero({
             >
               <ArrowRight size={22} aria-hidden="true" />
             </Link>
-          ) : (
-            <Link className={buttonClasses('secondary')} to="/plan/new">
-              Create Program
-            </Link>
-          )}
+          ) : null}
         </div>
       </div>
     </Card>

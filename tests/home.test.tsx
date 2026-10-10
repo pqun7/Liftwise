@@ -68,7 +68,7 @@ async function renderHome(data: Awaited<ReturnType<typeof getHomeData>>) {
       ])}
     />,
   );
-  await screen.findByRole('heading', { name: /Welcome to Liftwise/ });
+  await screen.findByRole('heading', { name: /Liftwise/ });
 }
 
 describe('Home derived state and local data', () => {

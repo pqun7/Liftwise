@@ -107,11 +107,11 @@ export function AppShell() {
             currentStreak={pathname === '/settings' ? undefined : streak?.currentStreak}
             showStreak={pathname !== '/settings'}
             action={
-              pathname === '/plan' ? (
+              home || pathname === '/plan' ? (
                 <Link
                   to="/plan/calendar"
                   aria-label="Open calendar"
-                  className={iconButtonClasses()}
+                  className={`${iconButtonClasses()} app-header-calendar`}
                 >
                   <CalendarDays size={22} aria-hidden="true" />
                 </Link>

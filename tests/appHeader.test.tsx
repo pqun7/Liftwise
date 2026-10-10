@@ -12,7 +12,7 @@ describe('shared application header', () => {
       </MemoryRouter>,
     );
     expect(screen.getByRole('heading', { name: title })).toHaveAttribute('id', 'page-title');
-    expect(screen.getByRole('link', { name: '3 days streak' })).toHaveTextContent('3 days');
+    expect(screen.getByRole('link', { name: '3 days streak' })).toHaveTextContent('3');
     expect(screen.queryByRole('img', { name: 'Liftwise' })).not.toBeInTheDocument();
   });
   it('shows an intentional zero state without changing its accessible label', () => {
@@ -21,7 +21,7 @@ describe('shared application header', () => {
         <AppHeader currentStreak={0} />
       </MemoryRouter>,
     );
-    expect(screen.getByRole('link', { name: 'Workout streak' })).toHaveTextContent('0 days');
+    expect(screen.getByRole('link', { name: 'Workout streak' })).toHaveTextContent('0');
     expect(screen.queryByRole('heading')).not.toBeInTheDocument();
   });
   it('does not invent a zero streak when the owning loader has no snapshot', () => {
@@ -30,9 +30,7 @@ describe('shared application header', () => {
         <AppHeader title="Plan" />
       </MemoryRouter>,
     );
-    expect(screen.getByRole('link', { name: 'Workout streak unavailable' })).toHaveTextContent(
-      'Unavailable',
-    );
+    expect(screen.getByRole('link', { name: 'Workout streak unavailable' })).toHaveTextContent('—');
     expect(screen.queryByText('0 days')).not.toBeInTheDocument();
   });
 });

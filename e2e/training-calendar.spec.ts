@@ -11,7 +11,7 @@ for (const timezoneId of ['Africa/Cairo', 'America/Los_Angeles']) {
     }) => {
       await page.clock.install({ time: new Date('2026-10-04T12:00:00Z') });
       await page.goto('/?app=1');
-      await expect(page.getByRole('heading', { name: 'No workout today' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Recovery Day' })).toBeVisible();
       await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
       await page.evaluate(async () => {
         const request = indexedDB.open('liftwise');
@@ -209,7 +209,7 @@ for (const timezoneId of ['Africa/Cairo', 'America/Los_Angeles']) {
     test('uses local midnight and calendar days through DST changes', async ({ page }) => {
       await page.clock.install({ time: new Date('2026-10-04T12:00:00Z') });
       await page.goto('/?app=1');
-      await expect(page.getByRole('heading', { name: 'Welcome to Liftwise' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Liftwise' })).toBeVisible();
       // Cairo's early morning is still Saturday UTC; LA's late evening is Monday UTC.
       const boundary = await page.evaluate(
         (zone) => new Date(2026, 9, 4, zone === 'Africa/Cairo' ? 0 : 23, 5).getTime(),

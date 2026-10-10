@@ -23,7 +23,7 @@
 }
 
 .home-page .lucide-dumbbell {
-  transform: rotate(-45deg);
+  transform: rotate(45deg);
 }
 
 .home-page h2 {
@@ -98,7 +98,7 @@
   overflow: hidden;
   border-radius: var(--radius-elevated);
   border-color: color-mix(in srgb, var(--accent) 21%, transparent);
-  min-height: 275px;
+  min-height: 246px;
 }
 
 .home-hero-image {
@@ -154,16 +154,16 @@
   font-size: var(--type-size-display);
   line-height: var(--type-leading-heading);
   font-weight: var(--fw-bold);
-  max-width: 90%;
+  max-width: 100%;
   overflow-wrap: anywhere;
   letter-spacing: var(--type-tracking-tight);
 }
 
 .home-hero-meta {
   color: var(--text-secondary);
-  max-width: 26ch;
-  font-size: var(--type-size-card);
-  line-height: var(--type-leading-heading);
+  max-width: 24ch;
+  font-size: var(--type-size-body);
+  line-height: var(--type-leading-body);
   letter-spacing: var(--type-tracking-tight);
 }
 
@@ -196,7 +196,7 @@
 
 .home-hero-actions {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   gap: 10px;
   margin-top: auto;
   padding-top: 10px;
@@ -220,11 +220,157 @@
 }
 
 .home-hero-rest {
-  min-height: 200px;
+  min-height: 238px;
 }
 
 .home-hero-rest h2 {
-  font-size: var(--type-size-metric-md);
+  font-size: clamp(26px, 7.2vw, 30px);
+}
+
+.home-hero-actions .ui-button {
+  min-height: 44px;
+  padding: 11px 16px;
+  font-size: 14px;
+  line-height: 1.4;
+  border-radius: 999px;
+}
+.home-hero-rest .home-hero-actions .ui-button {
+  flex: 0 1 auto;
+}
+.home-recovery-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--secondary);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 14px;
+  font-weight: var(--fw-medium);
+}
+.home-recovery-kicker svg {
+  color: var(--accent);
+}
+.home-schedule {
+  padding: 16px 12px 12px;
+  background: var(--surface-gradient);
+  border-color: color-mix(in srgb, var(--accent) 16%, transparent);
+  border-radius: var(--radius-elevated);
+}
+.home-schedule-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 12px;
+  padding-inline: 4px;
+}
+.home-schedule-heading > svg {
+  color: var(--accent);
+}
+.home-schedule-heading h2 {
+  flex: 1;
+  font-size: 17px;
+}
+.home-schedule-heading a {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 44px;
+  color: var(--secondary);
+  font-size: 12px;
+}
+.home-schedule .home-week-scroll {
+  margin-inline: 0;
+}
+.home-schedule .home-week {
+  min-width: 308px;
+}
+.home-page .home-schedule .calendar-day[data-status] {
+  min-height: 84px;
+  gap: 10px;
+  font-size: 12px;
+}
+.home-schedule .calendar-day small {
+  font-size: 10px;
+}
+.home-next-workout {
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr) 48px;
+  align-items: center;
+  gap: 12px;
+  padding: 18px;
+  background: var(--surface-gradient);
+  border-color: color-mix(in srgb, var(--accent) 16%, transparent);
+  border-radius: var(--radius-elevated);
+}
+.home-next-copy {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+.home-next-copy .home-kicker {
+  font-size: 10px;
+  color: var(--secondary);
+  letter-spacing: 2px;
+}
+.home-next-copy strong {
+  font-size: 23px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.home-next-arrow {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 18px;
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+.home-next-meta {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  color: var(--secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.home-primary-actions .home-small-card {
+  min-height: 146px;
+  align-content: start;
+  gap: 10px;
+  background: var(--surface-gradient);
+  border-color: color-mix(in srgb, var(--accent) 16%, transparent);
+  border-radius: var(--radius-elevated);
+}
+.home-primary-actions .home-tile-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 13px;
+}
+.home-primary-actions .home-small-card h2 {
+  font-size: 14px;
+  line-height: 1.4;
+}
+.home-primary-actions .home-small-card > span:last-child {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 359px) {
+  .home-schedule {
+    padding-inline: 8px;
+  }
+  .home-schedule-heading h2 {
+    font-size: 15px;
+  }
+  .home-schedule-heading a {
+    font-size: 11px;
+  }
+  .home-hero-content {
+    padding: 16px;
+  }
 }
 
 .home-hero-rest .home-secondary {

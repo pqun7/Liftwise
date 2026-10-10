@@ -54,9 +54,7 @@ describe('Liftwise app shell', () => {
   it('renders the home screen and primary navigation', async () => {
     renderRoute();
 
-    expect(
-      await screen.findByRole('heading', { name: /welcome to liftwise/i }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Liftwise' })).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: /primary/i })).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: /primary/i }).querySelectorAll('a')).toHaveLength(
       5,

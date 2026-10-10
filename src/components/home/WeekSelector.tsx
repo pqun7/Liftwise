@@ -22,7 +22,7 @@ export function WeekSelector({
         {week.map((day) => {
           const state = calendar?.getDayState(day.key);
           const training = !!state?.entry && state.entry.day.kind !== 'recovery';
-          const workoutLabel = training ? state.entry!.day.name : calendar?.dated ? 'Rest' : '�';
+          const workoutLabel = training ? state.entry!.day.name : calendar?.dated ? 'Rest' : '—';
           const status = day.completed
             ? 'completed'
             : day.status === 'no-program' || day.status === 'unscheduled'
