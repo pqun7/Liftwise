@@ -14,7 +14,7 @@ test('reference header and home cards fit iPhone widths with accessible touch ta
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
-    const brand = await page.locator('.app-brand-copy').boundingBox();
+    const brand = await page.locator('#home-title').boundingBox();
     const actions = await page.locator('.app-header-actions').boundingBox();
     expect(brand!.x + brand!.width).toBeLessThanOrEqual(actions!.x);
     for (const target of await page
@@ -32,8 +32,17 @@ test('reference header and home cards fit iPhone widths with accessible touch ta
     }
   }
   await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('.streak-badge')).toHaveText('0 days');
+  await expect(page.locator('.app-brand-mark img')).toHaveJSProperty('naturalWidth', 192);
+  const mark = await page.locator('.app-brand-mark').boundingBox();
+  const controls = await page.locator('.app-header-actions').boundingBox();
+  expect(Math.abs(mark!.y + mark!.height / 2 - controls!.y - controls!.height / 2)).toBeLessThan(1);
+  const flame = await page.locator('.streak-badge svg').boundingBox();
+  const streakCopy = await page.locator('.streak-badge-copy').boundingBox();
+  expect(streakCopy!.x).toBeGreaterThan(flame!.x + flame!.width);
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
   if (await dismiss.isVisible()) await dismiss.click();
+  await page.locator('.app-header').screenshot({ path: testInfo.outputPath('header-iphone.png') });
   await page.screenshot({ path: testInfo.outputPath('home-reference.png'), fullPage: true });
   await page.getByRole('link', { name: 'Open calendar' }).click();
   await expect(page).toHaveURL(/\/plan\/calendar/);

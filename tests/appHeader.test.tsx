@@ -4,6 +4,18 @@ import { describe, expect, it } from 'vitest';
 import { AppHeader } from '../src/components/layout/AppHeader';
 
 describe('shared application header', () => {
+  it('uses the supplied brand artwork and one page heading on Home', () => {
+    const { container } = render(
+      <MemoryRouter>
+        <AppHeader brandAsTitle title="Liftwise" titleId="home-title" currentStreak={1} />
+      </MemoryRouter>,
+    );
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(screen.getByRole('heading', { name: 'Liftwise' })).toHaveAttribute('id', 'home-title');
+    expect(container.querySelector('.app-brand-mark img')).toHaveAttribute('alt', '');
+    expect(container.querySelector('.app-brand-mark img')).toHaveAttribute('width', '192');
+    expect(screen.getByRole('link', { name: '1 day streak' })).toHaveTextContent('1 day');
+  });
   it('retains a complete long title and accessible streak label', () => {
     const title = 'A long translated training title with plenty of context';
     render(
@@ -12,7 +24,7 @@ describe('shared application header', () => {
       </MemoryRouter>,
     );
     expect(screen.getByRole('heading', { name: title })).toHaveAttribute('id', 'page-title');
-    expect(screen.getByRole('link', { name: '3 days streak' })).toHaveTextContent('3');
+    expect(screen.getByRole('link', { name: '3 days streak' })).toHaveTextContent('3 days');
     expect(screen.queryByRole('img', { name: 'Liftwise' })).not.toBeInTheDocument();
   });
   it('shows an intentional zero state without changing its accessible label', () => {
@@ -21,7 +33,7 @@ describe('shared application header', () => {
         <AppHeader currentStreak={0} />
       </MemoryRouter>,
     );
-    expect(screen.getByRole('link', { name: 'Workout streak' })).toHaveTextContent('0');
+    expect(screen.getByRole('link', { name: 'Workout streak' })).toHaveTextContent('0 days');
     expect(screen.queryByRole('heading')).not.toBeInTheDocument();
   });
   it('does not invent a zero streak when the owning loader has no snapshot', () => {
@@ -30,7 +42,9 @@ describe('shared application header', () => {
         <AppHeader title="Plan" />
       </MemoryRouter>,
     );
-    expect(screen.getByRole('link', { name: 'Workout streak unavailable' })).toHaveTextContent('—');
+    expect(screen.getByRole('link', { name: 'Workout streak unavailable' })).toHaveTextContent(
+      'Unavailable',
+    );
     expect(screen.queryByText('0 days')).not.toBeInTheDocument();
   });
 });

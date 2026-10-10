@@ -148,7 +148,9 @@ test.describe('local calendar streak lifecycle', () => {
     await seedCompletions(page, ['2026-10-08']);
     await page.goto('/progress');
     await expect(page.locator('.streak-current strong')).toHaveText('3');
-    await expect(page.getByRole('link', { name: '3 days streak', exact: true })).toHaveText('3');
+    await expect(page.getByRole('link', { name: '3 days streak', exact: true })).toHaveText(
+      '3 days',
+    );
     await expect(page.locator('.streak-day-completed')).toHaveCount(3);
     await expect(page.locator('.streak-day-connected')).toHaveCount(1);
     await expect(page.locator('.streak-day-completed[aria-current="date"]')).toHaveAccessibleName(
@@ -213,7 +215,7 @@ test.describe('local calendar streak lifecycle', () => {
     await expect(page.locator('.streak-current strong')).toHaveText('0');
     await expect(page.locator('.streak-best strong')).toHaveText('18');
     await expect(page.locator('.streak-missed strong')).toHaveText('2');
-    await expect(page.locator('.streak-badge-copy')).toHaveText('0');
+    await expect(page.locator('.streak-badge-copy')).toHaveText('0 days');
   });
 
   test('scheduled rest is blue, preserves the streak, and never counts as missed', async ({

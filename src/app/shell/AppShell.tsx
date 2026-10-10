@@ -102,6 +102,7 @@ export function AppShell() {
         {!focused ? <SessionReturnBar /> : null}
         {!focused ? (
           <AppHeader
+            brandAsTitle={home}
             title={page?.[0]}
             titleId={page?.[1]}
             currentStreak={pathname === '/settings' ? undefined : streak?.currentStreak}

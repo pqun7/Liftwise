@@ -72,7 +72,9 @@ test('one app header and navigation across the complete iPhone viewport matrix',
     if (route === '/settings')
       await expect(page.getByRole('link', { name: 'Workout streak', exact: true })).toHaveCount(0);
     else
-      await expect(page.getByRole('link', { name: 'Workout streak', exact: true })).toHaveText('0');
+      await expect(page.getByRole('link', { name: 'Workout streak', exact: true })).toHaveText(
+        '0 days',
+      );
     for (const [width, height] of viewports) {
       await page.setViewportSize({ width: width!, height: height! });
       await geometry(page);
@@ -232,7 +234,9 @@ test('shared shell remains available offline with the existing standalone manife
     if (path === '/settings')
       await expect(page.getByRole('link', { name: 'Workout streak', exact: true })).toHaveCount(0);
     else
-      await expect(page.getByRole('link', { name: 'Workout streak', exact: true })).toHaveText('0');
+      await expect(page.getByRole('link', { name: 'Workout streak', exact: true })).toHaveText(
+        '0 days',
+      );
   }
   await setOffline(context, browserName, false);
 });

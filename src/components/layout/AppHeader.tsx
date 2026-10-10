@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Dumbbell } from 'lucide-react';
+import brandIcon from '../../assets/images/liftwise-brand.webp';
 import { StreakBadge } from '../ui/StreakBadge';
 
 export function AppHeader({
@@ -8,21 +8,23 @@ export function AppHeader({
   currentStreak,
   action,
   showStreak = true,
+  brandAsTitle = false,
 }: {
   title?: string | undefined;
   titleId?: string | undefined;
   currentStreak?: number | undefined;
   action?: ReactNode;
   showStreak?: boolean;
+  brandAsTitle?: boolean;
 }) {
   return (
     <header className="app-header" aria-label="Liftwise application header">
       <div className="app-header-brand-row">
         <span className="app-brand-mark" aria-hidden="true">
-          <Dumbbell size={28} />
+          <img src={brandIcon} alt="" width={192} height={192} />
         </span>
         <div className="app-brand-copy">
-          {titleId === 'home-title' ? (
+          {brandAsTitle ? (
             <h1 id={titleId}>Liftwise</h1>
           ) : (
             <span className="app-brand-name">Liftwise</span>
@@ -31,12 +33,12 @@ export function AppHeader({
         </div>
         {showStreak || action ? (
           <div className="app-header-actions">
-            {showStreak ? <StreakBadge currentStreak={currentStreak} compact /> : null}
+            {showStreak ? <StreakBadge currentStreak={currentStreak} /> : null}
             {action}
           </div>
         ) : null}
       </div>
-      {title && titleId !== 'home-title' ? (
+      {title && !brandAsTitle ? (
         <div className="app-header-title">
           <h1 id={titleId}>{title}</h1>
         </div>

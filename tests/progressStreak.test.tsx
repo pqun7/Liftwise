@@ -73,7 +73,7 @@ describe('persisted streak data and route rendering', () => {
       { initialEntries: ['/progress'] },
     );
     render(<RouterProvider router={router} />);
-    expect(await screen.findByRole('link', { name: 'Workout streak' })).toHaveTextContent('0');
+    expect(await screen.findByRole('link', { name: 'Workout streak' })).toHaveTextContent('0 days');
     expect(history).toHaveBeenCalledTimes(1);
     const session = await workouts.createSession();
     await workouts.finish(session.id);
@@ -218,8 +218,8 @@ describe('persisted streak data and route rendering', () => {
     render(<RouterProvider router={router} />);
     expect(
       await screen.findByRole('link', { name: 'Workout streak unavailable' }),
-    ).toHaveTextContent('—');
-    expect(screen.queryByText('0')).not.toBeInTheDocument();
+    ).toHaveTextContent('Unavailable');
+    expect(screen.queryByText('0 days')).not.toBeInTheDocument();
     router.dispose();
   });
   it('revalidates an open screen at local midnight without a refresh', async () => {

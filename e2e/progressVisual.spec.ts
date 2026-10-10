@@ -123,7 +123,7 @@ test('progress screens retain compact layouts and real interactions at mobile wi
           expect(box!.height).toBeGreaterThanOrEqual(44);
           expect(box!.width).toBeGreaterThanOrEqual(44);
         }
-        await expect(page.locator('.streak-badge-copy')).toHaveText('1');
+        await expect(page.locator('.streak-badge-copy')).toHaveText('1 day');
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
         width,
