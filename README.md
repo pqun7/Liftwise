@@ -25,7 +25,7 @@ A personal fitness planner for building workout programs, organizing exercises, 
 
 ## Install on iPhone
 
-1. Open [Liftwise](https://liftwise-psi.vercel.app/) in **Safari** on your iPhone.
+1. Open [Liftwise](https://liftwise-psi.vercel.app/?app=1) in **Safari** on your iPhone.
 2. Tap **Share** → **Add to Home Screen**.
 3. Keep the name as **Liftwise**, then tap **Add**.
 4. Launch Liftwise from the Home Screen and stay online during the first launch so required files can load.
